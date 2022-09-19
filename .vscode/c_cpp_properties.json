@@ -1,0 +1,59 @@
+{
+    "configurations": [
+        {
+            "name": "Arduino",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/hardware/mbed_nano/3.1.1/cores/arduino/mbed/targets/TARGET_RASPBERRYPI/TARGET_RP2040/**",
+                "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/hardware/mbed_nano/3.1.1/cores/arduino/mbed/targets/TARGET_RASPBERRYPI/**",
+                "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/hardware/mbed_nano/3.1.1/variants/NANO_RP2040_CONNECT/**",
+                "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/hardware/mbed_nano/3.1.1/libraries/**",
+                "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/hardware/mbed_nano/3.1.1/cores/arduino/*",                
+                "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/hardware/mbed_nano/3.1.1/cores/arduino/mbed/cmsis/CMSIS_5/CMSIS/TARGET_CORTEX_M/Include/**",
+                "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/hardware/mbed_nano/3.1.1/cores/arduino/mbed/cmsis/CMSIS_5/CMSIS/RTOS2/**",                
+                "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/hardware/mbed_nano/3.1.1/cores/arduino/mbed/platform/include/**",
+                "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/hardware/mbed_nano/3.1.1/cores/arduino/mbed/platform/cxxsupport/**",
+                "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/hardware/mbed_nano/3.1.1/cores/arduino/mbed/hal/include/**",
+                "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/hardware/mbed_nano/3.1.1/cores/arduino/mbed/connectivity/mbedtls/include/**",
+                "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/hardware/mbed_nano/3.1.1/cores/arduino/mbed/connectivity/mbedtls/**",
+                "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/hardware/mbed_nano/3.1.1/cores/arduino/mbed/connectivity/netsocket/include/**",
+                "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/hardware/mbed_nano/3.1.1/cores/arduino/mbed/connectivity/netsocket/include/netsocket/**",
+                "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/hardware/mbed_nano/3.1.1/cores/arduino/mbed/storage/blockdevice/COMPONENT_FLASHIAP/include/FlashIAP/**",
+                "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/hardware/mbed_nano/3.1.1/cores/arduino/mbed/storage/blockdevice/include/blockdevice/**",
+                "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/hardware/mbed_nano/3.1.1/cores/arduino/mbed/storage/blockdevice/include/**",
+                "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/hardware/mbed_nano/3.1.1/cores/arduino/mbed/storage/filesystem/littlefs/**",
+                "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/hardware/mbed_nano/3.1.1/cores/arduino/mbed/storage/filesystem/littlefs/include/**",
+                "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/hardware/mbed_nano/3.1.1/cores/arduino/mbed/storage/filesystem/include/**",
+                "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/hardware/mbed_nano/3.1.1/cores/arduino/mbed/drivers/include/**",
+                "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/hardware/mbed_nano/3.1.1/cores/arduino/mbed/rtos/include/**",
+                "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/hardware/mbed_nano/3.1.1/cores/arduino/mbed/cmsis/device/rtos/include/**",
+                "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/hardware/mbed_nano/3.1.1/cores/arduino/mbed/cmsis/device/**",                
+                "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/hardware/mbed_nano/3.1.1/cores/arduino/mbed/events/**",
+                "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/hardware/mbed_nano/3.1.1/cores/arduino/mbed/events/include/**",                                
+                "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/arm-none-eabi/include/**",
+                "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/hardware/mbed_nano/3.1.1/cores/arduino/api/deprecated/**",
+                "${workspaceFolder}/../libraries/Adafruit_SH110X/**",
+                "${workspaceFolder}/../libraries/LittleFS_Mbed_RP2040/src/**",
+                "${workspaceFolder}/../libraries/**"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE",
+                "ARDUINO=10607",                
+                "ARDUINO_NANO_RP2040_CONNECT",
+                "ARDUINO_ARCH_RP2040",
+                "USE_ARDUINO_PINOUT",
+                "ARDUINO_ARCH_MBED_NANO",
+                "ARDUINO_ARCH_MBED",
+                "_DEFAULT_SOURCE"                
+            ],
+            "windowsSdkVersion": "10.0.19041.0",
+            "compilerPath": "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/arm-none-eabi-gcc.exe",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "linux-gcc-arm"
+        }
+    ],
+    "version": 4
+}
