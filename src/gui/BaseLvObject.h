@@ -15,6 +15,7 @@ protected:
     /// This is the LV instance of the encapulated functionality of this classes instance
     /// </summary>
     lv_obj_t* this_obj = NULL;
+
 public:
     /// <summary>
     /// This Creates the instance of the Lv Objects associated with the instance and sub components associated with it
@@ -26,7 +27,7 @@ public:
     /// <summary>
     /// This means the object and any sub objects should set any groups to be in focus at this point
     /// </summary>
-    virtual void focusLvObj() = 0;
+    virtual void focusLvObj(BaseLvObject* defocusLvObj = NULL) = 0;
 
     /// <summary>
     /// Returns the LV object instance to represent this class instance

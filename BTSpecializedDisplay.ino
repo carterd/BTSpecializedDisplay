@@ -12,8 +12,8 @@
 #include <Utilities/Adafruit_To_LvGL_Font.h>
 
 #include "LedError.h"
-#include "LvglGui.h"
-#include "BluetoothMaster.h"
+#include "src/LvglGui.h"
+#include "src/dev/BluetoothBikeController.h"
 
 static ButtonEncoder encoder(16, 14, 15);
 static Adafruit_SH1107 display(64, 128, &Wire, 8);
@@ -31,7 +31,7 @@ lv_font_t myAdaFont = {};
  * @brief Statics kept around
  * 
  */
-BluetoothMaster bluetoothMaster;
+BluetoothBikeController bluetoothBikeController;
 ConfigStore configStore;
 
 void setup() {
@@ -57,12 +57,12 @@ void setup() {
   lv_theme_t* binary_theme = lv_theme_binary_init(displayGlue.getLvDisplay(), true, &myAdaFont);
   lv_disp_set_rotation(NULL, LV_DISP_ROT_180);
   lv_disp_set_theme(display, binary_theme);
-  lvgl_setup(&configStore, &bluetoothMaster, display, indev);
+  lvgl_setup(&configStore, &bluetoothBikeController, display, indev);
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
   lv_task_handler(); // Call LittleVGL task handler periodically
-  bluetoothMaster.checkForChange();
+  bluetoothBikeController.checkForChange();
   delay(20);
 }

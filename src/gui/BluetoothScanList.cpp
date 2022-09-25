@@ -24,14 +24,15 @@ static void refresh_cb(lv_event_t* event) {
 	((BluetoothScanList*)(event->user_data))->refreshCB(event);
 }
 
-BluetoothScanList::BluetoothScanList(BluetoothMaster* bluetoothMaster, ConfigStore* configStore, lv_indev_t* indev) : BaseLvObject()
+BluetoothScanList::BluetoothScanList(BluetoothBikeController* bluetoothController, ConfigStore* configStore, lv_indev_t* indev) : BaseLvObject()
 {
 	this->indev = indev;
-	this->bluetoothMaster = bluetoothMaster;
+	this->bluetoothController = bluetoothController;
 	this->configStore = configStore;
 	this->group = lv_group_create();
 	lv_group_set_wrap(this->group, false);
 	this->scanning = false;
+	this->defocusLvObj = NULL;
 }
 
 lv_obj_t* BluetoothScanList::createLvObj(lv_obj_t* parent)
@@ -79,8 +80,9 @@ lv_obj_t* BluetoothScanList::createLvObj(lv_obj_t* parent)
 	return this->this_obj;
 }
 
-void BluetoothScanList::focusLvObj()
+void BluetoothScanList::focusLvObj(BaseLvObject* defocusLvObj)
 {	
+	this->defocusLvObj = defocusLvObj;
 	lv_indev_set_group(this->indev, this->group);
 
 	showButtonLabels();
@@ -90,9 +92,9 @@ void BluetoothScanList::focusLvObj()
 
 void BluetoothScanList::startBTScan()
 {
-	if (this->bluetoothMaster) {
-		this->bluetoothMaster->setListenerLvObj(this->this_obj);
-		this->bluetoothMaster->startScan();		
+	if (this->bluetoothController) {
+		this->bluetoothController->setListenerLvObj(this->this_obj);
+		this->bluetoothController->startScan();
 	}
 	lv_label_set_long_mode(this->scan_anim_obj, LV_LABEL_LONG_SCROLL_CIRCULAR);
 	this->buttonDeviceMap.clear();
@@ -102,8 +104,8 @@ void BluetoothScanList::startBTScan()
 void BluetoothScanList::stopBTScan()
 {
 	this->scanning = false;
-	if (this->bluetoothMaster) {
-		this->bluetoothMaster->stopScan();
+	if (this->bluetoothController) {
+		this->bluetoothController->stopScan();
 	}
 	lv_label_set_long_mode(this->scan_anim_obj, LV_LABEL_LONG_CLIP);	
 }
@@ -191,8 +193,9 @@ lv_obj_t* BluetoothScanList::getDeviceButton(BLEDevice* bleDevice) {
 void BluetoothScanList::refreshCB(lv_event_t* event)
 {
 	if (this->scanning) {
-		if (this->bluetoothMaster) {
-			BLEDevice bleDevice = this->bluetoothMaster->getBLEDevice();
+		if (this->bluetoothController) {
+			BLEDevice bleDevice = this->bluetoothController->getBLEDevice();
+			this->bluetoothController->continueScan();
 			if (bleDevice) {
 				if (lv_obj_get_child_cnt(this->list_obj) < 20) {
 					this->addDeviceItem(&bleDevice);
@@ -207,10 +210,9 @@ void BluetoothScanList::refreshCB(lv_event_t* event)
 }
 
 void BluetoothScanList::exitButtonCB(lv_event_t* event)
-{
-	BaseLvObject* lvBaseObject = (BaseLvObject*) lv_obj_get_user_data(lv_obj_get_parent(this->this_obj));
-	if (lvBaseObject) {
-		lvBaseObject->focusLvObj();
+{	
+	if (this->defocusLvObj) {
+		this->defocusLvObj->focusLvObj();
 		this->stopBTScan();
 	}
 }

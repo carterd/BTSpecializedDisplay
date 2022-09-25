@@ -2,9 +2,9 @@
 
 #include "ButtonLabel.h"
 
-static void lv_event_encorder_cb(lv_event_t* e) {
-    ButtonLabel* buttonLabel = (ButtonLabel*) (e->user_data);
-    buttonLabel->show();
+static void lv_event_encorder_cb(lv_event_t* event) {
+    ButtonLabel* buttonLabel = (ButtonLabel*) (event->user_data);
+    buttonLabel->encorderActivityCB(event);
 }
 
 ButtonLabel::ButtonLabel(lv_indev_t* indev) : BaseLvObject()
@@ -67,8 +67,9 @@ lv_obj_t* ButtonLabel::createLvObj(lv_obj_t* parent) {
     return this->this_obj;
 }
 
-void ButtonLabel::focusLvObj()
+void ButtonLabel::focusLvObj(BaseLvObject* defocusLvObj)
 {
+    this->defocusLvObj = defocusLvObj;
     // Esure that on of the activit buttons are active    
     lv_group_focus_obj(this->activity_btn_1_obj);
     lv_indev_set_group(this->indev, this->group);
@@ -133,3 +134,9 @@ void ButtonLabel::setShown()
     lv_obj_set_height(this->this_obj, BUTTON_LABEL_BAR_HEIGHT);
 }
 
+void ButtonLabel::encorderActivityCB(lv_event_t* event)
+{
+    this->show();
+    // We don't want to over ride the defocus object of this object
+    this->defocusLvObj->focusLvObj(NULL);
+}

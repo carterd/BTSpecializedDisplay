@@ -7,15 +7,17 @@
 
 #include "LvglGui.h"
 
-#include "ScrollMenu.h"
-#include "ScrollMenuItem.h"
-#include "ButtonLabel.h"
-#include "BluetoothScanList.h"
-#include "BluetoothConnection.h"
+#include "gui/ScrollMenu.h"
+#include "gui/ScrollMenuItem.h"
+#include "gui/ButtonLabel.h"
+#include "gui/BluetoothScanList.h"
+#include "gui/BluetoothConnection.h"
 
-#include "PressButton.h"
-#include "Spanner.h"
-#include "Bluetooth.h"
+#include "img/PressButton.h"
+#include "img/Spanner.h"
+#include "img/Bluetooth.h"
+
+#include "dev/BluetoothBikeController.h"
 
 #include <Arduino.h>
 
@@ -23,8 +25,8 @@
  * @brief Set up the components of the LVGL display
  * 
  */
-void lvgl_setup(ConfigStore *configStore, BluetoothMaster *bluetoothMaster, lv_disp_t* display, lv_indev_t* indev) {
-    bluetoothMaster->init();
+void lvgl_setup(ConfigStore *configStore, BluetoothBikeController *bluetoothBikeController, lv_disp_t* display, lv_indev_t* indev) {
+    bluetoothBikeController->init();
     configStore->init();
     
     lv_obj_t *screen_obj = lv_scr_act();
@@ -36,9 +38,9 @@ void lvgl_setup(ConfigStore *configStore, BluetoothMaster *bluetoothMaster, lv_d
     scrollMenu.addMenuItem(&connectMenuItem);
     scrollMenu.addMenuItem(&settingsMenuItem);
     scrollMenu.addMenuItem(&bluetoothMenuItem);
-    static BluetoothScanList bluetoothScanList(bluetoothMaster, configStore, indev);
+    static BluetoothScanList bluetoothScanList(bluetoothBikeController, configStore, indev);
     bluetoothScanList.setButtonLabel(&buttonLabel);
-    static BluetoothConnection bluetoothConnection(bluetoothMaster, configStore, &pressbutton);
+    static BluetoothConnection bluetoothConnection(bluetoothBikeController, configStore, &pressbutton, indev);
     bluetoothConnection.setButtonLabel(&buttonLabel);
 
     //static BluetoothScanList bluetoothScanList(NULL, indev);

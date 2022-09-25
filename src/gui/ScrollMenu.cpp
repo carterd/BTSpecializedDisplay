@@ -54,7 +54,7 @@ lv_obj_t* ScrollMenu::createLvObj(lv_obj_t* parent)
     for (std::vector<ScrollMenuItem*>::iterator it = std::begin(this->scrollMenuItems); it != std::end(this->scrollMenuItems); ++it)
     {
         // Create the lv_tile to the list of current tiles
-        lv_obj_t* tile_obj = lv_tileview_add_tile(this->options_tileview_obj, tile_pos, 0, LV_DIR_ALL);
+        lv_obj_t* tile_obj = lv_tileview_add_tile(this->options_tileview_obj, tile_pos, 0, LV_DIR_ALL);        
         lv_obj_t* btn_obj = (*it)->createLvObj(tile_obj);
         lv_obj_add_event_cb(btn_obj, tile_btn_cb, LV_EVENT_CLICKED, this);
         lv_obj_add_event_cb(btn_obj, tile_btn_defocus_cb, LV_EVENT_DEFOCUSED, this);
@@ -64,6 +64,7 @@ lv_obj_t* ScrollMenu::createLvObj(lv_obj_t* parent)
         BaseLvObject* popupItem = (*it)->getPopupItem();
         if (popupItem) {
             lv_obj_t* popup_tile = lv_tileview_add_tile(this->options_tileview_obj, tile_pos, 1, LV_DIR_ALL);
+            lv_obj_add_style(popup_tile, no_scrollbar, LV_PART_SCROLLBAR);
             lv_obj_set_user_data(popup_tile, this);
             popupItem->createLvObj(popup_tile);
         }        
@@ -79,7 +80,7 @@ lv_obj_t* ScrollMenu::createLvObj(lv_obj_t* parent)
     return this->this_obj;
 }
 
-void ScrollMenu::focusLvObj()
+void ScrollMenu::focusLvObj(BaseLvObject* defocusLvObj)
 {
     if (this->buttonLabel) {
         this->buttonLabel->setButtonLabels(LV_SYMBOL_LEFT, LV_SYMBOL_OK, LV_SYMBOL_RIGHT);
@@ -88,9 +89,9 @@ void ScrollMenu::focusLvObj()
 
     // TODO: Sort this out a bit wonky
     if (lv_obj_get_child_cnt(this->options_tileview_obj)) {
-        if (this->selectedItem == -1) {
+        if (this->selectedItem < 0) {
             // Attempt to set the correct enables entity
-            lv_obj_set_tile_id(this->options_tileview_obj, 0, 0, LV_ANIM_OFF);
+            lv_obj_set_tile_id(this->options_tileview_obj, -(this->selectedItem + 1), 0, LV_ANIM_OFF);
             lv_indev_set_group(this->indev, this->group);
             
             lv_obj_t* active_obj = lv_tileview_get_tile_act(this->options_tileview_obj);
@@ -136,7 +137,10 @@ void ScrollMenu::tileButtonCB(lv_event_t* e) {
         if (obj_cmp == obj) {
             this->selectedItem = tile_pos;
             lv_obj_set_tile_id(this->options_tileview_obj, tile_pos, 1, scrollMenuItem->getAnimatedSelect() ? LV_ANIM_ON : LV_ANIM_OFF);
-            scrollMenuItem->focusLvObj();
+            if (!scrollMenuItem->getAnimatedSelect()) {
+                this->selectedItem = -(tile_pos + 1);
+            }
+            scrollMenuItem->focusLvObj(this);
             return;
         }
         tile_pos++;

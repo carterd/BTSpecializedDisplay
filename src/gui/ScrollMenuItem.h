@@ -16,7 +16,7 @@ private:
 public:
     ScrollMenuItem(lv_img_dsc_t* image, bool animatedSelect = true);
     virtual lv_obj_t* createLvObj(lv_obj_t* parent);
-    virtual void focusLvObj();    
+    virtual void focusLvObj(BaseLvObject* defocusLvObj = NULL);
     lv_img_dsc_t* getLvImage();
     void setPopupItem(BaseLvObject* popupItem);
     BaseLvObject* getPopupItem();

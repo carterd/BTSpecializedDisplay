@@ -30,10 +30,10 @@ lv_obj_t* ScrollMenuItem::createLvObj(lv_obj_t* parent)
     return this->this_obj;
 }
 
-void ScrollMenuItem::focusLvObj()
+void ScrollMenuItem::focusLvObj(BaseLvObject* defocusLvObj)
 {
     if (this->popupItem) {
-        this->popupItem->focusLvObj();
+        this->popupItem->focusLvObj(defocusLvObj);
     }
 }
 
