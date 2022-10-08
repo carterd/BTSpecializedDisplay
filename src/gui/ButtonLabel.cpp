@@ -2,9 +2,14 @@
 
 #include "ButtonLabel.h"
 
-static void lv_event_encorder_cb(lv_event_t* event) {
+void ButtonLabel::lv_event_encorder_cb(lv_event_t* event) {
     ButtonLabel* buttonLabel = (ButtonLabel*) (event->user_data);
     buttonLabel->encorderActivityCB(event);
+}
+
+void ButtonLabel::auto_hide_timer_cb(lv_timer_t* timer) {
+    ButtonLabel* buttonLabel = (ButtonLabel*) (timer->user_data);
+    buttonLabel->autoHideTimerCB(timer);
 }
 
 ButtonLabel::ButtonLabel(lv_indev_t* indev) : BaseLvObject()
@@ -31,14 +36,14 @@ lv_obj_t* ButtonLabel::createLvObj(lv_obj_t* parent) {
     // add two activity button object to identify if encoder is being used
     this->activity_btn_1_obj = lv_btn_create(this->this_obj);
     lv_obj_add_style(this->activity_btn_1_obj, button_no_highlight, LV_PART_MAIN);
-    lv_obj_add_event_cb(this->activity_btn_1_obj, lv_event_encorder_cb, LV_EVENT_CLICKED, this);
-    lv_obj_add_event_cb(this->activity_btn_1_obj, lv_event_encorder_cb, LV_EVENT_DEFOCUSED, this);
+    lv_obj_add_event_cb(this->activity_btn_1_obj, ButtonLabel::lv_event_encorder_cb, LV_EVENT_CLICKED, this);
+    lv_obj_add_event_cb(this->activity_btn_1_obj, ButtonLabel::lv_event_encorder_cb, LV_EVENT_DEFOCUSED, this);
     lv_group_add_obj(this->group, this->activity_btn_1_obj);
 
     this->activity_btn_2_obj = lv_btn_create(this->this_obj);
     lv_obj_add_style(this->activity_btn_2_obj, button_no_highlight, LV_PART_MAIN);
-    lv_obj_add_event_cb(this->activity_btn_2_obj, lv_event_encorder_cb, LV_EVENT_CLICKED, this);
-    lv_obj_add_event_cb(this->activity_btn_1_obj, lv_event_encorder_cb, LV_EVENT_DEFOCUSED, this);
+    lv_obj_add_event_cb(this->activity_btn_2_obj, ButtonLabel::lv_event_encorder_cb, LV_EVENT_CLICKED, this);
+    lv_obj_add_event_cb(this->activity_btn_1_obj, ButtonLabel::lv_event_encorder_cb, LV_EVENT_DEFOCUSED, this);
     lv_group_add_obj(this->group, this->activity_btn_2_obj);
 
     int partWidth = lv_obj_get_width(parent) / 3;
@@ -108,6 +113,21 @@ void ButtonLabel::setHidden()
     lv_obj_set_height(this->this_obj, 0);
 }
 
+void ButtonLabel::setAutoHide(bool autoHide)
+{
+    if (autoHide) {
+        this->autoHide = true;
+        this->auto_hide_timer = lv_timer_create(auto_hide_timer_cb, 10000, this);
+        lv_timer_set_repeat_count(this->auto_hide_timer, 1);
+    }
+    else {
+        // Even if a autohide timer is running then don't respond
+        this->autoHide = false;
+        this->auto_hide_timer = NULL;
+    }
+
+}
+
 void ButtonLabel::show()
 {
     if (this->hidden) {
@@ -137,6 +157,17 @@ void ButtonLabel::setShown()
 void ButtonLabel::encorderActivityCB(lv_event_t* event)
 {
     this->show();
+    if (!autoHide) this->setAutoHide(true);
     // We don't want to over ride the defocus object of this object
     this->defocusLvObj->focusLvObj(NULL);
+}
+
+void ButtonLabel::autoHideTimerCB(lv_timer_t* timer) 
+{
+    if (this->autoHide && this->auto_hide_timer == timer) {
+        // Perform the auto hide function and keep defocus as the current value
+        this->hide();
+        this->focusLvObj(this->defocusLvObj);
+        this->autoHide = false;
+    }    
 }

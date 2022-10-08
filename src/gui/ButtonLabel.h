@@ -20,10 +20,13 @@ private:
     lv_obj_t* centre_button_label_obj;
     lv_group_t* group;
     lv_indev_t* indev;
+    lv_timer_t* auto_hide_timer;
 
     BaseLvObject* defocusLvObj;
 
     bool hidden = false;
+
+    bool autoHide = false;
     
 public:
     /// <summary>
@@ -70,7 +73,19 @@ public:
     /// </summary>
     void setHidden();
 
+    /// <summary>
+    /// Sets the label to auto hide after a time period
+    /// <summary>
+    void setAutoHide(bool autoHide);
+
     void encorderActivityCB(lv_event_t* event);
+
+    void autoHideTimerCB(lv_timer_t* timer);
+
+public:
+    static void lv_event_encorder_cb(lv_event_t* event);
+
+    static void auto_hide_timer_cb(lv_timer_t * timer);
 };
 
 #endif

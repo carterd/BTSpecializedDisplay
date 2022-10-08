@@ -2,11 +2,11 @@
 #include "ButtonLabel.h"
 #include <LvglThemes/lv_theme_binary.h>
 
-static void exit_btn_cb(lv_event_t* event) {
+void BluetoothScanList::exit_btn_cb(lv_event_t* event) {
 	((BluetoothScanList*) (event->user_data))->exitButtonCB(event);
 }
 
-static void device_btn_cb(lv_event_t* event) {
+void BluetoothScanList::device_btn_cb(lv_event_t* event) {
 	if (event->code == LV_EVENT_CLICKED) {
 		((BluetoothScanList*)(event->user_data))->deviceButtonCB(event);
 	}
@@ -20,7 +20,7 @@ static void device_btn_cb(lv_event_t* event) {
 	}
 }
 
-static void refresh_cb(lv_event_t* event) {
+void BluetoothScanList::refresh_cb(lv_event_t* event) {
 	((BluetoothScanList*)(event->user_data))->refreshCB(event);
 }
 
@@ -44,7 +44,7 @@ lv_obj_t* BluetoothScanList::createLvObj(lv_obj_t* parent)
 	this->this_obj = lv_obj_create(parent);	
 	lv_obj_set_size(this->this_obj, lv_obj_get_width(parent), lv_obj_get_height(parent));
 	lv_obj_center(this->this_obj);
-	lv_obj_add_event_cb(this->this_obj, refresh_cb, LV_EVENT_REFRESH, this);
+	lv_obj_add_event_cb(this->this_obj, BluetoothScanList::refresh_cb, LV_EVENT_REFRESH, this);
 
 	// add list top label bar
 	lv_obj_t* list_label = lv_obj_create(this->this_obj);
@@ -70,7 +70,7 @@ lv_obj_t* BluetoothScanList::createLvObj(lv_obj_t* parent)
 	lv_obj_t* btn_label;
 
 	this->exit_button_obj = lv_list_add_btn(this->list_obj, LV_SYMBOL_PREV, "Exit");
-	lv_obj_add_event_cb(this->exit_button_obj, exit_btn_cb, LV_EVENT_CLICKED, this);
+	lv_obj_add_event_cb(this->exit_button_obj, BluetoothScanList::exit_btn_cb, LV_EVENT_CLICKED, this);
 	btn_label = lv_obj_get_child(this->exit_button_obj, 0);
 	if (lv_obj_has_class(btn_label, &lv_label_class)) {
 		lv_label_set_long_mode(btn_label, LV_LABEL_LONG_CLIP);
@@ -168,9 +168,9 @@ lv_obj_t* BluetoothScanList::addDeviceButton(const char* displayText, bool known
 	if (lv_obj_has_class(btn_label, &lv_label_class)) {
 		lv_label_set_long_mode(btn_label, LV_LABEL_LONG_CLIP);
 	}
-	lv_obj_add_event_cb(list_btn, device_btn_cb, LV_EVENT_CLICKED, this);
-	lv_obj_add_event_cb(list_btn, device_btn_cb, LV_EVENT_FOCUSED, this);
-	lv_obj_add_event_cb(list_btn, device_btn_cb, LV_EVENT_DEFOCUSED, this);
+	lv_obj_add_event_cb(list_btn, BluetoothScanList::device_btn_cb, LV_EVENT_CLICKED, this);
+	lv_obj_add_event_cb(list_btn, BluetoothScanList::device_btn_cb, LV_EVENT_FOCUSED, this);
+	lv_obj_add_event_cb(list_btn, BluetoothScanList::device_btn_cb, LV_EVENT_DEFOCUSED, this);
 	lv_group_add_obj(this->group, list_btn);
 
 	return list_btn;
@@ -193,8 +193,9 @@ lv_obj_t* BluetoothScanList::getDeviceButton(BLEDevice* bleDevice) {
 void BluetoothScanList::refreshCB(lv_event_t* event)
 {
 	if (this->scanning) {
-		if (this->bluetoothController) {
-			BLEDevice bleDevice = this->bluetoothController->getBLEDevice();
+		if (this->bluetoothController && this->bluetoothController->getScannedDeviceAvailable()) {
+			// This bleDevice should always be true as we've already idenfied scanned device available
+			BLEDevice bleDevice = this->bluetoothController->getScannedDevice();
 			this->bluetoothController->continueScan();
 			if (bleDevice) {
 				if (lv_obj_get_child_cnt(this->list_obj) < 20) {

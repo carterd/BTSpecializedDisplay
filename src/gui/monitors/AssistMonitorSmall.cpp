@@ -1,0 +1,74 @@
+#include "AssistMonitorSmall.h"
+
+#include <LvglThemes/lv_theme_binary.h>
+
+
+AssistMonitorSmall::AssistMonitorSmall() {
+	lv_style_init(&this->assist_line_style);	
+	lv_style_set_line_color(&this->assist_line_style, lv_color_white());
+	lv_style_set_line_width(&this->assist_line_style, DOT_SIZE);
+	lv_style_set_line_rounded(&this->assist_line_style, DOT_ROUNDED);
+}
+
+lv_obj_t* AssistMonitorSmall::createLvObj(lv_obj_t* parent) {    
+	// get the style we'll need for the bar
+	theme_binary_styles_t* binary_styles = (theme_binary_styles_t*)lv_disp_get_theme(lv_obj_get_disp(parent))->user_data;
+	lv_style_t* no_scrollbar = &(binary_styles->no_scrollbar);
+	lv_style_t* card_style = &(binary_styles->card);
+		
+	lv_obj_update_layout(parent);
+	this->this_obj = lv_obj_create(parent);
+	lv_obj_set_size(this->this_obj, lv_obj_get_width(parent), lv_obj_get_height(parent));
+	lv_obj_set_align(this->this_obj, LV_ALIGN_CENTER);
+	
+	for (int i = 0; i < 3; i++) {
+		this->assist_line_points[i][0] = { (lv_coord_t)(i * 22 + 5), 8 };
+		this->assist_line_points[i][1] = { (lv_coord_t)(i * 22 + 15), 8 };
+		this->levels[i] = lv_line_create(this->this_obj);
+		lv_obj_add_style(this->levels[i], &this->assist_line_style, LV_PART_MAIN);
+		lv_line_set_points(this->levels[i], this->assist_line_points[i], 2);
+		lv_obj_add_flag(this->levels[i], LV_OBJ_FLAG_HIDDEN);
+	}
+	
+	return this->this_obj;
+}
+
+void AssistMonitorSmall::focusLvObj(BaseLvObject* defocusLvObj)
+{
+	// The LVObj that'll get the refreshes and should there hook into updates
+	this->bluetoothBikeController->readMotorAssistLevel(MonitorAttributeType::EVERY_SECOND);
+	this->bluetoothBikeController->readBikeOnOffState(MonitorAttributeType::EVERY_SECOND);
+	this->update();
+}
+
+void AssistMonitorSmall::statusUpdate()
+{
+	if (this->bluetoothBikeController && this->bluetoothBikeController->getConnected()) {
+		// This bleDevice should always be true as we've already idenfied scanned device available
+		if (this->bluetoothBikeController->getConnectedBikeState().motorAssistLevel.getValueConst() != this->displayedMotorAssistLevel ||
+			this->bluetoothBikeController->getConnectedBikeState().bikeOnOffState.getValueConst() != this->displayedBikeOnOffState) {
+			this->update();
+		}
+		// We should use a counter to keep battery upto date ... as probaby needs explicit read from time to time
+	}
+	else 
+	{
+		// Nolonger connected Requred to scan again for connection
+	}
+}
+
+void AssistMonitorSmall::update() {
+	uint16_t motorAssistLevel = this->bluetoothBikeController->getConnectedBikeState().motorAssistLevel.getValueConst();
+	this->displayedMotorAssistLevel = motorAssistLevel;
+	uint8_t bikeOnOffState = this->bluetoothBikeController->getConnectedBikeState().bikeOnOffState.getValueConst();
+	this->displayedBikeOnOffState;
+
+	for (int i = 0; i < 3; i++) {
+		lv_obj_t* level = this->levels[i];
+		if (motorAssistLevel <= i || bikeOnOffState == 0x00) {
+			lv_obj_add_flag(this->levels[i], LV_OBJ_FLAG_HIDDEN);
+		} else {
+			lv_obj_clear_flag(this->levels[i], LV_OBJ_FLAG_HIDDEN);
+		}
+	}
+}

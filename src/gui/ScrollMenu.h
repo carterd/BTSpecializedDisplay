@@ -71,6 +71,11 @@ public:
     /// </summary>
     /// <param name="event"></param>
     void valueChangedCB(lv_event_t* event);
+
+public:
+    static void value_changed_cb(lv_event_t* event);
+    static void tile_btn_cb(lv_event_t* event);
+    static void tile_btn_defocus_cb(lv_event_t* event);
 };
 
 #endif

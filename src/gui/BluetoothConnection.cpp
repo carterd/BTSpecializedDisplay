@@ -1,11 +1,11 @@
 #include "BluetoothConnection.h"
 #include <LvglThemes/lv_theme_binary.h>
 
-static void refresh_cb(lv_event_t* event) {
+void BluetoothConnection::refresh_cb(lv_event_t* event) {
 	((BluetoothConnection*)(event->user_data))->refreshCB(event);
 }
 
-static void exit_btn_cb(lv_event_t* event) {
+void BluetoothConnection::exit_btn_cb(lv_event_t* event) {
     ((BluetoothConnection*)(event->user_data))->exitButtonCB(event);
 }
 
@@ -16,6 +16,8 @@ BluetoothConnection::BluetoothConnection(BluetoothBikeController* bluetoothContr
     this->indev = indev;
     this->group = NULL;
     this->connecting = false;
+    this->connected = false;
+    this->monitorLvObj = NULL;
 }
 
 lv_obj_t* BluetoothConnection::createLvObj(lv_obj_t* parent)
@@ -25,51 +27,67 @@ lv_obj_t* BluetoothConnection::createLvObj(lv_obj_t* parent)
     lv_style_t* no_scrollbar = &(binary_styles->no_scrollbar);
     lv_style_t* button_no_highlight_style = &(binary_styles->button_no_highlight);
     lv_style_t* button_style = &(binary_styles->button);
+ 
+    lv_obj_update_layout(parent);    
+    this->this_obj = lv_obj_create(parent);
+    lv_obj_add_style(this->this_obj, no_scrollbar, LV_PART_SCROLLBAR);
+    lv_obj_set_size(this->this_obj, lv_obj_get_width(parent), lv_obj_get_height(parent));
+    lv_obj_set_align(this->this_obj, LV_ALIGN_CENTER);
+
+    // The connection is created from a tileview
+    this->tileview_obj = lv_tileview_create(this->this_obj);
+    lv_obj_add_style(tileview_obj, no_scrollbar, LV_PART_SCROLLBAR);
+    lv_obj_t* tile_obj = lv_tileview_add_tile(tileview_obj, 0, 0, LV_DIR_ALL);
+    lv_obj_add_style(tile_obj, no_scrollbar, LV_PART_SCROLLBAR);
 
     // Create a button
-    this->this_obj = lv_btn_create(parent);
-    lv_obj_center(this->this_obj);
-    lv_obj_add_style(this->this_obj, button_no_highlight_style, LV_PART_MAIN);
-    lv_obj_add_event_cb(this->this_obj, refresh_cb, LV_EVENT_REFRESH, this);
-    lv_obj_add_event_cb(this->this_obj, exit_btn_cb, LV_EVENT_CLICKED, this);    
+    this->button_obj = lv_btn_create(tile_obj);
+    lv_obj_center(this->button_obj);
+    lv_obj_add_style(this->button_obj, button_no_highlight_style, LV_PART_MAIN);
+    lv_obj_add_event_cb(this->button_obj, BluetoothConnection::refresh_cb, LV_EVENT_REFRESH, this);
+    lv_obj_add_event_cb(this->button_obj, BluetoothConnection::exit_btn_cb, LV_EVENT_CLICKED, this);
 
     // Associate an image
-    lv_obj_t* img_obj = lv_img_create(this->this_obj);
+    lv_obj_t* img_obj = lv_img_create(this->button_obj);
     lv_img_set_src(img_obj, this->image);
     lv_obj_center(img_obj);
 
     // Associate a spinner
-    lv_obj_t* spin_obj = lv_spinner_create(parent, 1000, 60);
-    lv_obj_set_size(spin_obj, 60, 60);
-    lv_obj_center(spin_obj);
+    this->spinner_obj = lv_spinner_create(this->this_obj, 1000, 60);
+    lv_obj_set_size(this->spinner_obj, 60, 60);
+    lv_obj_center(this->spinner_obj);
 
     // Associate a label connecting
-    lv_obj_t* text_obj = lv_label_create(parent);
-    lv_label_set_text(text_obj, "Connecting");
-    lv_obj_add_style(text_obj, button_style, LV_PART_MAIN);
-    lv_obj_center(text_obj);
+    this->label_obj = lv_label_create(this->this_obj);
+    lv_label_set_text(this->label_obj, "Connecting");
+    lv_obj_add_style(this->label_obj, button_style, LV_PART_MAIN);
+    lv_obj_center(this->label_obj);
 
     // create a group for the button for exit connection
     this->group = lv_group_create();
-    lv_group_add_obj(this->group, this->this_obj);
-
-    // Return the button just in case
+    lv_group_add_obj(this->group, this->button_obj);
+    
+    // create the optional monitor tile
+    if (this->monitorLvObj) {        
+        lv_obj_t* tile_obj = lv_tileview_add_tile(this->tileview_obj, 0, 1, LV_DIR_ALL);
+        lv_obj_add_style(tile_obj, no_scrollbar, LV_PART_SCROLLBAR);
+        this->monitorLvObj->createLvObj(tile_obj);
+    }
+    
+    // Return the connection lv_obj just in case
     return this->this_obj;
-}
-
-void BluetoothConnection::setButtonLabel(ButtonLabel* buttonLabel)
-{
-	this->buttonLabel = buttonLabel;
 }
 
 void BluetoothConnection::focusLvObj(BaseLvObject* defocusLvObj)
 {
     if (defocusLvObj) {
+        // Ensure the connection view is shown if jumping to the connection
+        lv_obj_set_tile_id(this->tileview_obj, 0, 0, LV_ANIM_OFF);
         this->defocusLvObj = defocusLvObj;
-	    hideButtonLabels();
+	    this->hideButtonLabels();
         this->startBTConnection();
     } else {
-        // If we are already connecting and we get focus then get ready for user exit
+        // If we are already connecting and we get focus only from the label bar
         lv_indev_set_group(this->indev, this->group);
     }
 }
@@ -77,20 +95,29 @@ void BluetoothConnection::focusLvObj(BaseLvObject* defocusLvObj)
 void BluetoothConnection::startBTConnection()
 {
     if (this->bluetoothController) {
-        this->bluetoothController->setListenerLvObj(this->this_obj);
+        this->bluetoothController->setListenerLvObj(this->button_obj);
         this->bluetoothController->startScan();
     }
     this->connecting = true;
+    this->connected = false;
+
+    lv_obj_clear_flag(this->label_obj, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(this->spinner_obj, LV_OBJ_FLAG_HIDDEN);
 }
 
 void BluetoothConnection::stopBTConnection()
 {
     this->connecting = false;
+    this->connected = false;
     if (this->bluetoothController) {
         this->bluetoothController->stopScan();
+        this->bluetoothController->disconnect();
     }
 }
 
+void BluetoothConnection::restartBTConnection() {
+    this->startBTConnection();
+}
 
 void BluetoothConnection::hideButtonLabels()
 {
@@ -102,40 +129,81 @@ void BluetoothConnection::hideButtonLabels()
 }
 
 
-void BluetoothConnection::refreshCB(lv_event_t* event)
+void BluetoothConnection::connectionSuccess() 
 {
-	if (this->connecting) {
-		if (this->bluetoothController) {
-			BLEDevice bleDevice = this->bluetoothController->getBLEDevice();
-			if (bleDevice) {
+    lv_obj_add_flag(this->label_obj, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(this->spinner_obj, LV_OBJ_FLAG_HIDDEN);
+
+    this->bluetoothController->resetConnectedBikeStateMonitorAttributeType();
+    this->bluetoothController->resetConnectedBikeStateTime();
+    this->bluetoothController->subscribeEbikeNotifications();
+    
+    if (this->monitorLvObj) {
+        lv_obj_set_tile_id(this->tileview_obj, 0, 1, LV_ANIM_ON);
+        this->monitorLvObj->setBluetoothController(this->bluetoothController);
+        this->monitorLvObj->focusLvObj(this);
+    }
+    // The referesh is now going to connect into the monitored panel(s)
+    this->connecting = false;
+    this->connected = true;
+}
+
+void BluetoothConnection::checkForConnection() {
+    if (this->connecting) {
+        if (this->bluetoothController && this->bluetoothController->getScannedDeviceAvailable()) {
+            // This should always be true as we've checked there is a scanned device above
+            BLEDevice bleDevice = this->bluetoothController->getScannedDevice();
+            if (bleDevice) {
                 if (this->configStore->containsBTAddress(bleDevice.address().c_str())) {
-				    this->bluetoothController->stopScan();
+                    this->bluetoothController->stopScan();
                     if (this->bluetoothController->connect(&bleDevice)) {
-                        if (this->bluetoothController->getConnectedBikeType() == GEN1) {
-                            LV_LOG_USER("GOT BIKE TYPE GEN1");
-                            this->bluetoothController->readBatterySerialNumber();
-                            this->bluetoothController->readBatteryCapacity();
-                            this->bluetoothController->readBatteryCapacityRemaining();
-                            this->bluetoothController->readBatteryHealth();
-                            LV_LOG_USER("Capacity = %d", this->bluetoothController->getConnectedBikeState().BatteryCapacity);
-                            LV_LOG_USER("CapacityRemain = %d", this->bluetoothController->getConnectedBikeState().BatteryCapacityRemaining);
-                            LV_LOG_USER("CapacityHealth = %d", this->bluetoothController->getConnectedBikeState().BatteryHealth);
+                        switch (this->bluetoothController->getConnectedBikeType())
+                        {
+                        case BikeType::GEN1:
+                        case BikeType::GEN2:
+                            if (this->bluetoothController->readBatteryConnected() //&& this->bluetoothController->getConnectedBikeState().batteryConnected) 
+                                )
+                            {
+                                // Connected
+                                this->connectionSuccess();
+                                return;
+                            }
+                            break;
                         }
                         this->bluetoothController->disconnect();
                     }
                     this->bluetoothController->startScan();
                 }
-			}
+            }
             this->bluetoothController->continueScan();
-		}
-	}
+        }
+    }
+}
+
+void BluetoothConnection::checkForConnectedUpdates() {
+    if (this->connected) {
+        // Check that the BT connection is still there
+        if (this->bluetoothController->getConnected()) {
+            // We are begin refereshed by the connection now
+            this->monitorLvObj->statusUpdate();
+        }
+        // If the BT connection has gone down then we need to attempt to re-establish
+        else {
+            this->restartBTConnection();
+        }
+    }
+}
+
+void BluetoothConnection::refreshCB(lv_event_t* event)
+{
+    this->checkForConnection();
+    this->checkForConnectedUpdates();
 }
 
 void BluetoothConnection::exitButtonCB(lv_event_t* event)
 {
-    BaseLvObject* lvBaseObject = (BaseLvObject*)lv_obj_get_user_data(lv_obj_get_parent(this->this_obj));
-    if (lvBaseObject) {
-        lvBaseObject->focusLvObj();
+    if (this->defocusLvObj) {
+        this->defocusLvObj->focusLvObj();
         this->stopBTConnection();
     }
 }

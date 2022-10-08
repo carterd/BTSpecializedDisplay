@@ -2,17 +2,17 @@
 
 #include "ScrollMenu.h"
 
-static void value_changed_cb(lv_event_t* event) {
+void ScrollMenu::value_changed_cb(lv_event_t* event) {
     ScrollMenu* scrollMenu = (ScrollMenu*) event->user_data;
     scrollMenu->valueChangedCB(event);
 }
 
-static void tile_btn_cb(lv_event_t* event) {
+void ScrollMenu::tile_btn_cb(lv_event_t* event) {
     ScrollMenu* scrollMenu = (ScrollMenu*) event->user_data;
     scrollMenu->tileButtonCB(event);
 }
 
-static void tile_btn_defocus_cb(lv_event_t* event) {
+void ScrollMenu::tile_btn_defocus_cb(lv_event_t* event) {
     ScrollMenu* scrollMenu = (ScrollMenu*)event->user_data;
     scrollMenu->tileButtonDefocusCB(event);
 }
@@ -44,7 +44,7 @@ lv_obj_t* ScrollMenu::createLvObj(lv_obj_t* parent)
     // put in the tile with no scroll bar
     this->options_tileview_obj = lv_tileview_create(this->this_obj);
     lv_obj_add_style(this->options_tileview_obj, no_scrollbar, LV_PART_SCROLLBAR);
-    lv_obj_add_event_cb(this->options_tileview_obj, value_changed_cb, LV_EVENT_VALUE_CHANGED, this);
+    lv_obj_add_event_cb(this->options_tileview_obj, ScrollMenu::value_changed_cb, LV_EVENT_VALUE_CHANGED, this);
 
     // create a group for the menu items
     this->group = lv_group_create();
@@ -54,10 +54,10 @@ lv_obj_t* ScrollMenu::createLvObj(lv_obj_t* parent)
     for (std::vector<ScrollMenuItem*>::iterator it = std::begin(this->scrollMenuItems); it != std::end(this->scrollMenuItems); ++it)
     {
         // Create the lv_tile to the list of current tiles
-        lv_obj_t* tile_obj = lv_tileview_add_tile(this->options_tileview_obj, tile_pos, 0, LV_DIR_ALL);        
+        lv_obj_t* tile_obj = lv_tileview_add_tile(this->options_tileview_obj, tile_pos, 0, LV_DIR_ALL);
         lv_obj_t* btn_obj = (*it)->createLvObj(tile_obj);
-        lv_obj_add_event_cb(btn_obj, tile_btn_cb, LV_EVENT_CLICKED, this);
-        lv_obj_add_event_cb(btn_obj, tile_btn_defocus_cb, LV_EVENT_DEFOCUSED, this);
+        lv_obj_add_event_cb(btn_obj, ScrollMenu::tile_btn_cb, LV_EVENT_CLICKED, this);
+        lv_obj_add_event_cb(btn_obj, ScrollMenu::tile_btn_defocus_cb, LV_EVENT_DEFOCUSED, this);
         lv_group_add_obj(this->group, btn_obj);
 
         // Create the popup item if there is one on the scrollMenuItem
@@ -85,6 +85,7 @@ void ScrollMenu::focusLvObj(BaseLvObject* defocusLvObj)
     if (this->buttonLabel) {
         this->buttonLabel->setButtonLabels(LV_SYMBOL_LEFT, LV_SYMBOL_OK, LV_SYMBOL_RIGHT);
         this->buttonLabel->show();
+        this->buttonLabel->setAutoHide(false);
     }
 
     // TODO: Sort this out a bit wonky

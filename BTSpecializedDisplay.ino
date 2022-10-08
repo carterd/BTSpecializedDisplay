@@ -31,17 +31,32 @@ lv_font_t myAdaFont = {};
  * @brief Statics kept around
  * 
  */
-BluetoothBikeController bluetoothBikeController;
-ConfigStore configStore;
+BluetoothBikeController* bluetoothBikeController;
+ConfigStore* configStore;
 
 void setup() {
+  delay(200);
+  pinMode(LED_BUILTIN, OUTPUT);
+  for (int i = 0; i < 10; i++ ) {
+    display.begin(0x3C, true);
+    //display.dispaly();
+    digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
+    delay(10);                       // wait for a second
+    digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
+    delay(10);                       // wait for a second
+  }
+
   // Remote if no serial monitor
-  Serial.begin(9600);
-  while (!Serial);
+  //Serial.begin(9600);
+  //while (!Serial);
 
   // Initialise display
-  display.begin(0x3C, true); // Address 0x3C default
-  display.clearDisplay();
+  while (!display.begin(0x3C, true)) {
+      digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
+      delay(2000);                       // wait for a second
+
+  }; // Address 0x3C default
+  //display.clearDisplay();
 
   // Initialise display glue
   LvGLStatus result = displayGlue.begin(&display, displayCallback_SH110X, (INPUT_TYPE *) &encoder, inputCallback_ButtonEncoder, LV_INDEV_TYPE_ENCODER, true);
@@ -57,12 +72,22 @@ void setup() {
   lv_theme_t* binary_theme = lv_theme_binary_init(displayGlue.getLvDisplay(), true, &myAdaFont);
   lv_disp_set_rotation(NULL, LV_DISP_ROT_180);
   lv_disp_set_theme(display, binary_theme);
-  lvgl_setup(&configStore, &bluetoothBikeController, display, indev);
+
+  LV_LOG_USER("STARTING");
+  bluetoothBikeController = new BluetoothBikeController();
+  configStore = new ConfigStore();
+  lvgl_setup(configStore, bluetoothBikeController, display, indev);
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
   lv_task_handler(); // Call LittleVGL task handler periodically
-  bluetoothBikeController.checkForChange();
-  delay(20);
+  unsigned long start = millis();
+  digitalWrite(LED_BUILTIN, (start >> 9 ) & 1);
+  bluetoothBikeController->checkForChange();
+  unsigned long end = millis();
+  if (start <= end && end - start < 20) {
+    delay(20 + start - end);
+    //LV_LOG_USER("WAITING %d", (int) (20 + start - end));
+  }
 }

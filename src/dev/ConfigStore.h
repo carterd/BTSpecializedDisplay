@@ -8,6 +8,7 @@ typedef std::pair<String, String> BTEntry;
 
 class LittleFS_MBED;
 
+#ifndef ARDUINO_WIN_EMULATION
 template<>
 class std::hash<String> {
     public:
@@ -20,6 +21,7 @@ class std::hash<String> {
         return hash;
     }
 };
+#endif
 
 class ConfigStore 
 {

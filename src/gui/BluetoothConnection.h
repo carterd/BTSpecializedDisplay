@@ -4,6 +4,7 @@
 #include <lvgl.h>
 
 #include "BaseLvObject.h"
+#include "MonitorLvObject.h"
 #include "ButtonLabel.h"
 #include "..\dev\BluetoothBikeController.h"
 #include "..\dev\ConfigStore.h"
@@ -27,6 +28,18 @@ private:
     /// </summary>
     lv_group_t* group;
 
+    lv_obj_t* tileview_obj;
+    /// <summary>
+    /// The connection button
+    /// </summary>
+    lv_obj_t* button_obj;
+    /// <summary>
+    /// The connection label
+    /// </summary>
+    lv_obj_t* label_obj;
+
+    lv_obj_t* spinner_obj;
+
     /// <summary>
     /// This is the button label or NULL for not button label
     /// </summary>
@@ -43,10 +56,14 @@ private:
 
     bool connecting;
 
+    bool connected;
+
     /// <summary>
     /// This is the object given focus on this object loosing focus
     /// </summary>
     BaseLvObject* defocusLvObj;
+
+    MonitorLvObject* monitorLvObj;
 
 private:
     /// <summary>
@@ -61,6 +78,23 @@ private:
     /// This will end the process of connection
     /// </summary>
     void stopBTConnection();
+    /// <summary>
+    /// This will start the process of connection to any of the BLE devices in the config store
+    /// </summary>
+    void restartBTConnection();
+    /// <summary>
+    /// Called when an acceptable ebike had been connected to via BLE
+    /// </summary>
+    void connectionSuccess();
+    /// <summary>
+    /// Called on refresh to check if there is a connection when attempting to connect
+    /// </summary>
+    void checkForConnection();
+    /// <summary>
+    /// Called on refresh to check if there are any updates to be displayed on connected to bike
+    /// </summary>
+    void checkForConnectedUpdates();
+
 public:
     /// <summary>
     /// The construct of for the bluetooth connection object
@@ -85,11 +119,30 @@ public:
     /// Used to set the button label for this object or NULL for no button label
     /// </summary>
     /// <param name="buttonLabel">The button label object for this gui object</param>
-    void setButtonLabel(ButtonLabel* buttonLabel);
+    void setButtonLabel(ButtonLabel* buttonLabel) { this->buttonLabel = buttonLabel; };
 
+    /// <summary>
+    /// Set the given bluetooth monitor to the connection whereby on connection control passed to the monitor
+    /// </summary>
+    /// <param name="scrollMenuItem">The menu item to add to the list</param>
+    void setMonitor(MonitorLvObject* monitorLvObj) { this->monitorLvObj = monitorLvObj; };
+
+    /// <summary>
+    /// This is called because on getting focus the refresh callback is registered with the bluetooth controller
+    /// </summary>
+    /// <param name="event">The event object for refresh being called into by the scanning</param>
     void refreshCB(lv_event_t* event);
 
+    /// <summary>
+    /// This is called when the user presses the exit button for the connection
+    /// </summary>
+    /// <param name="event">The event object for refresh being called into by the scanning</param>
     void exitButtonCB(lv_event_t* event);
+public:
+
+    static void refresh_cb(lv_event_t* event);
+
+    static void exit_btn_cb(lv_event_t* event);
 };
 
 #endif

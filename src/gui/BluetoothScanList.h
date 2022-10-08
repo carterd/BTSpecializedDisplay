@@ -114,6 +114,11 @@ public:
 	/// </summary>
 	/// <param name="event">The lv event that identifies pressing the device entry</param>
 	void refreshCB(lv_event_t* event);
+
+public:
+	static void exit_btn_cb(lv_event_t* event);
+	static void device_btn_cb(lv_event_t* event);
+	static void refresh_cb(lv_event_t* event);
 };
 
 #endif
