@@ -9,6 +9,9 @@
 #include "..\dev\BluetoothBikeController.h"
 #include "..\dev\ConfigStore.h"
 
+#define CONNECT_ONLY_WHEN_BATTERY_CONNECTED 0
+#define SEARCHING_STRING "Searching"
+
 /// <summary>
 /// The connection shows an image with a spinner attempts to make a connection to any connecting 
 /// </summary>
@@ -41,6 +44,11 @@ private:
     lv_obj_t* spinner_obj;
 
     /// <summary>
+    /// This is the connection screen tile
+    /// </summary>
+    lv_obj_t* connection_tile_obj;
+
+    /// <summary>
     /// This is the button label or NULL for not button label
     /// </summary>
     ButtonLabel* buttonLabel = NULL;
@@ -58,6 +66,10 @@ private:
 
     bool connected;
 
+    bool monitorLvObjActive;
+
+    bool exiting;
+
     /// <summary>
     /// This is the object given focus on this object loosing focus
     /// </summary>
@@ -66,6 +78,11 @@ private:
     MonitorLvObject* monitorLvObj;
 
 private:
+
+    void switchToMonitorLvObject();
+
+    void switchToConnectionLvObject();
+
     /// <summary>
     /// Call on hiding the button label if one has been defined for this gui object
     /// </summary>
@@ -138,11 +155,19 @@ public:
     /// </summary>
     /// <param name="event">The event object for refresh being called into by the scanning</param>
     void exitButtonCB(lv_event_t* event);
+
+    /// <summary>
+    /// This is called once a tile have moved it's position
+    /// </summary>
+    /// <param name="event"></param>
+    void tileChangedhCB(lv_event_t* event);
 public:
 
     static void refresh_cb(lv_event_t* event);
 
     static void exit_btn_cb(lv_event_t* event);
+
+    static void tile_changed_cb(lv_event_t* event);
 };
 
 #endif

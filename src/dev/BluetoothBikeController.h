@@ -127,6 +127,8 @@ private:
 
 	void checkForConnectionChange();
 
+	void checkForStaleBikeStateAttribute(MonitorAttributeType monitorAttributeType, uint32_t maximumTime);
+
 protected:
 	/// <summary>
 	/// This is the lv object which has to be infromed of updates to say scanning
@@ -260,118 +262,18 @@ public:
 	/// Returns the connectedBikeStatus structure so values of the bike can be read from the structure.
 	/// </summary>
 	/// <returns>The bike status of the connected e-bike</returns>
-	const BikeState& getBikeState() { return bikeState; }
+	BikeState& getBikeState() { return bikeState; }
 
 	void resetConnectedBikeStateMonitorAttributeType(MonitorAttributeType monitorAttributeType = MonitorAttributeType::ONCE) { 
-		this->bikeState.setMonitorAttributeType(monitorAttributeType);
+		this->bikeState.setAllMonitorAttributeType(monitorAttributeType);
 	}
 
 	void resetConnectedBikeStateTime(uint32_t time = 0) { 
-		this->bikeState.setLastFetchTimeTicks(time);
+		this->bikeState.setAllLastFetchTimeTicks(time);
 	}
 
 	bool readBikeStateAttribute(BikeStateAttributeIndex bikeStateAttributeIndex, MonitorAttributeType monitorAttributeType = MonitorAttributeType::ONCE);
 
-	// Battery
-	bool readBattery(MonitorAttributeType monitorAttributeType = MonitorAttributeType::ONCE);
-	bool readBatteryCapacity(MonitorAttributeType monitorAttributeType = MonitorAttributeType::ONCE) { 
-		this->connectedBikeState.batteryCapacity.setMonitorAttributeType(monitorAttributeType); 
-		return this->readEbikeValue(EbikeStatusArea::BATTERY, EbikeStatusBattery::CAPACITY); 
-	}
-	bool readBatteryCapacityRemaining(MonitorAttributeType monitorAttributeType = MonitorAttributeType::ONCE) { 
-		this->connectedBikeState.batteryCapacityRemaining.setMonitorAttributeType(monitorAttributeType); 
-		return this->readEbikeValue(EbikeStatusArea::BATTERY, EbikeStatusBattery::CAPACITY_REMAIN); 
-	}
-	bool readBatteryChargeCycles(MonitorAttributeType monitorAttributeType = MonitorAttributeType::ONCE) { 
-		this->connectedBikeState.batteryChargeCycles.setMonitorAttributeType(monitorAttributeType); 
-		return this->readEbikeValue(EbikeStatusArea::BATTERY, EbikeStatusBattery::CHARGE_CYCLES); 
-	}	
-	bool readBatteryChargePercent(MonitorAttributeType monitorAttributeType = MonitorAttributeType::ONCE) { 
-		this->connectedBikeState.batteryChargePercent.setMonitorAttributeType(monitorAttributeType); 
-
-		this->readBikeStateAttribute(BikeStateAttributeIndex::BATTERY_CAPACITY, monitorAttributeType);
-
-		return this->readEbikeValue(EbikeStatusArea::BATTERY, EbikeStatusBattery::CHARGE_PERCENT); 
-	}
-	bool readBatteryHealth(MonitorAttributeType monitorAttributeType = MonitorAttributeType::ONCE) {
-		this->connectedBikeState.batteryHealth.setMonitorAttributeType(monitorAttributeType);  
-		return this->readEbikeValue(EbikeStatusArea::BATTERY, EbikeStatusBattery::HEALTH); 
-	}
-	bool readBatteryTemp(MonitorAttributeType monitorAttributeType = MonitorAttributeType::ONCE) { 
-		this->connectedBikeState.batteryTemp.setMonitorAttributeType(monitorAttributeType); 
-		return this->readEbikeValue(EbikeStatusArea::BATTERY, EbikeStatusBattery::TEMP); 
-	}
-	bool readBatteryVoltage(MonitorAttributeType monitorAttributeType = MonitorAttributeType::ONCE) { 
-		this->connectedBikeState.batteryVoltage.setMonitorAttributeType(monitorAttributeType); 
-		return this->readEbikeValue(EbikeStatusArea::BATTERY, EbikeStatusBattery::VOLTAGE); 
-	}
-	bool readBatteryCurrent(MonitorAttributeType monitorAttributeType = MonitorAttributeType::ONCE) { 
-		this->connectedBikeState.batteryCurrent.setMonitorAttributeType(monitorAttributeType); 
-		return this->readEbikeValue(EbikeStatusArea::BATTERY, EbikeStatusBattery::CURRENT); 
-	}
-	bool readBatteryFirmwareVersion(MonitorAttributeType monitorAttributeType = MonitorAttributeType::ONCE) { 
-		this->connectedBikeState.batteryFirmwareVersion.setMonitorAttributeType(monitorAttributeType); 
-		return this->readEbikeValue(EbikeStatusArea::BATTERY, EbikeStatusBattery::FIRMWARE_VERSION);  
-	}
-	bool readBatteryHardwareVersion(MonitorAttributeType monitorAttributeType = MonitorAttributeType::ONCE);
-	bool readBatterySerialNumber(MonitorAttributeType monitorAttributeType = MonitorAttributeType::ONCE);
-
-	// Motor
-	bool readMotor(MonitorAttributeType monitorAttributeType = MonitorAttributeType::ONCE);
-	bool readMotorTemp(MonitorAttributeType monitorAttributeType = MonitorAttributeType::ONCE) { 
-		this->connectedBikeState.motorTemp.setMonitorAttributeType(monitorAttributeType); 
-		return this->readEbikeValue(EbikeStatusArea::MOTOR, EbikeStatusMotor::TEMP); 
-	}
-    bool readRiderPower(MonitorAttributeType monitorAttributeType = MonitorAttributeType::ONCE) { 
-		this->connectedBikeState.riderPower.setMonitorAttributeType(monitorAttributeType); 
-		return this->readEbikeValue(EbikeStatusArea::MOTOR, EbikeStatusMotor::RIDER_POWER); 
-	}
-    bool readMotorCadence(MonitorAttributeType monitorAttributeType = MonitorAttributeType::ONCE) { 
-		this->connectedBikeState.motorCadence.setMonitorAttributeType(monitorAttributeType); 
-		return this->readEbikeValue(EbikeStatusArea::MOTOR, EbikeStatusMotor::CADENCE); 
-	}
-    bool readMotorSpeed(MonitorAttributeType monitorAttributeType = MonitorAttributeType::ONCE) {
-		this->connectedBikeState.motorSpeed.setMonitorAttributeType(monitorAttributeType); 
-		return this->readEbikeValue(EbikeStatusArea::MOTOR, EbikeStatusMotor::SPEED); 
-	}
-    bool readMotorOdometer(MonitorAttributeType monitorAttributeType = MonitorAttributeType::ONCE) { 
-		this->connectedBikeState.motorOdometer.setMonitorAttributeType(monitorAttributeType); 
-		return this->readEbikeValue(EbikeStatusArea::MOTOR, EbikeStatusMotor::ODOMETER); 
-	}
-    bool readMotorAssistLevel(MonitorAttributeType monitorAttributeType = MonitorAttributeType::ONCE) { 
-		this->connectedBikeState.motorAssistLevel.setMonitorAttributeType(monitorAttributeType); 
-		return this->readEbikeValue(EbikeStatusArea::MOTOR, EbikeStatusMotor::ASSIST_LEVEL); 
-	}
-    bool readMotorFirmwareVersion(MonitorAttributeType monitorAttributeType = MonitorAttributeType::ONCE) { 
-		this->connectedBikeState.motorFirmwareVersion.setMonitorAttributeType(monitorAttributeType); 
-		return this->readEbikeValue(EbikeStatusArea::MOTOR, EbikeStatusMotor::FIRMWARE_VERSION); 
-	}
-    bool readMotorPower(MonitorAttributeType monitorAttributeType = MonitorAttributeType::ONCE) { 
-		this->connectedBikeState.motorPower.setMonitorAttributeType(monitorAttributeType); 
-		return this->readEbikeValue(EbikeStatusArea::MOTOR, EbikeStatusMotor::MOTOR_POWER); 
-	}
-    bool readPeakAssistLevels(MonitorAttributeType monitorAttributeType = MonitorAttributeType::ONCE) {
-		this->connectedBikeState.peakAssistLevels.setMonitorAttributeType(monitorAttributeType); 
-		 return this->readEbikeValue(EbikeStatusArea::MOTOR, EbikeStatusMotor::PEAK_ASSIST); 
-	}
-    bool readMotorSerailNumber(MonitorAttributeType monitorAttributeType = MonitorAttributeType::ONCE);
-
-	// Other
-	bool readBikeOther(MonitorAttributeType monitorAttributeType = MonitorAttributeType::ONCE);
-	bool readBikeOnOffState(MonitorAttributeType monitorAttributeType = MonitorAttributeType::ONCE) { 
-		this->connectedBikeState.bikeOnOffState.setMonitorAttributeType(monitorAttributeType); 
-		return this->readEbikeValue(EbikeStatusArea::OTHER, EbikeStatusOther::BIKE_ON_OFF); 
-	}
-	bool readBikeSerialNumber(MonitorAttributeType monitorAttributeType = MonitorAttributeType::ONCE) {
-		this->connectedBikeState.bikeSerialNumber.setMonitorAttributeType(monitorAttributeType); 
-		 return this->readEbikeValue(EbikeStatusArea::OTHER, EbikeStatusOther::BIKE_SERIAL_NO); 
-	}
-	bool readWheelCircumference(MonitorAttributeType monitorAttributeType = MonitorAttributeType::ONCE) { 
-		this->connectedBikeState.wheelCircumference.setMonitorAttributeType(monitorAttributeType); 
-		return this->readEbikeValue(EbikeStatusArea::OTHER, EbikeStatusOther::WHEEL_CIRCUMFERENCE); 
-	}
-	bool readAssistPercentages(MonitorAttributeType monitorAttributeType = MonitorAttributeType::ONCE);
-	bool readBatteryConnected(MonitorAttributeType monitorAttributeType = MonitorAttributeType::ONCE);
 
 	bool subscribeEbikeNotifications();
 

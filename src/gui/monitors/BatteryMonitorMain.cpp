@@ -63,10 +63,9 @@ lv_obj_t* BatteryMonitorMain::createLvObj(lv_obj_t* parent) {
 
 void BatteryMonitorMain::statusUpdate()
 {
-	LV_LOG_USER("refreshCB");
 	if (this->bluetoothBikeController && this->bluetoothBikeController->getConnected()) {
-		// This bleDevice should always be true as we've already idenfied scanned device available
-		if (this->bluetoothBikeController->getConnectedBikeState().batteryChargePercent.getValueConst() != this->displayedPercent) {
+		// This bleDevice should always be true as we've already idenfied scanned device available		
+		if (this->bluetoothBikeController->getBikeState().getStateAttribute(BikeStateAttributeIndex::BATTERY_CHARGE_PERCENT).bikeStateAttributeValue.valueUint8 != this->displayedPercent) {
 			this->update();
 		}
 		// We should use a counter to keep battery upto date ... as probaby needs explicit read from time to time
@@ -79,15 +78,14 @@ void BatteryMonitorMain::statusUpdate()
 
 
 void BatteryMonitorMain::update() {
-	uint8_t batteryChargePercent = this->bluetoothBikeController->getConnectedBikeState().batteryChargePercent.getValueConst();
-	this->displayedPercent = batteryChargePercent;
+	this->displayedPercent = this->bluetoothBikeController->getBikeState().getStateAttribute(BikeStateAttributeIndex::BATTERY_CHARGE_PERCENT).bikeStateAttributeValue.valueUint8;
 	for (int i = 0; i < 10; i++) {
 		lv_obj_t* level = this->levels[i];
-		if (batteryChargePercent <= i * 10 ) {
+		if (this->displayedPercent <= i * 10 ) {
 			lv_obj_add_flag(this->levels[i], LV_OBJ_FLAG_HIDDEN);
 		} else {
 			lv_obj_clear_flag(this->levels[i], LV_OBJ_FLAG_HIDDEN);
-			uint8_t batteryChargeLeft = batteryChargePercent - i * 10;
+			uint8_t batteryChargeLeft = this->displayedPercent - i * 10;
 			if (batteryChargeLeft < 10)
 			{				
 				this->charge_line_points[i][0].x = 31 - (batteryChargeLeft * 3) / 2;
@@ -104,6 +102,6 @@ void BatteryMonitorMain::update() {
 void BatteryMonitorMain::focusLvObj(BaseLvObject* defocusLvObj)
 {
 	// The LVObj that'll get the refreshes and should there hook into updates
-	this->bluetoothBikeController->readBatteryChargePercent(MonitorAttributeType::EVERY_MINUTE);
+	this->bluetoothBikeController->readBikeStateAttribute(BikeStateAttributeIndex::BATTERY_CHARGE_PERCENT, MonitorAttributeType::EVERY_MINUTE);
 	this->update();
 }

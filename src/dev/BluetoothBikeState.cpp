@@ -29,6 +29,7 @@ BikeState::BikeState()
     this->bikeStateAttributes[static_cast<int>(BikeStateAttributeIndex::FAKE_CHANNEL_NUMBER)].bikeStateAttributeType = BikeStateAttributeType::UINT8_T;
     this->bikeStateAttributes[static_cast<int>(BikeStateAttributeIndex::BIKE_ON_OFF_STATE)].bikeStateAttributeType = BikeStateAttributeType::UINT8_T;
     this->bikeStateAttributes[static_cast<int>(BikeStateAttributeIndex::BATTERY_CONNECTED_STATE)].bikeStateAttributeType = BikeStateAttributeType::BOOL;
+    this->bikeStateAttributes[static_cast<int>(BikeStateAttributeIndex::BIKE_SERIAL_NUMBER)].bikeStateAttributeType = BikeStateAttributeType::NUMBER_STRING;
     this->bikeStateAttributes[static_cast<int>(BikeStateAttributeIndex::BEEP_ON_OFF_STATE)].bikeStateAttributeType = BikeStateAttributeType::BOOL;
 }
 
@@ -89,6 +90,8 @@ BikeStateToBluetoothBikeRequest::BikeStateToBluetoothBikeRequest() {
         = BluetoothBikeRequest( BluetoothBikeRequest::BluetoothBikeRequestCommand(EbikeStatusOther::BIKE_ON_OFF) );
     this->bluetoothBikeRequestMap[static_cast<int>(BikeStateAttributeIndex::BATTERY_CONNECTED_STATE)]
         = BluetoothBikeRequest( BluetoothBikeRequest::BluetoothBikeRequestCommand(EbikeStatusOther::BIKE_SERIAL_NO) );
+    this->bluetoothBikeRequestMap[static_cast<int>(BikeStateAttributeIndex::BIKE_SERIAL_NUMBER)]
+        = BluetoothBikeRequest(BluetoothBikeRequest::BluetoothBikeRequestCommand(EbikeStatusOther::BIKE_SERIAL_NO));
     this->bluetoothBikeRequestMap[static_cast<int>(BikeStateAttributeIndex::BEEP_ON_OFF_STATE)]
         = BluetoothBikeRequest( BluetoothBikeRequest::BluetoothBikeRequestCommand(EbikeStatusOther::BEEPER) );
 }
@@ -106,14 +109,39 @@ BluetoothBikeRequest BikeStateToBluetoothBikeRequest::getBluetoothBikeRequest(Bi
     return this->bluetoothBikeRequestMap[static_cast<int>(bikeStateAttributeIndex)];
 }
 
-void BikeState::setMonitorAttributeType(MonitorAttributeType monitorAttributeType) {
+void BikeState::setAllMonitorAttributeType(MonitorAttributeType monitorAttributeType) {
     for (int i = 0 ; i < static_cast<int>(BikeStateAttributeIndex::BIKE_STATE_ATTRIBUTE_SIZE) ; i++ ) { 
         bikeStateAttributes[i].monitorAttributeType = monitorAttributeType;
     }
 }
 
-void BikeState::setLastFetchTimeTicks(uint32_t lastFetchTimeTicks) {
+void BikeState::setAllLastFetchTimeTicks(uint32_t lastFetchTimeTicks) {
     for (int i = 0; i < static_cast<int>(BikeStateAttributeIndex::BIKE_STATE_ATTRIBUTE_SIZE); i++) {
         bikeStateAttributes[i].lastFetchTimeTicks = lastFetchTimeTicks;
     }
+}
+
+bool BikeState::setStateAttribute(BikeStateAttributeIndex bikeStateAttributeIndex, BikeStateAttribute::BikeStateAttributeValue& bikeStateAttributeValue, uint32_t lastFetchTimeTicks) {
+    this->bikeStateAttributes[static_cast<int>(bikeStateAttributeIndex)].bikeStateAttributeValue = bikeStateAttributeValue;    
+    return this->setStateAttribute(bikeStateAttributeIndex, lastFetchTimeTicks);
+}
+
+bool BikeState::setStateAttribute(BikeStateAttributeIndex bikeStateAttributeIndex, uint32_t lastFetchTimeTicks) {
+    this->bikeStateAttributes[static_cast<int>(bikeStateAttributeIndex)].lastFetchTimeTicks = lastFetchTimeTicks;
+    MonitorAttributeType monitorAttributeType = this->bikeStateAttributes[static_cast<int>(bikeStateAttributeIndex)].monitorAttributeType;
+    if (monitorAttributeType == MonitorAttributeType::ONCE) this->bikeStateAttributes[static_cast<int>(bikeStateAttributeIndex)].monitorAttributeType = MonitorAttributeType::ALWAYS_IGNORE;
+    return monitorAttributeType != MonitorAttributeType::ALWAYS_IGNORE;
+}
+
+BikeStateAttributeIndex BikeState::getOldestStateAttribute(MonitorAttributeType monitorAttributeType) {
+    uint32_t lowestTimeStamp = ~0;
+    int lowestAttributeIndex = static_cast<int>(BikeStateAttributeIndex::BIKE_STATE_ATTRIBUTE_SIZE);
+    for (int i = 0; i < static_cast<int>(BikeStateAttributeIndex::BIKE_STATE_ATTRIBUTE_SIZE); i++) {
+        if (this->bikeStateAttributes[i].monitorAttributeType == monitorAttributeType &&
+            this->bikeStateAttributes[i].lastFetchTimeTicks < lowestTimeStamp) {
+            lowestTimeStamp = this->bikeStateAttributes[i].lastFetchTimeTicks;
+            lowestAttributeIndex = i;
+        }
+    }
+    return static_cast<BikeStateAttributeIndex>(lowestAttributeIndex);
 }

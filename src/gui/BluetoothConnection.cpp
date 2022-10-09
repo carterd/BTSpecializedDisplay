@@ -1,6 +1,10 @@
 #include "BluetoothConnection.h"
 #include <LvglThemes/lv_theme_binary.h>
 
+void BluetoothConnection::tile_changed_cb(lv_event_t* event) {
+    ((BluetoothConnection*)(event->user_data))->tileChangedhCB(event);
+}
+
 void BluetoothConnection::refresh_cb(lv_event_t* event) {
 	((BluetoothConnection*)(event->user_data))->refreshCB(event);
 }
@@ -17,7 +21,9 @@ BluetoothConnection::BluetoothConnection(BluetoothBikeController* bluetoothContr
     this->group = NULL;
     this->connecting = false;
     this->connected = false;
+    this->monitorLvObjActive = false;
     this->monitorLvObj = NULL;
+    this->exiting = false;
 }
 
 lv_obj_t* BluetoothConnection::createLvObj(lv_obj_t* parent)
@@ -36,12 +42,13 @@ lv_obj_t* BluetoothConnection::createLvObj(lv_obj_t* parent)
 
     // The connection is created from a tileview
     this->tileview_obj = lv_tileview_create(this->this_obj);
+    lv_obj_add_event_cb(this->tileview_obj, BluetoothConnection::tile_changed_cb, LV_EVENT_VALUE_CHANGED, this);
     lv_obj_add_style(tileview_obj, no_scrollbar, LV_PART_SCROLLBAR);
-    lv_obj_t* tile_obj = lv_tileview_add_tile(tileview_obj, 0, 0, LV_DIR_ALL);
-    lv_obj_add_style(tile_obj, no_scrollbar, LV_PART_SCROLLBAR);
+    this->connection_tile_obj = lv_tileview_add_tile(tileview_obj, 0, 0, LV_DIR_ALL);
+    lv_obj_add_style(this->connection_tile_obj, no_scrollbar, LV_PART_SCROLLBAR);
 
     // Create a button
-    this->button_obj = lv_btn_create(tile_obj);
+    this->button_obj = lv_btn_create(this->connection_tile_obj);
     lv_obj_center(this->button_obj);
     lv_obj_add_style(this->button_obj, button_no_highlight_style, LV_PART_MAIN);
     lv_obj_add_event_cb(this->button_obj, BluetoothConnection::refresh_cb, LV_EVENT_REFRESH, this);
@@ -59,7 +66,7 @@ lv_obj_t* BluetoothConnection::createLvObj(lv_obj_t* parent)
 
     // Associate a label connecting
     this->label_obj = lv_label_create(this->this_obj);
-    lv_label_set_text(this->label_obj, "Connecting");
+    lv_label_set_text(this->label_obj, SEARCHING_STRING);
     lv_obj_add_style(this->label_obj, button_style, LV_PART_MAIN);
     lv_obj_center(this->label_obj);
 
@@ -83,6 +90,8 @@ void BluetoothConnection::focusLvObj(BaseLvObject* defocusLvObj)
     if (defocusLvObj) {
         // Ensure the connection view is shown if jumping to the connection
         lv_obj_set_tile_id(this->tileview_obj, 0, 0, LV_ANIM_OFF);
+        this->monitorLvObjActive = false;
+        this->exiting = false;
         this->defocusLvObj = defocusLvObj;
 	    this->hideButtonLabels();
         this->startBTConnection();
@@ -128,21 +137,40 @@ void BluetoothConnection::hideButtonLabels()
 	}
 }
 
+void BluetoothConnection::switchToMonitorLvObject()
+{
+    // Ensure the monitor screen is set up and move the gui to showing it
+    if (this->monitorLvObj) {
+        this->monitorLvObj->setBluetoothController(this->bluetoothController);
+        this->monitorLvObj->focusLvObj(this);
+        lv_obj_set_tile_id(this->tileview_obj, 0, 1, LV_ANIM_ON);
+        this->monitorLvObjActive = true;
+    }
+}
+
+void BluetoothConnection::switchToConnectionLvObject()
+{
+    // Ensure the monitor screen is set up and move the gui to showing it
+    if (this->monitorLvObjActive) {
+        lv_obj_set_tile_id(this->tileview_obj, 0, 0, LV_ANIM_ON);
+        this->monitorLvObjActive = false;
+    }
+}
 
 void BluetoothConnection::connectionSuccess() 
 {
     lv_obj_add_flag(this->label_obj, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(this->spinner_obj, LV_OBJ_FLAG_HIDDEN);
 
+    // Reset all the bike stats monitoring and timings
     this->bluetoothController->resetConnectedBikeStateMonitorAttributeType();
     this->bluetoothController->resetConnectedBikeStateTime();
+    // Subscribe to the notifications
     this->bluetoothController->subscribeEbikeNotifications();
     
-    if (this->monitorLvObj) {
-        lv_obj_set_tile_id(this->tileview_obj, 0, 1, LV_ANIM_ON);
-        this->monitorLvObj->setBluetoothController(this->bluetoothController);
-        this->monitorLvObj->focusLvObj(this);
-    }
+    // Ensure the monitor screen is set up and move the gui to showing it
+    this->switchToMonitorLvObject();
+
     // The referesh is now going to connect into the monitored panel(s)
     this->connecting = false;
     this->connected = true;
@@ -161,8 +189,12 @@ void BluetoothConnection::checkForConnection() {
                         {
                         case BikeType::GEN1:
                         case BikeType::GEN2:
-                            if (this->bluetoothController->readBatteryConnected() //&& this->bluetoothController->getConnectedBikeState().batteryConnected) 
-                                )
+#if (CONNECT_ONLY_WHEN_BATTERY_CONNECTED==1)
+                            if (this->bluetoothController->readBikeStateAttribute(BikeStateAttributeIndex::BATTERY_CONNECTED_STATE 
+                                && this->bluetoothController->getBikeState().getStateAttribute(BikeStateAttributeIndex::BATTERY_CONNECTED_STATE).bikeStateAttributeValue.valueBool)
+#else
+                            if (this->bluetoothController->readBikeStateAttribute(BikeStateAttributeIndex::BATTERY_CONNECTED_STATE))
+#endif
                             {
                                 // Connected
                                 this->connectionSuccess();
@@ -202,8 +234,22 @@ void BluetoothConnection::refreshCB(lv_event_t* event)
 
 void BluetoothConnection::exitButtonCB(lv_event_t* event)
 {
+    this->exiting = true;
+    // Check which screen is being shown if we're on the wrong screen then perform switch to exit screen
+    if (this->monitorLvObjActive) {        
+        this->switchToConnectionLvObject();
+        return;
+    }
+
     if (this->defocusLvObj) {
         this->defocusLvObj->focusLvObj();
         this->stopBTConnection();
     }
+}
+
+void BluetoothConnection::tileChangedhCB(lv_event_t* event)
+{
+    // Update the monitorLvObjActive to be the state we've moved to
+    this->monitorLvObjActive = lv_tileview_get_tile_act(this->tileview_obj) != this->connection_tile_obj;
+    if (this->exiting) this->exitButtonCB(event);
 }

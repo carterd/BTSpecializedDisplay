@@ -8,34 +8,9 @@ enum class MonitorAttributeType {
     ALWAYS_IGNORE = 0,             // We basically are not interested in changes in this attribute
     ONCE = 1,               // Read the value just the once
     EVERY_MINUTE = 2,       // Ensure at some time at least values get an explicit update
-    EVERY_SECOND = 3,       // Maybe some instantanious value that we need to keep track of
-    CONSTANTLY = 4,         // Not recomended unless it's a special case status    
-};
-
-
-template<class T>
-class MonitoredAttribute {
-protected:
-    T value;    
-public:
-    MonitorAttributeType type;
-    uint32_t time;
-    T getValue() { return value; }
-    T getValueConst() const { return value; }
-    bool setValueAndTime(T newValue, int32_t time) {
-        if (this->type == MonitorAttributeType::ALWAYS_IGNORE) return false;
-        if (this->type == MonitorAttributeType::ONCE) this->type = MonitorAttributeType::ALWAYS_IGNORE;
-        this->value = newValue;
-        this->time = time;
-        return true;
-    }
-    bool setTime(int32_t time) {
-        if (this->type == MonitorAttributeType::ALWAYS_IGNORE) return false;
-        return true;
-    }
-    void setMonitorAttributeType(MonitorAttributeType monitorAttributeType) {
-        if (this->type < monitorAttributeType)  this->type = monitorAttributeType;        
-    }
+    EVERY_TEN_SECONDS = 3,
+    EVERY_SECOND = 4,       // Maybe some instantanious value that we need to keep track of    
+    CONSTANTLY = 5,         // Not recomended unless it's a special case status    
 };
 
 struct HardwareVersion {
@@ -56,7 +31,7 @@ struct AssistLevels {
 };
 
 struct NumberString {
-    char numberString[32];
+    char value[32];
 };
 
 enum class BikeStateAttributeIndex {    
@@ -88,6 +63,7 @@ enum class BikeStateAttributeIndex {
     BIKE_ON_OFF_STATE,
     BATTERY_CONNECTED_STATE,
     BEEP_ON_OFF_STATE,
+    BIKE_SERIAL_NUMBER,
     ///
     BIKE_STATE_ATTRIBUTE_SIZE
 };
@@ -142,20 +118,76 @@ public:
 
 class BikeState {
 private:
-    BikeStateAttribute bikeStateAttributes[static_cast<int>(BikeStateAttributeIndex::BIKE_STATE_ATTRIBUTE_SIZE)];
-
+    BikeStateAttribute bikeStateAttributes[static_cast<int>(BikeStateAttributeIndex::BIKE_STATE_ATTRIBUTE_SIZE)];    
 public:
     BikeState();
-    BikeStateAttribute& getStateAttribute(BikeStateAttributeIndex bikeStateAttributeIndex) { 
-        return this->bikeStateAttributes[static_cast<int>(bikeStateAttributeIndex)]; 
-    }
+
+    BikeStateAttribute& getStateAttribute(BikeStateAttributeIndex bikeStateAttributeIndex) {
+        return this->bikeStateAttributes[static_cast<int>(bikeStateAttributeIndex)];
+    };
+
     void setStateAttribute(BikeStateAttributeIndex bikeStateAttributeIndex, BikeStateAttribute& bikeStateAttribute) {
         this->bikeStateAttributes[static_cast<int>(bikeStateAttributeIndex)] = bikeStateAttribute;
     }
 
-    void setMonitorAttributeType(MonitorAttributeType monitorAttributeType);
+    bool setStateAttribute(BikeStateAttributeIndex bikeStateAttributeIndex, BikeStateAttribute::BikeStateAttributeValue& bikeStateAttribute, uint32_t lastFetchTimeTicks);
 
-    void setLastFetchTimeTicks(uint32_t lastFetchTimeTicks);
+    bool setStateAttribute(BikeStateAttributeIndex bikeStateAttributeIndex, uint32_t lastFetchTimeTicks);
+
+    bool setStateAttribute(BikeStateAttributeIndex bikeStateAttributeIndex, NumberString& bikeStateAttribute, uint32_t lastFetchTimeTicks) {
+        this->bikeStateAttributes[static_cast<int>(bikeStateAttributeIndex)].bikeStateAttributeValue.numberString = bikeStateAttribute;
+        return this->setStateAttribute(bikeStateAttributeIndex, lastFetchTimeTicks);
+    }
+
+    bool setStateAttribute(BikeStateAttributeIndex bikeStateAttributeIndex, HardwareVersion& bikeStateAttribute, uint32_t lastFetchTimeTicks) {
+        this->bikeStateAttributes[static_cast<int>(bikeStateAttributeIndex)].bikeStateAttributeValue.valueHardwareVersion = bikeStateAttribute;
+        return this->setStateAttribute(bikeStateAttributeIndex, lastFetchTimeTicks);
+    }
+
+    bool setStateAttribute(BikeStateAttributeIndex bikeStateAttributeIndex, FirmwareVersion& bikeStateAttribute, uint32_t lastFetchTimeTicks) {
+        this->bikeStateAttributes[static_cast<int>(bikeStateAttributeIndex)].bikeStateAttributeValue.valueFirmwareVersion = bikeStateAttribute;
+        return this->setStateAttribute(bikeStateAttributeIndex, lastFetchTimeTicks);
+    }
+
+    bool setStateAttribute(BikeStateAttributeIndex bikeStateAttributeIndex, AssistLevels& bikeStateAttribute, uint32_t lastFetchTimeTicks) {
+        this->bikeStateAttributes[static_cast<int>(bikeStateAttributeIndex)].bikeStateAttributeValue.assistLevels = bikeStateAttribute;
+        return this->setStateAttribute(bikeStateAttributeIndex, lastFetchTimeTicks);
+    }
+
+    bool setStateAttribute(BikeStateAttributeIndex bikeStateAttributeIndex, float bikeStateAttribute, uint32_t lastFetchTimeTicks) {
+        this->bikeStateAttributes[static_cast<int>(bikeStateAttributeIndex)].bikeStateAttributeValue.valueFloat = bikeStateAttribute;
+        return this->setStateAttribute(bikeStateAttributeIndex, lastFetchTimeTicks);
+    }
+
+    bool setStateAttribute(BikeStateAttributeIndex bikeStateAttributeIndex, uint32_t bikeStateAttribute, uint32_t lastFetchTimeTicks) {
+        this->bikeStateAttributes[static_cast<int>(bikeStateAttributeIndex)].bikeStateAttributeValue.valueUint32 = bikeStateAttribute;
+        return this->setStateAttribute(bikeStateAttributeIndex, lastFetchTimeTicks);
+    }
+
+    bool setStateAttribute(BikeStateAttributeIndex bikeStateAttributeIndex, uint16_t bikeStateAttribute, uint32_t lastFetchTimeTicks) {
+        this->bikeStateAttributes[static_cast<int>(bikeStateAttributeIndex)].bikeStateAttributeValue.valueUint16 = bikeStateAttribute;
+        return this->setStateAttribute(bikeStateAttributeIndex, lastFetchTimeTicks);
+    }
+
+    bool setStateAttribute(BikeStateAttributeIndex bikeStateAttributeIndex, uint8_t bikeStateAttribute, uint32_t lastFetchTimeTicks) {
+        this->bikeStateAttributes[static_cast<int>(bikeStateAttributeIndex)].bikeStateAttributeValue.valueUint8 = bikeStateAttribute;
+        return this->setStateAttribute(bikeStateAttributeIndex, lastFetchTimeTicks);
+    }
+
+    bool setStateAttribute(BikeStateAttributeIndex bikeStateAttributeIndex, bool bikeStateAttribute, uint32_t lastFetchTimeTicks) {
+        this->bikeStateAttributes[static_cast<int>(bikeStateAttributeIndex)].bikeStateAttributeValue.valueBool = bikeStateAttribute;
+        return this->setStateAttribute(bikeStateAttributeIndex, lastFetchTimeTicks);
+    }
+
+    void setMonitorAttributeType(BikeStateAttributeIndex bikeStateAttributeIndex, MonitorAttributeType monitorAttributeType) {
+        this->bikeStateAttributes[static_cast<int>(bikeStateAttributeIndex)].monitorAttributeType = monitorAttributeType;
+    }
+
+    BikeStateAttributeIndex getOldestStateAttribute(MonitorAttributeType monitorAttributeType);
+
+    void setAllMonitorAttributeType(MonitorAttributeType monitorAttributeType);
+
+    void setAllLastFetchTimeTicks(uint32_t lastFetchTimeTicks);
 };
 
 
@@ -187,104 +219,6 @@ public:
 public:
     BikeStateToBluetoothBikeRequest();
     BluetoothBikeRequest getBluetoothBikeRequest(BikeStateAttributeIndex bikeStateAttributeIndex, BikeType bikeType);
-};
-
-
-struct BluetoothBikeState {
-    // Battery State Details
-    MonitoredAttribute<uint16_t> batterySerialNumber;
-    MonitoredAttribute<uint16_t> batteryCapacity;
-    MonitoredAttribute<uint16_t> batteryCapacityRemaining;
-    MonitoredAttribute<uint16_t> batteryChargeCycles;
-    MonitoredAttribute<float_t> batteryVoltage;
-    MonitoredAttribute<float_t> batteryCurrent;
-    MonitoredAttribute<uint8_t> batteryHealth;
-    MonitoredAttribute<uint8_t> batteryChargePercent;
-    MonitoredAttribute<uint8_t> batteryTemp;
-    MonitoredAttribute<HardwareVersion> batteryHardwareVersion;
-    MonitoredAttribute<FirmwareVersion> batteryFirmwareVersion;
-    // Motor State Details
-    MonitoredAttribute<uint16_t> riderPower;
-    MonitoredAttribute<float_t> motorCadence;
-    MonitoredAttribute<float_t> motorSpeed;
-    MonitoredAttribute<uint32_t> motorOdometer;
-    MonitoredAttribute<uint16_t> motorAssistLevel;
-    MonitoredAttribute<uint8_t> motorTemp;
-    MonitoredAttribute<FirmwareVersion> motorFirmwareVersion;
-    MonitoredAttribute<uint16_t> motorPower;
-    MonitoredAttribute<AssistLevels> peakAssistLevels;
-    MonitoredAttribute<NumberString> motorHardwareNumber;
-    MonitoredAttribute<NumberString> motorSerailNumber;
-    // Other State Details
-    MonitoredAttribute<uint16_t> wheelCircumference;
-    MonitoredAttribute<AssistLevels> assistPercentage;
-    MonitoredAttribute<uint8_t> fakeChannelNumber;
-    MonitoredAttribute<uint8_t> bikeOnOffState;
-    MonitoredAttribute<NumberString> bikeSerialNumber;
-    MonitoredAttribute<bool> batteryConnected;
-
-    void setMonitorAttributeType(MonitorAttributeType monitorAttributeType) {
-        batterySerialNumber.type = 
-        batteryCapacity.type =
-        batteryCapacityRemaining.type =
-        batteryChargeCycles.type =
-        batteryVoltage.type =
-        batteryCurrent.type =
-        batteryHealth.type =
-        batteryChargePercent.type =
-        batteryTemp.type = 
-        batteryHardwareVersion.type = 
-        batteryFirmwareVersion.type =    
-        riderPower.type =
-        motorCadence.type =
-        motorSpeed.type =
-        motorOdometer.type =
-        motorAssistLevel.type =
-        motorTemp.type =
-        motorFirmwareVersion.type =
-        motorPower.type =
-        peakAssistLevels.type =
-        motorHardwareNumber.type =
-        motorSerailNumber.type =
-        wheelCircumference.type =
-        assistPercentage.type =
-        fakeChannelNumber.type =
-        bikeOnOffState.type =
-        bikeSerialNumber.type =
-        batteryConnected.type = monitorAttributeType;
-    }
-
-    void setTime(uint32_t time) {
-        batterySerialNumber.time = 
-        batteryCapacity.time =
-        batteryCapacityRemaining.time =
-        batteryChargeCycles.time =
-        batteryVoltage.time =
-        batteryCurrent.time =
-        batteryHealth.time =
-        batteryChargePercent.time =
-        batteryTemp.time = 
-        batteryHardwareVersion.time = 
-        batteryFirmwareVersion.time =    
-        riderPower.time =
-        motorCadence.time =
-        motorSpeed.time =
-        motorOdometer.time =
-        motorAssistLevel.time =
-        motorTemp.time =
-        motorFirmwareVersion.time =
-        motorPower.time =
-        peakAssistLevels.time =
-        motorHardwareNumber.time =
-        motorSerailNumber.time =
-        wheelCircumference.time =
-        assistPercentage.time =
-        fakeChannelNumber.time =
-        bikeOnOffState.time =
-        bikeSerialNumber.time =
-        batteryConnected.time = time;
-    }
-
 };
 
 #endif

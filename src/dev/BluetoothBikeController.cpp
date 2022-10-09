@@ -167,6 +167,17 @@ void BluetoothBikeController::checkForScanningChange() {
   }
 }
 
+void BluetoothBikeController::checkForStaleBikeStateAttribute(MonitorAttributeType monitorAttributeType, uint32_t maximumTime) {
+    // Only if we've done no reading of other attributes
+    if (!this->connectedBikeStateUpdated) {
+        BikeStateAttributeIndex bikeStateAttributeIndex = this->bikeState.getOldestStateAttribute(monitorAttributeType);
+        if (bikeStateAttributeIndex != BikeStateAttributeIndex::BIKE_STATE_ATTRIBUTE_SIZE && this->bikeState.getStateAttribute(bikeStateAttributeIndex).lastFetchTimeTicks < maximumTime) {
+            this->readBikeStateAttribute(bikeStateAttributeIndex, monitorAttributeType);
+            this->connectedBikeStateUpdated = true;
+        }
+    }
+}
+
 void BluetoothBikeController::checkForConnectionChange() {
   if (this->connected) {
     // Attempt to poll the device
@@ -176,7 +187,15 @@ void BluetoothBikeController::checkForConnectionChange() {
       this->connected = false;
       this->connectedBikeStateUpdated = true;
     }
-    // Currently we can't tell if the poll has detected any changes soo simply keep REFRESHING every 20ms
+
+    uint32_t timeStamp = millis();
+    if (timeStamp > 60 * 1000) this->checkForStaleBikeStateAttribute(MonitorAttributeType::EVERY_MINUTE, timeStamp - 60 * 1000);
+    if (timeStamp > 10 * 1000)  this->checkForStaleBikeStateAttribute(MonitorAttributeType::EVERY_TEN_SECONDS, timeStamp - 10 * 1000);
+    if (timeStamp > 1000)  this->checkForStaleBikeStateAttribute(MonitorAttributeType::EVERY_SECOND, timeStamp - 1000);
+    if (timeStamp > 20) this->checkForStaleBikeStateAttribute(MonitorAttributeType::CONSTANTLY, timeStamp - 20);
+
+
+    // If there is a listener and we've got some udpate information for the gui then perform callback
     if (this->listener_obj && this->connectedBikeStateUpdated) {
       lv_event_send(this->listener_obj, LV_EVENT_REFRESH, this);
       this->connectedBikeStateUpdated = false;
@@ -192,6 +211,9 @@ void BluetoothBikeController::checkForChange() {
 bool BluetoothBikeController::readBikeStateAttribute(BikeStateAttributeIndex bikeStateAttributeIndex, MonitorAttributeType monitorAttributeType)
 {
     bool result;
+    if (monitorAttributeType > this->bikeState.getStateAttribute(bikeStateAttributeIndex).monitorAttributeType) {
+        this->bikeState.setMonitorAttributeType(bikeStateAttributeIndex, monitorAttributeType);
+    }
     BluetoothBikeRequest bluetoothBikeRequest = this->bikeStateToBluetoothBikeRequest.getBluetoothBikeRequest(bikeStateAttributeIndex, this->getConnectedBikeType());
     result = this->readEbikeValue(bluetoothBikeRequest.request1.area, bluetoothBikeRequest.request1.attribute);
     if (result && bluetoothBikeRequest.request2.area != EbikeStatusArea::INVALID) {
@@ -199,77 +221,6 @@ bool BluetoothBikeController::readBikeStateAttribute(BikeStateAttributeIndex bik
     }
     
     return result;
-}
-
-bool BluetoothBikeController::readBattery(MonitorAttributeType monitorAttributeType) {
-  if (readBatteryCapacity(monitorAttributeType) && readBatteryCapacityRemaining(monitorAttributeType) && readBatteryChargeCycles(monitorAttributeType) && readBatteryChargePercent(monitorAttributeType) && readBatteryHealth(monitorAttributeType) &&
-	    readBatteryTemp(monitorAttributeType) && readBatteryVoltage(monitorAttributeType) && readBatteryCurrent(monitorAttributeType) && readBatteryFirmwareVersion(monitorAttributeType) && readBatteryHardwareVersion(monitorAttributeType) && readBatterySerialNumber(monitorAttributeType))
-  {
-    return true;
-  }
-  return false;
-}
-
-bool BluetoothBikeController::readMotor(MonitorAttributeType monitorAttributeType) {
-  if (readRiderPower(monitorAttributeType) && readMotorCadence(monitorAttributeType) && readMotorSpeed(monitorAttributeType) && readMotorOdometer(monitorAttributeType) && readMotorAssistLevel(monitorAttributeType) && 
-      readMotorFirmwareVersion(monitorAttributeType) && readMotorTemp(monitorAttributeType) && readMotorPower(monitorAttributeType) && readPeakAssistLevels(monitorAttributeType) && readMotorSerailNumber(monitorAttributeType))
-  {
-    return true;
-  }
-  return false;
-}
-
-bool BluetoothBikeController::readBikeOther(MonitorAttributeType monitorAttributeType) {
-  if (readBikeOnOffState(monitorAttributeType) && readBikeSerialNumber(monitorAttributeType) && readWheelCircumference(monitorAttributeType) && readAssistPercentages(monitorAttributeType) )
-  {
-    return true;
-  }
-  return false;
-}
-
-bool BluetoothBikeController::readBatteryHardwareVersion(MonitorAttributeType monitorAttributeType) {
-  this->connectedBikeState.batteryHardwareVersion.setMonitorAttributeType(monitorAttributeType); 
-  switch (this->connectedBikeType)
-  {
-    case BikeType::GEN1: return this->readEbikeValue(EbikeStatusArea::BATTERY, EbikeStatusBattery::HARDWARE_VERSION); break;
-    case BikeType::GEN2: break;
-  }
-  return false;
-}
-
-bool BluetoothBikeController::readBatterySerialNumber(MonitorAttributeType monitorAttributeType) {
-  this->connectedBikeState.batterySerialNumber.setMonitorAttributeType(monitorAttributeType); 
-  switch (this->connectedBikeType)
-  {
-    case BikeType::GEN1: return this->readEbikeValue(EbikeStatusArea::BATTERY, EbikeStatusBattery::SERIAL_NO_GEN1); break;
-    case BikeType::GEN2: break;
-  }
-  return false;
-}
-
-bool BluetoothBikeController::readMotorSerailNumber(MonitorAttributeType monitorAttributeType) {
-  this->connectedBikeState.motorSerailNumber.setMonitorAttributeType(monitorAttributeType); 
-  if (this->readEbikeValue(EbikeStatusArea::MOTOR, EbikeStatusMotor::SERIAL_NO_PART1) &&
-    this->readEbikeValue(EbikeStatusArea::MOTOR, EbikeStatusMotor::SERIAL_NO_PART2)) return true;
-  return false;
-}
-
-bool BluetoothBikeController::readAssistPercentages(MonitorAttributeType monitorAttributeType) {
-  this->connectedBikeState.assistPercentage.setMonitorAttributeType(monitorAttributeType); 
-  if (this->readEbikeValue(EbikeStatusArea::OTHER, EbikeStatusOther::ASSIST_ECO) && 
-    this->readEbikeValue(EbikeStatusArea::OTHER, EbikeStatusOther::ASSIST_TRAIL) &&
-    this->readEbikeValue(EbikeStatusArea::OTHER, EbikeStatusOther::ASSIST_TURBO)) return true;
-  return false;
-}
-
-bool BluetoothBikeController::readBatteryConnected(MonitorAttributeType monitorAttributeType) {
-  this->connectedBikeState.bikeSerialNumber.setMonitorAttributeType(monitorAttributeType); 
-  if (this->readBikeSerialNumber()) {
-    uint32_t time = millis();
-    this->connectedBikeState.batteryConnected.setValueAndTime((readBuffer[2] == 0xff && readBuffer[3] == 0xff && readBuffer[4] == 0xff && readBuffer[5]) ? false : true, time);
-    return true;
-  }
-  return false;
 }
 
 void BluetoothBikeController::readBufferToBikeState() {
@@ -281,26 +232,26 @@ void BluetoothBikeController::readBufferToBikeState() {
     case EbikeStatusArea::BATTERY: {
       EbikeStatusBattery ebikeStatusBattery = static_cast<EbikeStatusBattery>(this->readBuffer[1]);
       switch (ebikeStatusBattery) {
-        case EbikeStatusBattery::CAPACITY:         bikeStatusUpdate = this->connectedBikeState.batteryCapacity.setValueAndTime(this->bufferToUint16(), time); break;
-        case EbikeStatusBattery::CAPACITY_REMAIN:  bikeStatusUpdate = this->connectedBikeState.batteryCapacityRemaining.setValueAndTime(this->bufferToUint16(), time); break;
-        case EbikeStatusBattery::HEALTH:           bikeStatusUpdate = this->connectedBikeState.batteryHealth.setValueAndTime(this->bufferToUint8(), time); break;
-        case EbikeStatusBattery::TEMP:             bikeStatusUpdate = this->connectedBikeState.batteryTemp.setValueAndTime(this->bufferToUint8(), time); break;
-        case EbikeStatusBattery::CHARGE_CYCLES:    bikeStatusUpdate = this->connectedBikeState.batteryChargeCycles.setValueAndTime(this->bufferToUint16(), time); break;
-        case EbikeStatusBattery::VOLTAGE:          bikeStatusUpdate = this->connectedBikeState.batteryVoltage.setValueAndTime(this->bufferToUint8() / 5.0f + 20, time); break;
-        case EbikeStatusBattery::CURRENT:          bikeStatusUpdate = this->connectedBikeState.batteryCurrent.setValueAndTime(this->bufferToUint8() / 5.0f, time); break;
+        case EbikeStatusBattery::CAPACITY:         bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::BATTERY_CAPACITY, this->bufferToUint16(), time); break;
+        case EbikeStatusBattery::CAPACITY_REMAIN:  bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::BATTERY_CAPACITY_REMAINING, this->bufferToUint16(), time); break;
+        case EbikeStatusBattery::HEALTH:           bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::BATTERY_HEALTH, this->bufferToUint8(), time); break;
+        case EbikeStatusBattery::TEMP:             bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::BATTERY_TEMP, this->bufferToUint8(), time); break;
+        case EbikeStatusBattery::CHARGE_CYCLES:    bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::BATTERY_CHARGE_CYCLES, this->bufferToUint16(), time); break;
+        case EbikeStatusBattery::VOLTAGE:          bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::BATTERY_VOLTAGE, this->bufferToUint8() / 5.0f + 20, time); break;
+        case EbikeStatusBattery::CURRENT:          bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::BATTERY_CURRENT, this->bufferToUint8() / 5.0f, time); break;
         case EbikeStatusBattery::HARDWARE_VERSION: {            
             // Possible code with GEN2
             HardwareVersion hardwareVersion { this->bufferToUint8(), 0 };
-            bikeStatusUpdate = this->connectedBikeState.batteryHardwareVersion.setValueAndTime(hardwareVersion, time);
+            bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::BATTERY_HARDWARE_VERSION, hardwareVersion, time);
           } break;
         case EbikeStatusBattery::FIRMWARE_VERSION: {
             FirmwareVersion firmwareVersion { this->bufferToUint8(BATTERY_FIRMWARE_VERSION_MAJOR_NUMBER_BUFFER_INDEX), 
                                               this->bufferToUint8(BATTERY_FIRMWARE_VERSION_MINOR_NUMBER_BUFFER_INDEX),
                                               this->bufferToUint8(BATTERY_FIRMWARE_VERSION_PATCH_NUMBER_BUFFER_INDEX) };
-            bikeStatusUpdate = this->connectedBikeState.batteryFirmwareVersion.setValueAndTime(firmwareVersion, time);
+            bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::BATTERY_FIRMWARE_VERSION, firmwareVersion, time);
           } break;
-        case EbikeStatusBattery::SERIAL_NO_GEN1:  bikeStatusUpdate = this->connectedBikeState.batterySerialNumber.setValueAndTime(this->bufferToUint16(), time); break;
-        case EbikeStatusBattery::CHARGE_PERCENT:  bikeStatusUpdate = this->connectedBikeState.batteryChargePercent.setValueAndTime(this->bufferToUint8(), time); break;
+        case EbikeStatusBattery::SERIAL_NO_GEN1:  bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::BATTERY_SERIAL_NUMBER, this->bufferToUint16(), time); break;
+        case EbikeStatusBattery::CHARGE_PERCENT:  bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::BATTERY_CHARGE_PERCENT, this->bufferToUint8(), time); break;
         case EbikeStatusBattery::SERIAL_NO_GEN2_PART1:
         case EbikeStatusBattery::SERIAL_NO_GEN2_PART2:
         // GEN 2 TODO
@@ -311,101 +262,102 @@ void BluetoothBikeController::readBufferToBikeState() {
     case EbikeStatusArea::MOTOR: {
       EbikeStatusMotor ebikeStatusMotor = static_cast<EbikeStatusMotor>(this->readBuffer[1]);
       switch (ebikeStatusMotor) {
-        case EbikeStatusMotor::RIDER_POWER:   bikeStatusUpdate = this->connectedBikeState.riderPower.setValueAndTime(this->bufferToUint16(), time); break;
-        case EbikeStatusMotor::CADENCE:       bikeStatusUpdate = this->connectedBikeState.motorCadence.setValueAndTime(this->bufferToUint16() / 10.0f, time); break;
-        case EbikeStatusMotor::SPEED:         bikeStatusUpdate = this->connectedBikeState.motorSpeed.setValueAndTime(this->bufferToUint16() / 10.0f, time); break;
-        case EbikeStatusMotor::ODOMETER:      bikeStatusUpdate = this->connectedBikeState.motorOdometer.setValueAndTime(this->bufferToUint32(), time); break;
-        case EbikeStatusMotor::ASSIST_LEVEL:  bikeStatusUpdate = this->connectedBikeState.motorAssistLevel.setValueAndTime(this->bufferToUint16(), time); break;
-        case EbikeStatusMotor::TEMP:          bikeStatusUpdate = this->connectedBikeState.riderPower.setValueAndTime(this->bufferToUint8(), time); break;
-        case EbikeStatusMotor::MOTOR_POWER:   bikeStatusUpdate = this->connectedBikeState.riderPower.setValueAndTime(this->bufferToUint16(), time); break;
+        case EbikeStatusMotor::RIDER_POWER:   bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::RIDER_POWER, this->bufferToUint16(), time); break;
+        case EbikeStatusMotor::CADENCE:       bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::MOTOR_CADENCE, this->bufferToUint16() / 10.0f, time); break;
+        case EbikeStatusMotor::SPEED:         bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::MOTOR_SPEED, this->bufferToUint16() / 10.0f, time); break;
+        case EbikeStatusMotor::ODOMETER:      bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::MOTOR_ODOMETER, this->bufferToUint32(), time); break;
+        case EbikeStatusMotor::ASSIST_LEVEL:  bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::MOTOR_ASSIST_LEVEL, this->bufferToUint16(), time); break;
+        case EbikeStatusMotor::TEMP:          bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::MOTOR_TEMP, this->bufferToUint8(), time); break;
+        case EbikeStatusMotor::MOTOR_POWER:   bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::MOTOR_FIRMWARE_VERSION, this->bufferToUint16(), time); break;
         case EbikeStatusMotor::FIRMWARE_VERSION: {
           FirmwareVersion firmwareVersion { this->bufferToUint8(MOTOR_FIRMWARE_VERSION_MAJOR_NUMBER_BUFFER_INDEX), 
                                             this->bufferToUint8(MOTOR_FIRMWARE_VERSION_MINOR_NUMBER_BUFFER_INDEX), 
                                             this->bufferToUint8(MOTOR_FIRMWARE_VERSION_PATCH_NUMBER_BUFFER_INDEX) }; 
-          bikeStatusUpdate = this->connectedBikeState.motorFirmwareVersion.setValueAndTime(firmwareVersion, time);
+          bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::MOTOR_FIRMWARE_VERSION, firmwareVersion, time);
         } break;
         case EbikeStatusMotor::PEAK_ASSIST:
-          switch (this->connectedBikeType) {
-            case BikeType::GEN1: {
-              AssistLevels assistLevels = this->connectedBikeState.peakAssistLevels.getValue(); 
-              uint8_t peakTypeAndValue = this->bufferToUint8();
-              uint8_t peakType = peakTypeAndValue % 10;
-              uint8_t peakLevel = peakTypeAndValue - peakType;
-              switch (peakType) {
-                case 1: assistLevels.eco=peakLevel; break;
-                case 2: assistLevels.trail=peakLevel; break;
-                case 3: assistLevels.turbo=peakLevel; break;
-              }
-              bikeStatusUpdate = this->connectedBikeState.peakAssistLevels.setValueAndTime(assistLevels, time);
+        {
+            AssistLevels assistLevels = this->bikeState.getStateAttribute(BikeStateAttributeIndex::PEAK_ASSIST_LEVELS).bikeStateAttributeValue.assistLevels;
+            switch (this->connectedBikeType) {
+            case BikeType::GEN1: {                
+                uint8_t peakTypeAndValue = this->bufferToUint8();
+                uint8_t peakType = peakTypeAndValue % 10;
+                uint8_t peakLevel = peakTypeAndValue - peakType;
+                switch (peakType) {
+                case 1: assistLevels.eco = peakLevel; break;
+                case 2: assistLevels.trail = peakLevel; break;
+                case 3: assistLevels.turbo = peakLevel; break;
+                }
             } break;
             case BikeType::GEN2: {
-              AssistLevels assistLevels = this->connectedBikeState.peakAssistLevels.getValue(); 
-              assistLevels.eco=this->bufferToUint8(2);
-              assistLevels.trail=this->bufferToUint8(3);
-              assistLevels.turbo=this->bufferToUint8(4);
-              bikeStatusUpdate = this->connectedBikeState.peakAssistLevels.setValueAndTime(assistLevels, time);
+                AssistLevels assistLevels = this->bikeState.getStateAttribute(BikeStateAttributeIndex::PEAK_ASSIST_LEVELS).bikeStateAttributeValue.assistLevels;
+                assistLevels.eco = this->bufferToUint8(2);
+                assistLevels.trail = this->bufferToUint8(3);
+                assistLevels.turbo = this->bufferToUint8(4);
+                bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::PEAK_ASSIST_LEVELS, assistLevels, time);
             } break;
-          } break;
+            } break;
+            bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::PEAK_ASSIST_LEVELS, assistLevels, time);
+        } break;
         case EbikeStatusMotor::HARDWARE_NO_PART1: {
-            char* motorHardwareNumber = this->connectedBikeState.motorHardwareNumber.getValue().numberString;
+            char* motorHardwareNumber = this->bikeState.getStateAttribute(BikeStateAttributeIndex::MOTOR_HARDWARE_VERSION).bikeStateAttributeValue.numberString.value;
             bufferToCharArray(&(motorHardwareNumber[0]), 18);
             motorHardwareNumber[20] = 0x00;
-            bikeStatusUpdate = this->connectedBikeState.motorHardwareNumber.setTime(time);
+            bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::MOTOR_HARDWARE_VERSION, time);
           } break;
         case EbikeStatusMotor::HARDWARE_NO_PART2: {
-            char* motorHardwareNumber = this->connectedBikeState.motorHardwareNumber.getValue().numberString;
+            char* motorHardwareNumber = this->bikeState.getStateAttribute(BikeStateAttributeIndex::MOTOR_HARDWARE_VERSION).bikeStateAttributeValue.numberString.value;
             bufferToCharArray(&(motorHardwareNumber[18]), 2);
             motorHardwareNumber[20] = 0x00;
-            bikeStatusUpdate = this->connectedBikeState.motorHardwareNumber.setTime(time);
+            bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::MOTOR_HARDWARE_VERSION, time);
           } break;
         case EbikeStatusMotor::SERIAL_NO_PART1: {
-            char* motorSerailNumber = this->connectedBikeState.motorSerailNumber.getValue().numberString;
+            char* motorSerailNumber = this->bikeState.getStateAttribute(BikeStateAttributeIndex::MOTOR_SERIAL_NUMBER).bikeStateAttributeValue.numberString.value;
             bufferToCharArray(&(motorSerailNumber[0]), 18);
             motorSerailNumber[23] = 0x00;
-            bikeStatusUpdate = this->connectedBikeState.motorSerailNumber.setTime(time);
+            bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::MOTOR_SERIAL_NUMBER, time);
           } break;
         case EbikeStatusMotor::SERIAL_NO_PART2: {
-            char* motorSerailNumber = this->connectedBikeState.motorSerailNumber.getValue().numberString;
+            char* motorSerailNumber = this->bikeState.getStateAttribute(BikeStateAttributeIndex::MOTOR_SERIAL_NUMBER).bikeStateAttributeValue.numberString.value;
             bufferToCharArray(&(motorSerailNumber[18]), 5);
             motorSerailNumber[23] = 0x00;
-            bikeStatusUpdate = this->connectedBikeState.motorSerailNumber.setTime(time);
+            bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::MOTOR_SERIAL_NUMBER, time);
           } break;
       }
     } break;
     case EbikeStatusArea::OTHER: {
       EbikeStatusOther ebikeStatusOther = static_cast<EbikeStatusOther>(this->readBuffer[1]);
       switch (ebikeStatusOther) {
-        case EbikeStatusOther::WHEEL_CIRCUMFERENCE: bikeStatusUpdate = this->connectedBikeState.wheelCircumference.setValueAndTime(this->bufferToUint16(), time); break;
+        case EbikeStatusOther::WHEEL_CIRCUMFERENCE: bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::WHEEL_CIRCUMFERENCE, this->bufferToUint16(), time); break;
         case EbikeStatusOther::ASSIST_ECO: {
-          AssistLevels assistLevels = this->connectedBikeState.assistPercentage.getValue();
-          assistLevels.eco = this->bufferToUint8();
-          bikeStatusUpdate = this->connectedBikeState.assistPercentage.setValueAndTime(assistLevels, time);
+          this->bikeState.getStateAttribute(BikeStateAttributeIndex::ASSIST_PERCENTAGE).bikeStateAttributeValue.assistLevels.eco = this->bufferToUint8();
+          bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::ASSIST_PERCENTAGE, time);
         } 
         break;
         case EbikeStatusOther::ASSIST_TRAIL: {
-          AssistLevels assistLevels = this->connectedBikeState.assistPercentage.getValue();
-          assistLevels.trail = this->bufferToUint8();
-          bikeStatusUpdate = this->connectedBikeState.assistPercentage.setValueAndTime(assistLevels, time);
-        } 
+            this->bikeState.getStateAttribute(BikeStateAttributeIndex::ASSIST_PERCENTAGE).bikeStateAttributeValue.assistLevels.trail = this->bufferToUint8();
+            bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::ASSIST_PERCENTAGE, time);
+        }
         break;
         case EbikeStatusOther::ASSIST_TURBO: {
-          AssistLevels assistLevels = this->connectedBikeState.assistPercentage.getValue();
-          assistLevels.turbo = this->bufferToUint8();
-          bikeStatusUpdate = this->connectedBikeState.assistPercentage.setValueAndTime(assistLevels, time);
-        } 
+            this->bikeState.getStateAttribute(BikeStateAttributeIndex::ASSIST_PERCENTAGE).bikeStateAttributeValue.assistLevels.turbo = this->bufferToUint8();
+            bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::ASSIST_PERCENTAGE, time);
+        }
         break;
-        case EbikeStatusOther::BIKE_ON_OFF:         bikeStatusUpdate = this->connectedBikeState.bikeOnOffState.setValueAndTime(this->bufferToUint8(), time); break;
+        case EbikeStatusOther::BIKE_ON_OFF:         bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::BIKE_ON_OFF_STATE, this->bufferToUint8(), time); break;
         case EbikeStatusOther::BIKE_SERIAL_NO:
           {
-            char* bikeSerailNumber = this->connectedBikeState.bikeSerialNumber.getValue().numberString;
+            char* bikeSerailNumber = this->bikeState.getStateAttribute(BikeStateAttributeIndex::BIKE_SERIAL_NUMBER).bikeStateAttributeValue.numberString.value;
             bufferToCharArray(&(bikeSerailNumber[0]), 17);
             bikeSerailNumber[17] = 0x00;
-            bikeStatusUpdate = this->connectedBikeState.bikeSerialNumber.setTime(time);
+            bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::BIKE_SERIAL_NUMBER, time);
+            bikeStatusUpdate |= this->bikeState.setStateAttribute(BikeStateAttributeIndex::BATTERY_CONNECTED_STATE, (bikeSerailNumber[0] == 0xff && bikeSerailNumber[1] == 0xff && bikeSerailNumber[2] == 0xff && bikeSerailNumber[3]) ? false : true, time); break;
           }
           break;
       }
     } break;
   }
+  LV_LOG_USER("BIKE_STATUS_UPDATE beeing set to %d", bikeStatusUpdate);
   this->connectedBikeStateUpdated |= bikeStatusUpdate;
 }
 
