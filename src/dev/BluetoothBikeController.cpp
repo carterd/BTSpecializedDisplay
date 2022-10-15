@@ -30,11 +30,20 @@ void BluetoothBikeController::disconnect_handler_cb(BLEDevice device) {
   }
 }
 
-void BluetoothBikeController::update_handler_cb(BLEDevice device, BLECharacteristic characteristic) {
+void BluetoothBikeController::update_ebs_handler_cb(BLEDevice device, BLECharacteristic characteristic) {
   for (std::vector<BluetoothBikeController *>::iterator it = std::begin(BluetoothBikeController::bluetoothBikeControllers); it != std::end(BluetoothBikeController::bluetoothBikeControllers); ++it) {
     // Check the addresses match to identify the controller is connected to this device
     if ((*it)->getConnected() && device == (*it)->getConnectedDevice()) {
-      (*it)->updateCharacteristicCB(device, characteristic);
+      (*it)->updateEbsCharacteristicCB(device, characteristic);
+    }
+  }
+}
+
+void BluetoothBikeController::update_csc_handler_cb(BLEDevice device, BLECharacteristic characteristic) {
+  for (std::vector<BluetoothBikeController *>::iterator it = std::begin(BluetoothBikeController::bluetoothBikeControllers); it != std::end(BluetoothBikeController::bluetoothBikeControllers); ++it) {
+    // Check the addresses match to identify the controller is connected to this device
+    if ((*it)->getConnected() && device == (*it)->getConnectedDevice()) {
+      (*it)->updateCscCharacteristicCB(device, characteristic);
     }
   }
 }
@@ -223,6 +232,36 @@ bool BluetoothBikeController::readBikeStateAttribute(BikeStateAttributeIndex bik
     return result;
 }
 
+void BluetoothBikeController::readBufferToCscMeasurement()
+{
+  bool bikeStatusUpdate = false;
+  uint32_t time = millis();
+
+  int readBufferIndex = 1;
+  if (this->readBuffer[0] & static_cast<int>(CscMeasurementBit::CSC_WHEEL_REV_BIT)) {
+    uint32_t wheelRotations = this->bufferToUint32(readBufferIndex);
+    uint16_t wheelEventTime = this->bufferToUint16(readBufferIndex+4);
+    readBufferIndex += 6;
+    uint32_t lastWheelRotations = this->bikeState.getStateAttribute(BikeStateAttributeIndex::WHEEL_ROTATIONS).bikeStateAttributeValue.valueUint32;
+    uint16_t lastWheelEventTime = this->bikeState.getStateAttribute(BikeStateAttributeIndex::LAST_WHEEL_EVENT_TIME).bikeStateAttributeValue.valueUint32;
+    bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::WHEEL_ROTATIONS, wheelRotations, time);
+    bikeStatusUpdate |= this->bikeState.setStateAttribute(BikeStateAttributeIndex::LAST_WHEEL_EVENT_TIME, lastWheelEventTime, time);
+    // finally calculate the speed
+    int32_t eventTimeDelta = lastWheelEventTime <= wheelEventTime ? 
+      wheelEventTime - lastWheelEventTime : 0x10000 + wheelEventTime - lastWheelEventTime;
+    int32_t wheelRotationsDelta = lastWheelRotations <= wheelRotations ?
+      wheelRotation - lastWheelRotations : 0;
+    float wheelRatationsPerSecond = 1000.0 * wheelRotationsDelta / eventTimeDelta;
+
+  }
+  if (this->readBuffer[0] & static_cast<int>(CscMeasurementBit::CSC_CRANK_REV_BIT)) {
+    uint32_t wheelRotations = this->bufferToUint32(readBufferIndex);
+    uint16_t wheelEventTime = this->bufferToUint16(readBufferIndex+4);
+    readBufferIndex += 6;
+  }
+}
+
+
 void BluetoothBikeController::readBufferToBikeState() {
   bool bikeStatusUpdate = false;
   uint32_t time = millis();
@@ -357,7 +396,6 @@ void BluetoothBikeController::readBufferToBikeState() {
       }
     } break;
   }
-  LV_LOG_USER("BIKE_STATUS_UPDATE beeing set to %d", bikeStatusUpdate);
   this->connectedBikeStateUpdated |= bikeStatusUpdate;
 }
 
@@ -386,17 +424,36 @@ bool BluetoothBikeController::readEbikeValue(int ebikeStatusArea, int ebikeStatu
 
 bool BluetoothBikeController::subscribeEbikeNotifications() {
   if (this->ebsNotifyKeyValueBleCha.canSubscribe() && this->ebsNotifyKeyValueBleCha.subscribe()) {
-    this->ebsNotifyKeyValueBleCha.setEventHandler(BLEUpdated, BluetoothBikeController::update_handler_cb);
+    this->ebsNotifyKeyValueBleCha.setEventHandler(BLEUpdated, BluetoothBikeController::update_ebs_handler_cb);
     return true;
   }
   return false;
+}
+
+bool BluetoothBikeController::subscribeCscNotifications() {
+  LV_LOG_USER("subscribeCscNotifications");
+  if (this->cscMeasurementBleCha.canSubscribe() && this->cscMeasurementBleCha.subscribe()) {
+    LV_LOG_USER("setEventHandler");
+    this->cscMeasurementBleCha.setEventHandler(BLEUpdated, BluetoothBikeController::update_csc_handler_cb);
+    return true;
+  }
+  return false;
+}
+
+void BluetoothBikeController::updateCscCharacteristicCB(BLEDevice device, BLECharacteristic characteristic) {
+  LV_LOG_USER("cscMeasurementBleCha.readValue");
+  if (characteristic.readValue(this->readBuffer, 20) > 1) {
+    this->readBufferToCscMeasurement();
+  }
 }
 
 //
 // Class callback functions
 //
 
-void BluetoothBikeController::updateCharacteristicCB(BLEDevice device, BLECharacteristic characteristic)  {
+void BluetoothBikeController::updateEbsCharacteristicCB(BLEDevice device, BLECharacteristic characteristic)  {
+  // If the characteristic is for e bike service then read the value and process using readBufferToBikeState
+  LV_LOG_USER("readBufferToBikeState");
   if (characteristic.readValue(this->readBuffer, 20) > 1) {
     this->readBufferToBikeState();
   }

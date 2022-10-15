@@ -15,6 +15,7 @@
 #include "gui/monitors/BatteryMonitorMain.h"
 #include "gui/monitors/AssistMonitorSmall.h"
 #include "gui/monitors/MainSmallMonitorLayout.h"
+#include "gui/monitors/TimeticksMonitorSmall.h"
 
 #include "img/PressButton.h"
 #include "img/Spanner.h"
@@ -44,9 +45,11 @@ void lvgl_setup(ConfigStore *configStore, BluetoothBikeController *bluetoothBike
     static BluetoothScanList bluetoothScanList(bluetoothBikeController, configStore, indev);
     bluetoothScanList.setButtonLabel(&buttonLabel);
 
+    static TimeticksMonitorSmall timeticksMonitor;
     static BatteryMonitorMain batteryMonitor;
     static AssistMonitorSmall assistMonitor;
-    static MainSmallMonitorLayout mainSmallMonitorLayout(&batteryMonitor, &assistMonitor);
+    //static MainSmallMonitorLayout mainSmallMonitorLayout(&batteryMonitor, &assistMonitor);
+    static MainSmallMonitorLayout mainSmallMonitorLayout(&batteryMonitor, &timeticksMonitor);
     static BluetoothConnection bluetoothConnection(bluetoothBikeController, configStore, &pressbutton, indev);
     bluetoothConnection.setMonitor(&mainSmallMonitorLayout);
     bluetoothConnection.setButtonLabel(&buttonLabel);

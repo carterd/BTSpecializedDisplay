@@ -56,7 +56,7 @@ lv_obj_t* ScrollMenu::createLvObj(lv_obj_t* parent)
         // Create the lv_tile to the list of current tiles
         lv_obj_t* tile_obj = lv_tileview_add_tile(this->options_tileview_obj, tile_pos, 0, LV_DIR_ALL);
         lv_obj_t* btn_obj = (*it)->createLvObj(tile_obj);
-        lv_obj_add_event_cb(btn_obj, ScrollMenu::tile_btn_cb, LV_EVENT_CLICKED, this);
+        lv_obj_add_event_cb(btn_obj, ScrollMenu::tile_btn_cb, LV_EVENT_SHORT_CLICKED, this);
         lv_obj_add_event_cb(btn_obj, ScrollMenu::tile_btn_defocus_cb, LV_EVENT_DEFOCUSED, this);
         lv_group_add_obj(this->group, btn_obj);
 

@@ -11,6 +11,7 @@
 
 #define CONNECT_ONLY_WHEN_BATTERY_CONNECTED 0
 #define SEARCHING_STRING "Searching"
+#define CONNECTING_TIMEOUT_MILLIS 180000
 
 /// <summary>
 /// The connection shows an image with a spinner attempts to make a connection to any connecting 
@@ -48,6 +49,8 @@ private:
     /// </summary>
     lv_obj_t* connection_tile_obj;
 
+    lv_timer_t* connecting_timer;
+
     /// <summary>
     /// This is the button label or NULL for not button label
     /// </summary>
@@ -61,6 +64,7 @@ private:
     /// </summary>
     ConfigStore* configStore;
 
+    uint32_t connectingStartTime;
 
     bool connecting;
 
@@ -154,13 +158,15 @@ public:
     /// This is called when the user presses the exit button for the connection
     /// </summary>
     /// <param name="event">The event object for refresh being called into by the scanning</param>
-    void exitButtonCB(lv_event_t* event);
+    void exitButtonCB(lv_event_t* event = NULL);
 
     /// <summary>
     /// This is called once a tile have moved it's position
     /// </summary>
     /// <param name="event"></param>
     void tileChangedhCB(lv_event_t* event);
+
+    void connectingTimerCB(lv_timer_t* timer);
 public:
 
     static void refresh_cb(lv_event_t* event);
@@ -168,6 +174,8 @@ public:
     static void exit_btn_cb(lv_event_t* event);
 
     static void tile_changed_cb(lv_event_t* event);
+
+    static void connecting_timer_cb(lv_timer_t * timer);
 };
 
 #endif

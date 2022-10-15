@@ -13,6 +13,10 @@ void BluetoothConnection::exit_btn_cb(lv_event_t* event) {
     ((BluetoothConnection*)(event->user_data))->exitButtonCB(event);
 }
 
+void BluetoothConnection::connecting_timer_cb(lv_timer_t * timer) {
+    ((BluetoothConnection*)(timer->user_data))->connectingTimerCB(timer);
+}
+
 BluetoothConnection::BluetoothConnection(BluetoothBikeController* bluetoothController, ConfigStore* configStore, lv_img_dsc_t* image, lv_indev_t* indev) {
 	this->bluetoothController = bluetoothController;
 	this->configStore = configStore;
@@ -52,7 +56,7 @@ lv_obj_t* BluetoothConnection::createLvObj(lv_obj_t* parent)
     lv_obj_center(this->button_obj);
     lv_obj_add_style(this->button_obj, button_no_highlight_style, LV_PART_MAIN);
     lv_obj_add_event_cb(this->button_obj, BluetoothConnection::refresh_cb, LV_EVENT_REFRESH, this);
-    lv_obj_add_event_cb(this->button_obj, BluetoothConnection::exit_btn_cb, LV_EVENT_CLICKED, this);
+    lv_obj_add_event_cb(this->button_obj, BluetoothConnection::exit_btn_cb, LV_EVENT_LONG_PRESSED, this);
 
     // Associate an image
     lv_obj_t* img_obj = lv_img_create(this->button_obj);
@@ -103,6 +107,9 @@ void BluetoothConnection::focusLvObj(BaseLvObject* defocusLvObj)
 
 void BluetoothConnection::startBTConnection()
 {
+    this->connectingStartTime = millis();
+    this->connecting_timer = lv_timer_create(connecting_timer_cb, CONNECTING_TIMEOUT_MILLIS, this);
+
     if (this->bluetoothController) {
         this->bluetoothController->setListenerLvObj(this->button_obj);
         this->bluetoothController->startScan();
@@ -159,14 +166,21 @@ void BluetoothConnection::switchToConnectionLvObject()
 
 void BluetoothConnection::connectionSuccess() 
 {
+    const static BikeStateAttribute::BikeStateAttributeValue initialBikeStateAttributeValue = { 
+		.numberString = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+						  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 } };
+
     lv_obj_add_flag(this->label_obj, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(this->spinner_obj, LV_OBJ_FLAG_HIDDEN);
 
     // Reset all the bike stats monitoring and timings
     this->bluetoothController->resetConnectedBikeStateMonitorAttributeType();
     this->bluetoothController->resetConnectedBikeStateTime();
+    this->bluetoothController->resetConnectedBikeStateAttributeValue(initialBikeStateAttributeValue);
+
     // Subscribe to the notifications
     this->bluetoothController->subscribeEbikeNotifications();
+    this->bluetoothController->subscribeCscNotifications();
     
     // Ensure the monitor screen is set up and move the gui to showing it
     this->switchToMonitorLvObject();
@@ -252,4 +266,11 @@ void BluetoothConnection::tileChangedhCB(lv_event_t* event)
     // Update the monitorLvObjActive to be the state we've moved to
     this->monitorLvObjActive = lv_tileview_get_tile_act(this->tileview_obj) != this->connection_tile_obj;
     if (this->exiting) this->exitButtonCB(event);
+}
+
+void BluetoothConnection::connectingTimerCB(lv_timer_t* timer) 
+{
+    if (this->connecting_timer == timer && this->connecting) {
+        this->exitButtonCB();
+    }
 }

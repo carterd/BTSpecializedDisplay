@@ -4,6 +4,7 @@
 #include <Adafruit_SH110X.h>
 #include <ButtonEncoder.h>
 #include <Adafruit_LvGL_Glue.h>
+#include <Adafruit_LvGL_Tick_Inc.h>
 #include <DisplayCallbacks/DisplayCallback_SH110X.h>
 #include <InputCallbacks/InputCallback_ButtonEncoder.h>
 #include <Fonts/PixelOperator8pt7b.h>
@@ -83,11 +84,11 @@ void loop() {
   // put your main code here, to run repeatedly:
   lv_task_handler(); // Call LittleVGL task handler periodically
   unsigned long start = millis();
-  digitalWrite(LED_BUILTIN, (start >> 9 ) & 1);
+  
   bluetoothBikeController->checkForChange();
+
   unsigned long end = millis();
   if (start <= end && end - start < 20) {
     delay(20 + start - end);
-    //LV_LOG_USER("WAITING %d", (int) (20 + start - end));
   }
 }

@@ -24,6 +24,7 @@ enum class BikeType { NONE = 0, GEN1 = 1, GEN2 = 2 };
 // U-Int-8 (CSC Measurement Characteristic Flags)
 //   bit 0 - TRUE indicates the wheel revolution data present
 //   bit 1 - TRUE indicates crank revolution data present
+enum class CscMeasurementBit { CSC_WHEEL_REV_BIT = 1, CSC_CRANK_REV_BIT = 2 };
 // U-Int-32 (Cumulative Wheel Revolutions) [only present if bit 0 = TRUE of CSC Measurement Characteristic Flags]
 //   This is a cumulative revolution count
 // U-Int-16 (Last Wheel Event Time) [only present if bit 0 = TRUE of CSC Measurement Characteristic Flags]

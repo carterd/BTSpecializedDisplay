@@ -64,6 +64,10 @@ enum class BikeStateAttributeIndex {
     BATTERY_CONNECTED_STATE,
     BEEP_ON_OFF_STATE,
     BIKE_SERIAL_NUMBER,
+    WHEEL_ROTATIONS,
+    WHEEL_ROTATIONS_PER_MIN,
+    CRANK_ROTATIONS,
+    CRANK_ROTATIONS_PER_MIN,
     ///
     BIKE_STATE_ATTRIBUTE_SIZE
 };
@@ -188,6 +192,8 @@ public:
     void setAllMonitorAttributeType(MonitorAttributeType monitorAttributeType);
 
     void setAllLastFetchTimeTicks(uint32_t lastFetchTimeTicks);
+
+    void setAllAttributeValue(const BikeStateAttribute::BikeStateAttributeValue& bikeStateAttributeValue);
 };
 
 

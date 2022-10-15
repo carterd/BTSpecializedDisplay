@@ -31,6 +31,10 @@ BikeState::BikeState()
     this->bikeStateAttributes[static_cast<int>(BikeStateAttributeIndex::BATTERY_CONNECTED_STATE)].bikeStateAttributeType = BikeStateAttributeType::BOOL;
     this->bikeStateAttributes[static_cast<int>(BikeStateAttributeIndex::BIKE_SERIAL_NUMBER)].bikeStateAttributeType = BikeStateAttributeType::NUMBER_STRING;
     this->bikeStateAttributes[static_cast<int>(BikeStateAttributeIndex::BEEP_ON_OFF_STATE)].bikeStateAttributeType = BikeStateAttributeType::BOOL;
+    this->bikeStateAttributes[static_cast<int>(BikeStateAttributeIndex::WHEEL_ROTATIONS)].bikeStateAttributeType = BikeStateAttributeType::UINT32_T;
+    this->bikeStateAttributes[static_cast<int>(BikeStateAttributeIndex::WHEEL_ROTATIONS_PER_MIN)].bikeStateAttributeType = BikeStateAttributeType::UINT16_T;
+    this->bikeStateAttributes[static_cast<int>(BikeStateAttributeIndex::CRANK_ROTATIONS)].bikeStateAttributeType = BikeStateAttributeType::UINT16_T;
+    this->bikeStateAttributes[static_cast<int>(BikeStateAttributeIndex::CRANK_ROTATIONS_PER_MIN)].bikeStateAttributeType = BikeStateAttributeType::UINT16_T;
 }
 
 BikeStateToBluetoothBikeRequest::BikeStateToBluetoothBikeRequest() {
@@ -118,6 +122,12 @@ void BikeState::setAllMonitorAttributeType(MonitorAttributeType monitorAttribute
 void BikeState::setAllLastFetchTimeTicks(uint32_t lastFetchTimeTicks) {
     for (int i = 0; i < static_cast<int>(BikeStateAttributeIndex::BIKE_STATE_ATTRIBUTE_SIZE); i++) {
         bikeStateAttributes[i].lastFetchTimeTicks = lastFetchTimeTicks;
+    }
+}
+
+void BikeState::setAllAttributeValue(const BikeStateAttribute::BikeStateAttributeValue& bikeStateAttributeValue) {
+    for (int i = 0; i < static_cast<int>(BikeStateAttributeIndex::BIKE_STATE_ATTRIBUTE_SIZE); i++) {
+        bikeStateAttributes[i].bikeStateAttributeValue = bikeStateAttributeValue;
     }
 }
 
