@@ -1,5 +1,6 @@
 
 #include "BluetoothBike.h"
+#include "BluetoothBikeController.h"
 
 #include <ArduinoBLE.h>
 #include <Arduino.h>
@@ -9,10 +10,115 @@
  */
 BikeStateToBluetoothBikeRequest BluetoothBike::bikeStateToBluetoothBikeRequest;
 
-
-BluetoothBike::BluetoothBike() {
-    this->bikeStatuslastUpdateTime = 0;
+/**
+ * @brief Construct a new Bluetooth Bike Bluetooth Bike object
+ * 
+ * @param bleDevice the BLE device which is the bile
+ */
+BluetoothBike::BluetoothBike() {    
+    this->bikeType = BikeType::NONE;
+    this->bikeStatusLastUpdateTime = 0;
 }
+
+void BluetoothBike::setBleDevice(BLEDevice& bleDevice) {
+	if (this->bleDevice && this->isConnected())
+		this->disconnect();
+	if (this->bleDevice != bleDevice) {
+		const static BikeStateAttribute::BikeStateAttributeValue initialBikeStateAttributeValue = { 
+  		.numberString = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+	            				  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 } };
+
+   	// Reset all the bike stats monitoring and timings
+   	this->resetBikeStateMonitorAttributeType();
+   	this->resetBikeStateLastFetchTime();
+  	this->resetBikeStateAttributeValue(initialBikeStateAttributeValue);
+	}
+	this->bleDevice = bleDevice;
+}
+
+/**
+ * @brief Connects to the bike and updates the characterisitcs for the bike
+ * 
+ * @return true The bluetooth bike object is connected to the external bike
+ * @return false Connection has failed this object is not connected to the external bike
+ */
+bool BluetoothBike::connect() {
+  if (this->bleDevice.connect()) {
+    if (this->bleDevice.discoverAttributes()) {
+      this->bikeType = BikeType::NONE;
+      if (this->bleDevice.hasService(UUID_SPECIALIZED_READ_SERVICE_GEN1)) {
+        this->bikeType = BikeType::GEN1;
+        this->ebsReadKeyBleCha = this->bleDevice.characteristic(UUID_SPECIALIZED_READ_KEY_CHARACTERISTIC_GEN1);
+        this->ebsReadValueBleCha = this->bleDevice.characteristic(UUID_SPECIALIZED_READ_VALUE_CHARACTERISTIC_GEN1);
+        this->ebsWriteKeyValueBleCha = this->bleDevice.characteristic(UUID_SPECIALIZED_WRITE_KEY_VALUE_CHARACTERISTIC_GEN1);
+        this->ebsNotifyKeyValueBleCha = this->bleDevice.characteristic(UUID_SPECIALIZED_NOTIFY_KEY_VALUE_CHARACTERISTIC_GEN1);
+      }
+      if (this->bleDevice.hasService(UUID_SPECIALIZED_READ_SERVICE_GEN2)) {
+        this->bikeType = BikeType::GEN2;
+        this->ebsReadKeyBleCha = this->bleDevice.characteristic(UUID_SPECIALIZED_READ_KEY_CHARACTERISTIC_GEN2);
+        this->ebsReadValueBleCha = this->bleDevice.characteristic(UUID_SPECIALIZED_READ_VALUE_CHARACTERISTIC_GEN2);
+        this->ebsWriteKeyValueBleCha = this->bleDevice.characteristic(UUID_SPECIALIZED_WRITE_KEY_VALUE_CHARACTERISTIC_GEN2);
+        this->ebsNotifyKeyValueBleCha = this->bleDevice.characteristic(UUID_SPECIALIZED_NOTIFY_KEY_VALUE_CHARACTERISTIC_GEN2);
+      }
+      if (this->bleDevice.hasService(UUID_CYCLE_SERVICE)) {
+        this->cscMeasurementBleCha = this->bleDevice.characteristic(UUID_CSC_MEASUREMENT_CHARACTERISTIC);
+        this->cscFeatureBleCha = this->bleDevice.characteristic(UUID_CSC_FEATURE_CHARACTERISTIC);
+        this->scControlPointBleCha = this->bleDevice.characteristic(UUID_SC_CONTROL_POINT_CHARACTERISTIC);
+      }
+      this->bikeStatusLastUpdateTime = 0;
+      // Bike is connected
+      if (this->subscribeEbsNotifications() && this->subscribeCscNotifications()) {
+        
+        return true;
+      }
+    }
+    this->bleDevice.disconnect();
+  }
+  // Unable to make connection
+  return false;
+}
+
+bool BluetoothBike::disconnect() {
+  if (this->isConnected()) {
+    return this->bleDevice.disconnect();
+  }
+  return true;
+}
+
+bool BluetoothBike::subscribeEbsNotifications() {
+  //  notifications use static handlers on the controller as the controller can identify which BluetoothBike to forward to
+  if (this->ebsNotifyKeyValueBleCha.canSubscribe() && this->ebsNotifyKeyValueBleCha.subscribe()) {
+    this->ebsNotifyKeyValueBleCha.setEventHandler(BLEUpdated, BluetoothBikeController::update_ebs_handler_cb);
+    return true;
+  }
+  return false;
+}
+
+bool BluetoothBike::subscribeCscNotifications() {
+  // Only supported on GEN1
+  if (this->bikeType != BikeType::GEN1) {
+    return true;
+  }
+  //  notifications use static handlers on the controller as the controller can identify which BluetoothBike to forward to
+  if (this->cscMeasurementBleCha.canSubscribe() && this->cscMeasurementBleCha.subscribe()) {
+    this->cscMeasurementBleCha.setEventHandler(BLEUpdated, BluetoothBikeController::update_csc_handler_cb);
+    return true;
+  }
+  return false;
+}
+
+void BluetoothBike::poll() {
+  if (this->isConnected())
+    this->bleDevice.poll();
+}
+
+bool BluetoothBike::isConnected() {
+  return this->bleDevice.connected();
+}
+
+//
+// Processing of Reading Writing and Notifications
+//
 
 /**
  * @brief Specifically Reads the ebs value by sending a request to ebsReadKeyBleCha and reading the response
@@ -49,11 +155,10 @@ bool BluetoothBike::readEbsBikeValue(int ebikeStatusArea, int ebikeStatusParamet
  * @brief This processes the read buffer to bike state parameter
  * 
  */
-void BluetoothBike::readBufferToEbsBikeState() {
+void BluetoothBike::readBufferToEbsBikeState() {  
   bool bikeStatusUpdate = false;
   uint32_t time = millis();
   EbikeStatusArea ebikeStatusArea = static_cast<EbikeStatusArea>(this->readBuffer[0]);
-  //LV_LOG_USER("Read = [%x, %x] [%x, %x, %x, %x]", this->readBuffer[0],this->readBuffer[1], this->readBuffer[2],this->readBuffer[3], this->readBuffer[4],this->readBuffer[5]);
   switch (ebikeStatusArea) {
     case EbikeStatusArea::BATTERY: {
       EbikeStatusBattery ebikeStatusBattery = static_cast<EbikeStatusBattery>(this->readBuffer[1]);
@@ -185,5 +290,119 @@ void BluetoothBike::readBufferToEbsBikeState() {
   }
 
   // If we identify a bike status attribute has been changed then update the time stamp in bikeStatuslastUpdateTime
-  if (bikeStatusUpdate) this->bikeStatuslastUpdateTime = time;
+  if (bikeStatusUpdate) {    
+    this->bikeStatusLastUpdateTime = time;
+    LV_LOG_USER("MOTOR ASSIST LEVEL read %d", this->bikeStatusLastUpdateTime);
+  }
+}
+
+
+void BluetoothBike::readBufferToCscMeasurement()
+{
+  bool bikeStatusUpdate = false;
+  uint32_t time = millis();
+
+  int readBufferIndex = 1;
+  if (this->readBuffer[0] & static_cast<int>(CscMeasurementBit::CSC_WHEEL_REV_BIT)) {
+    SpeedCadenceReading wheelSpeedCadenceReading = { 
+        this->bufferToUint32(readBufferIndex),
+        this->bufferToUint16(readBufferIndex+4)
+      };
+    readBufferIndex += 6;
+    SpeedCadenceReading lastWheelSpeedCadenceReading = { 
+      this->bikeState.getStateAttribute(BikeStateAttributeIndex::WHEEL_ROTATIONS).bikeStateAttributeValue.cscReading.rotationCount,
+      this->bikeState.getStateAttribute(BikeStateAttributeIndex::WHEEL_ROTATIONS).bikeStateAttributeValue.cscReading.eventTime
+    };
+    bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::WHEEL_ROTATIONS, wheelSpeedCadenceReading, time);
+
+    if ((wheelSpeedCadenceReading.eventTime != 0 || wheelSpeedCadenceReading.rotationCount != 0) &&
+        lastWheelSpeedCadenceReading.eventTime != wheelSpeedCadenceReading.eventTime &&
+        lastWheelSpeedCadenceReading.rotationCount <= wheelSpeedCadenceReading.rotationCount) {
+      // finally calculate the speed
+      int32_t eventTimeDelta = lastWheelSpeedCadenceReading.eventTime <= wheelSpeedCadenceReading.eventTime ? 
+        wheelSpeedCadenceReading.eventTime - lastWheelSpeedCadenceReading.eventTime : 
+        0x10000 + wheelSpeedCadenceReading.eventTime - lastWheelSpeedCadenceReading.eventTime;
+      int32_t wheelRotationsDelta = wheelSpeedCadenceReading.rotationCount - lastWheelSpeedCadenceReading.rotationCount;
+      float wheelRatationsPerSecond = 60000.0 * wheelRotationsDelta / eventTimeDelta;
+      bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::WHEEL_ROTATIONS_PER_MIN, wheelRatationsPerSecond, time);
+    }
+  }
+  if (this->readBuffer[0] & static_cast<int>(CscMeasurementBit::CSC_CRANK_REV_BIT)) {
+    SpeedCadenceReading crankSpeedCadenceReading = { 
+        this->bufferToUint16(readBufferIndex),
+        this->bufferToUint16(readBufferIndex+2)
+      };
+    readBufferIndex += 4;
+    SpeedCadenceReading lastCrankSpeedCadenceReading = { 
+      this->bikeState.getStateAttribute(BikeStateAttributeIndex::CRANK_ROTATIONS).bikeStateAttributeValue.cscReading.rotationCount,
+      this->bikeState.getStateAttribute(BikeStateAttributeIndex::CRANK_ROTATIONS).bikeStateAttributeValue.cscReading.eventTime
+    };
+    bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::CRANK_ROTATIONS, crankSpeedCadenceReading, time);
+
+    LV_LOG_USER("CADENCE = %d %d ", lastCrankSpeedCadenceReading.rotationCount, crankSpeedCadenceReading.rotationCount);
+    LV_LOG_USER("TIMES = %d %d ", lastCrankSpeedCadenceReading.eventTime, crankSpeedCadenceReading.eventTime);
+
+    if ((crankSpeedCadenceReading.eventTime != 0 || crankSpeedCadenceReading.rotationCount != 0) &&
+      lastCrankSpeedCadenceReading.eventTime != crankSpeedCadenceReading.eventTime &&
+      lastCrankSpeedCadenceReading.rotationCount <= crankSpeedCadenceReading.rotationCount) {
+      // finally calculate the speed
+      int32_t eventTimeDelta = lastCrankSpeedCadenceReading.eventTime <= crankSpeedCadenceReading.eventTime ? 
+        crankSpeedCadenceReading.eventTime - lastCrankSpeedCadenceReading.eventTime : 
+        0x10000 + crankSpeedCadenceReading.eventTime - lastCrankSpeedCadenceReading.eventTime;
+      int32_t crankRotationsDelta = crankSpeedCadenceReading.rotationCount - lastCrankSpeedCadenceReading.rotationCount;
+      float crankRatationsPerSecond = 60000.0 * crankRotationsDelta / eventTimeDelta;
+      bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::CRANK_ROTATIONS_PER_MIN, crankRatationsPerSecond, time);
+
+      LV_LOG_USER("sums are 60000 * %ld / %ld -> %d", crankRotationsDelta, eventTimeDelta, (int) (crankRatationsPerSecond));
+    }
+  }
+  // If we identify a bike status attribute has been changed then update the time stamp in bikeStatuslastUpdateTime
+  if (bikeStatusUpdate) {
+    this->bikeStatusLastUpdateTime = time;
+  }
+}
+
+
+bool BluetoothBike::readRequest(BluetoothBikeRequest bluetoothBikeRequest) {
+  bool result = this->readRequestCommand(bluetoothBikeRequest.request1);
+  if (result) result = this->readRequestCommand(bluetoothBikeRequest.request2);
+
+  return result;
+}
+
+bool BluetoothBike::readRequestCommand(BluetoothBikeRequest::BluetoothBikeRequestCommand bluetoothBikeRequestCommand) {
+  if (bluetoothBikeRequestCommand.isValid()) {
+    return this->readEbsBikeValue(bluetoothBikeRequestCommand.area, bluetoothBikeRequestCommand.attribute);
+  }
+  // return true if requesting to read request on something which isn't mapped to a valid request
+  return true;
+}
+
+bool BluetoothBike::readBikeStateAttribute(BikeStateAttributeIndex bikeStateAttributeIndex, MonitorAttributeType monitorAttributeType) {
+    bool result;
+    this->setMinimumBikeStateMonitorAttributeType(bikeStateAttributeIndex, monitorAttributeType);
+    BluetoothBikeRequest bluetoothBikeRequest = BluetoothBike::bikeStateToBluetoothBikeRequest.getBluetoothBikeRequest(bikeStateAttributeIndex, this->bikeType);
+    result = this->readRequest(bluetoothBikeRequest);
+    return result;
+}
+
+//
+// Class callback functions, called by controller
+//
+
+void BluetoothBike::updateEbsCharacteristicCB(BLEDevice device, BLECharacteristic characteristic)  {
+  if (device == this->bleDevice) {    
+    if (characteristic.readValue(this->readBuffer, 20) > 1) {
+        this->readBufferToEbsBikeState();
+    }
+  }
+}
+
+
+void BluetoothBike::updateCscCharacteristicCB(BLEDevice device, BLECharacteristic characteristic) {
+  if (device == this->bleDevice) {
+    if (characteristic.readValue(this->readBuffer, 20) > 1) {
+        this->readBufferToCscMeasurement();
+    }
+  }
 }

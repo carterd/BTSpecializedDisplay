@@ -26,7 +26,7 @@ lv_obj_t* TimeticksMonitorSmall::createLvObj(lv_obj_t* parent) {
 void TimeticksMonitorSmall::focusLvObj(BaseLvObject* defocusLvObj)
 {
 	// The LVObj that'll get the refreshes and should there hook into updates
-	this->bluetoothBikeController->readBikeStateAttribute(BikeStateAttributeIndex::BIKE_ON_OFF_STATE, MonitorAttributeType::EVERY_TEN_SECONDS);
+	this->bluetoothBikeController->getConnectedBluetoothBike().readBikeStateAttribute(BikeStateAttributeIndex::BIKE_ON_OFF_STATE, MonitorAttributeType::EVERY_TEN_SECONDS);
 	this->update();
 }
 

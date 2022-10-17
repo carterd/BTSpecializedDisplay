@@ -110,6 +110,10 @@ private:
 	/// <return>True if the parameter has been read correctly.</return>
 	bool readEbsBikeValue(int ebikeStatusArea, int ebikeStatusParameter);
 
+	bool readRequest(BluetoothBikeRequest bluetoothBikeRequest);
+
+	bool readRequestCommand(BluetoothBikeRequest::BluetoothBikeRequestCommand bluetoothBikeRequestCommand);
+
 	/// <summary>
 	/// This helper function converts the current content of the readBuffer to connectedBikeStatus.
 	/// </summary>
@@ -119,16 +123,27 @@ private:
     /// This helper function converts the current content of the readBuffer to connectedCscMeasurements.
 	void readBufferToCscMeasurement();
 
+	///
+	///
+	///
+	bool subscribeEbsNotifications();
+
+	///
+	///
+	/// 
+	bool subscribeCscNotifications();
+
 	/// <summary>
 	/// The bluetooth read-buffer that maybe required to be converted into connectedBikeStatus entries.
 	/// </summary>
 	uint8_t readBuffer[20];
 
 protected:
+
     /// <summary>
     /// Store of the last time stamp that bike status was updated
     /// </summary>
-    uint32_t bikeStatuslastUpdateTime;
+    uint32_t bikeStatusLastUpdateTime;
 
 	/// <summary>
 	/// Identifies the type of bike connected
@@ -143,7 +158,7 @@ protected:
 	/// <summary>
 	/// The BLEDevice of the bike
 	/// </summary>
-	BLEDevice device;
+	BLEDevice bleDevice;
 
 	/// <summary>
 	/// This is the BLE Characteristic for CSC Measurement 
@@ -179,7 +194,7 @@ protected:
 	/// This is the BLE Characteristic for Ebike Specialized Notify Key Value 
 	/// </summary>
 	BLECharacteristic ebsNotifyKeyValueBleCha;
-protected:
+public:
 	void updateCscCharacteristicCB(BLEDevice device, BLECharacteristic characteristic);
 	void updateEbsCharacteristicCB(BLEDevice device, BLECharacteristic characteristic);
 
@@ -189,12 +204,34 @@ public:
 	/// </summary>
 	BluetoothBike();
 
-	~BluetoothBike();
+	void setBleDevice(BLEDevice& bleDevice);
 
     /// <summary>
-    /// 
-    /// <summary
-    bool getBikeStatuslastUpdateTime() { return this->bikeStatuslastUpdateTime; }
+    /// Performs the connect of the BluetoothBike to it's bleDevice
+    /// </summary>
+    bool connect();
+
+    /// <summary>
+    /// Performs the disconnect of the BluethoothBike form it's bleDevice
+    /// </summary>
+    bool disconnect();
+
+	void poll();
+
+    /// <summary>
+    /// Performs a check on the state of the bluetooth connection
+    /// </summary>
+    bool isConnected();
+
+    /// <summary>
+    /// Returns the last update time of any of the bikes states 
+    /// </summary>
+    uint32_t getBikeStatusLastUpdateTime() { return this->bikeStatusLastUpdateTime; }
+
+    /// <summary>
+    /// returns true if the given bleDeivce matched the one used by this bike object
+    /// </summary>
+    bool isBleDevice(BLEDevice& bleDevice) { return this->bleDevice == bleDevice;}
 
 	/// <summary>
 	/// Returns the type of connected e-bike BT device
@@ -239,6 +276,16 @@ public:
     /// @param bikeStateAttributeIndex This bike attribute index to specify the attribute to read 
     /// @param monitorAttributeType This is the monitor attribute type to set for the attribute
 	bool readBikeStateAttribute(BikeStateAttributeIndex bikeStateAttributeIndex, MonitorAttributeType monitorAttributeType = MonitorAttributeType::ONCE);
+
+	void setBikeStateMonitorAttributeType(BikeStateAttributeIndex bikeStateAttributeIndex, MonitorAttributeType monitorAttributeType) {
+		this->bikeState.setMonitorAttributeType(bikeStateAttributeIndex, monitorAttributeType);
+	}
+
+	void setMinimumBikeStateMonitorAttributeType(BikeStateAttributeIndex bikeStateAttributeIndex, MonitorAttributeType monitorAttributeType) {
+		if (monitorAttributeType > this->bikeState.getStateAttribute(bikeStateAttributeIndex).monitorAttributeType) {
+        	this->bikeState.setMonitorAttributeType(bikeStateAttributeIndex, monitorAttributeType);
+    	}		
+	}
 };
 
 #endif

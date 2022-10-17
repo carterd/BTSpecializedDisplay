@@ -34,6 +34,11 @@ struct NumberString {
     char value[32];
 };
 
+struct SpeedCadenceReading {
+    uint32_t rotationCount;
+    uint32_t eventTime;
+};
+
 enum class BikeStateAttributeIndex {    
     BATTERY_CAPACITY = 0,
     BATTERY_CAPACITY_REMAINING,
@@ -73,7 +78,8 @@ enum class BikeStateAttributeIndex {
 };
 
 enum class BikeStateAttributeType {
-    UINT8_T = 0,
+    BOOL = 0,
+    UINT8_T,
     UINT16_T,
     UINT32_T,
     FLOAT_T,
@@ -81,7 +87,7 @@ enum class BikeStateAttributeType {
     FIRMWARE_VERSION,
     ASSIST_LEVELS,
     NUMBER_STRING,
-    BOOL,
+    SPEED_CADENCE_READING,
 };
 
 class BikeStateAttribute {
@@ -96,6 +102,7 @@ public:
         FirmwareVersion valueFirmwareVersion;
         AssistLevels assistLevels;
         NumberString numberString;
+        SpeedCadenceReading cscReading;
     };
 public:
     BikeStateAttributeType bikeStateAttributeType;
@@ -137,6 +144,11 @@ public:
     bool setStateAttribute(BikeStateAttributeIndex bikeStateAttributeIndex, BikeStateAttribute::BikeStateAttributeValue& bikeStateAttribute, uint32_t lastFetchTimeTicks);
 
     bool setStateAttribute(BikeStateAttributeIndex bikeStateAttributeIndex, uint32_t lastFetchTimeTicks);
+
+    bool setStateAttribute(BikeStateAttributeIndex bikeStateAttributeIndex, SpeedCadenceReading& bikeStateAttribute, uint32_t lastFetchTimeTicks) {
+        this->bikeStateAttributes[static_cast<int>(bikeStateAttributeIndex)].bikeStateAttributeValue.cscReading = bikeStateAttribute;
+        return this->setStateAttribute(bikeStateAttributeIndex, lastFetchTimeTicks);
+    }
 
     bool setStateAttribute(BikeStateAttributeIndex bikeStateAttributeIndex, NumberString& bikeStateAttribute, uint32_t lastFetchTimeTicks) {
         this->bikeStateAttributes[static_cast<int>(bikeStateAttributeIndex)].bikeStateAttributeValue.numberString = bikeStateAttribute;
@@ -187,7 +199,11 @@ public:
         this->bikeStateAttributes[static_cast<int>(bikeStateAttributeIndex)].monitorAttributeType = monitorAttributeType;
     }
 
-    BikeStateAttributeIndex getOldestStateAttribute(MonitorAttributeType monitorAttributeType);
+    /// Note that always ignore means simply get the oldest sate attribute
+    BikeStateAttributeIndex getOldestStateAttribute(MonitorAttributeType monitorAttributeType = MonitorAttributeType::ALWAYS_IGNORE);
+
+    /// Note that always ignore means simply get the newset state attribute
+    BikeStateAttributeIndex getNewestStateAttribute(MonitorAttributeType monitorAttributeType = MonitorAttributeType::ALWAYS_IGNORE);
 
     void setAllMonitorAttributeType(MonitorAttributeType monitorAttributeType);
 
@@ -206,6 +222,7 @@ public:
         BluetoothBikeRequestCommand(EbikeStatusBattery ebikeStatusBattery) { area = EbikeStatusArea::BATTERY; attribute.ebikeStatusBattery = ebikeStatusBattery; }
         BluetoothBikeRequestCommand(EbikeStatusMotor ebikeStatusMotor) { area = EbikeStatusArea::MOTOR; attribute.ebikeStatusMotor = ebikeStatusMotor; }
         BluetoothBikeRequestCommand(EbikeStatusOther ebikeStatusOther) { area = EbikeStatusArea::OTHER; attribute.ebikeStatusOther = ebikeStatusOther; }
+        bool isValid() { return area != EbikeStatusArea::INVALID; }
     };
     BluetoothBikeRequestCommand request1;
     // Bit wastful on memory

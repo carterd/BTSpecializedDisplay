@@ -65,6 +65,8 @@ void setup() {
     led_error(result);
   }
 
+  display.setContrast(0x0F);
+
   lv_disp_t *display = displayGlue.getLvDisplay();
   lv_indev_t *indev = displayGlue.getLvInputDevice();
   
@@ -74,7 +76,7 @@ void setup() {
   lv_disp_set_rotation(NULL, LV_DISP_ROT_180);
   lv_disp_set_theme(display, binary_theme);
 
-  LV_LOG_USER("STARTING");
+  LV_LOG_USER("STARTING");  
   bluetoothBikeController = new BluetoothBikeController();
   configStore = new ConfigStore();
   lvgl_setup(configStore, bluetoothBikeController, display, indev);

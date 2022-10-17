@@ -102,6 +102,6 @@ void BatteryMonitorMain::update() {
 void BatteryMonitorMain::focusLvObj(BaseLvObject* defocusLvObj)
 {
 	// The LVObj that'll get the refreshes and should there hook into updates
-	this->bluetoothBikeController->readBikeStateAttribute(BikeStateAttributeIndex::BATTERY_CHARGE_PERCENT, MonitorAttributeType::EVERY_MINUTE);
+	this->bluetoothBikeController->getConnectedBluetoothBike().readBikeStateAttribute(BikeStateAttributeIndex::BATTERY_CHARGE_PERCENT, MonitorAttributeType::EVERY_MINUTE);
 	this->update();
 }

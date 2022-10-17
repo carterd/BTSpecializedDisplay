@@ -8,6 +8,7 @@
 
 #include "BluetoothBikeDefinitions.h"
 #include "BluetoothBikeState.h"
+#include "BluetoothBike.h"
 
 #define BATTERY_FIRMWARE_VERSION_MAJOR_NUMBER_BUFFER_INDEX 3
 #define BATTERY_FIRMWARE_VERSION_MINOR_NUMBER_BUFFER_INDEX 2
@@ -17,6 +18,10 @@
 #define MOTOR_FIRMWARE_VERSION_MINOR_NUMBER_BUFFER_INDEX 2
 #define MOTOR_FIRMWARE_VERSION_PATCH_NUMBER_BUFFER_INDEX 4
 
+/**
+ * @brief This represents the interface to the bike and is a wrapper for BLEDevice interface to the bikes
+ * 
+ */
 class BluetoothBikeController
 {
 
@@ -25,7 +30,6 @@ private:
 	/// This is helpful on processing handlers which will have to find the Controller the update is associated with
 	/// </summary>
 	static std::vector<BluetoothBikeController*> bluetoothBikeControllers;
-	static BikeStateToBluetoothBikeRequest bikeStateToBluetoothBikeRequest;
 public:
 	/// <summary>
 	/// This is the updateHandler static method
@@ -65,63 +69,6 @@ private:
 	uint8_t bufferToUint8(int offset = 2) { return this->readBuffer[offset]; }
 
 	/// <summary>
-	/// Read an ebike value specifcally a battery parameter, the value is read into the connectedBikeStatus.
-	/// </summary>
-	/// <param name="ebikeStatusArea">The area parameter to read from this should be 0x00 or 0x04 for battery and extra battery</param>
-	/// <param name="ebikeStatusBatteryParameter">The specific battery parameter to read</param>
-	/// <return>True if the parameter has been read correctly.</return>
-	bool readEbikeValue(EbikeStatusArea ebikeStatusArea, EbikeStatusAttribute ebikeStatusAttribute) {
-		switch (ebikeStatusArea) {
-		case EbikeStatusArea::BATTERY:
-		case EbikeStatusArea::SECONDARY_BATTERY:
-			return this->readEbikeValue(static_cast<int>(ebikeStatusArea), static_cast<int>(ebikeStatusAttribute.ebikeStatusBattery));
-		case EbikeStatusArea::MOTOR:
-			return this->readEbikeValue(static_cast<int>(ebikeStatusArea), static_cast<int>(ebikeStatusAttribute.ebikeStatusMotor));
-		case EbikeStatusArea::OTHER:
-			return this->readEbikeValue(static_cast<int>(ebikeStatusArea), static_cast<int>(ebikeStatusAttribute.ebikeStatusOther));
-		}
-	}
-
-	/// <summary>
-	/// Read an ebike value specifcally a battery parameter, the value is read into the connectedBikeStatus.
-	/// </summary>
-	/// <param name="ebikeStatusArea">The area parameter to read from this should be 0x00 or 0x04 for battery and extra battery</param>
-	/// <param name="ebikeStatusBatteryParameter">The specific battery parameter to read</param>
-	/// <return>True if the parameter has been read correctly.</return>
-	bool readEbikeValue(EbikeStatusArea ebikeStatusArea, EbikeStatusBattery ebikeStatusBatteryParameter) { return this->readEbikeValue(static_cast<int>(ebikeStatusArea), static_cast<int>(ebikeStatusBatteryParameter)); }
-
-	/// <summary>
-	/// Read an ebike value specifcally a motor parameter, the value is read into the connectedBikeStatus.
-	/// </summary>
-	/// <param name="ebikeStatusArea">The area parameter to read from this should be motor</param>
-	/// <param name="ebikeStatusBatteryParameter">The specific motor parameter to read</param>
-	/// <return>True if the parameter has been read correctly.</return>
-	bool readEbikeValue(EbikeStatusArea ebikeStatusArea, EbikeStatusMotor ebikeStatusMotorParameter) { return this->readEbikeValue(static_cast<int>(ebikeStatusArea), static_cast<int>(ebikeStatusMotorParameter)); }
-
-	/// <summary>
-	/// Read an ebike value specifcally a other bike parameters, the value is read into the connectedBikeStatus.
-	/// </summary>
-	/// <param name="ebikeStatusArea">The area parameter to read from this should be 0x02 for other bike parameters</param>
-	/// <param name="ebikeStatusBatteryParameter">The specific other bike parameter to read</param>
-	/// <return>True if the parameter has been read correctly.</return>
-	bool readEbikeValue(EbikeStatusArea ebikeStatusArea, EbikeStatusOther ebikeStatusOtherParameter)  { return this->readEbikeValue(static_cast<int>(ebikeStatusArea), static_cast<int>(ebikeStatusOtherParameter)); }
-
-	/// <summary>
-	/// Read an ebike value specifcally a battery parameter, the value is read into the connectedBikeStatus.
-	/// </summary>
-	/// <param name="ebikeStatusArea">The area parameter to read from this should be 0x00 or 0x04 for battery and extra battery</param>
-	/// <param name="ebikeStatusBatteryParameter">The specific battery parameter to read</param>
-	/// <return>True if the parameter has been read correctly.</return>
-	bool readEbikeValue(int ebikeStatusArea, int ebikeStatusParameter);
-
-	/// <summary>
-	/// This helper function converts the current content of the readBuffer to connectedBikeStatus.
-	/// </summary>
-	void readBufferToBikeState();
-
-	void readBufferToCscMeasurement();
-
-	/// <summary>
 	/// The bluetooth read-buffer that maybe required to be converted into connectedBikeStatus entries.
 	/// </summary>
 	uint8_t readBuffer[20];
@@ -153,20 +100,10 @@ protected:
 	/// </summary>
 	bool connected;	
 
-	///
-	///
-	///
-	bool connectedBikeStateUpdated;
-
 	/// <summary>
-	/// Identifies the type of bike connected
+	/// A time stamp used to track if connected bike status has changed
 	/// </summary>
-	BikeType connectedBikeType;
-
-	/// <summary>
-	/// The status of the connected bike
-	/// </summary>
-	BikeState bikeState;
+	unsigned long connectedBikeStatusLastUpdateTime;
 
 	/// <summary>
 	/// The available device detected by a scan
@@ -174,44 +111,49 @@ protected:
 	BLEDevice scannedDevice;
 
 	/// <summary>
+	/// The bluetooth bike instance 
+	/// </summary>
+	BluetoothBike connectedBluetoothBike;
+
+	/// <summary>
 	/// The available device detected by a scan or used as the device in connections
 	/// </summary>
-	BLEDevice connectedDevice;
+	//BLEDevice connectedDevice;
 
 	/// <summary>
 	/// This is the BLE Characteristic for CSC Measurement 
 	/// </summary>
-	BLECharacteristic cscMeasurementBleCha;
+	//BLECharacteristic cscMeasurementBleCha;
 
 	/// <summary>
 	/// This is the BLE Characteristic for CSC Feature
 	/// </summary>
-	BLECharacteristic cscFeatureBleCha;
+	//BLECharacteristic cscFeatureBleCha;
 
 	/// <summary>
 	/// This is the BLE Characteristic for SC Control Point
 	/// </summary>
-	BLECharacteristic scControlPointBleCha;
+	//BLECharacteristic scControlPointBleCha;
 
 	/// <summary>
 	/// This is the BLE Characteristic for Ebike Specialized Read Key
 	/// </summary>
-	BLECharacteristic ebsReadKeyBleCha;
+	//BLECharacteristic ebsReadKeyBleCha;
 
 	/// <summary>
 	/// This is the BLE Characteristic for Ebike Specialized Read Value
 	/// </summary>
-	BLECharacteristic ebsReadValueBleCha;
+	//BLECharacteristic ebsReadValueBleCha;
 
 	/// <summary>
 	/// This is the BLE Characteristic for Ebike Specialized Write Key-Value
 	/// </summary>
-	BLECharacteristic ebsWriteKeyValueBleCha;
+	//BLECharacteristic ebsWriteKeyValueBleCha;
 
 	/// <summary>
 	/// This is the BLE Characteristic for Ebike Specialized Notify Key Value 
 	/// </summary>
-	BLECharacteristic ebsNotifyKeyValueBleCha;
+	//BLECharacteristic ebsNotifyKeyValueBleCha;
 protected:
 	void updateCscCharacteristicCB(BLEDevice device, BLECharacteristic characteristic);
 	void updateEbsCharacteristicCB(BLEDevice device, BLECharacteristic characteristic);
@@ -248,7 +190,7 @@ public:
 	/// Returns the currently connected device or blank device if no connection</return>
 	/// </summary>
 	/// <returns>The currently connected device or blank device if no connection</return>
-	BLEDevice getConnectedDevice() { if (this->connected) { return this->connectedDevice; } else { return BLEDevice(); } }
+	//BLEDevice getConnectedDevice() { if (this->connected) { return this->connectedDevice; } else { return BLEDevice(); } }
 
 	/// <summary>
 	/// Returns true if the controller has connected to a device
@@ -256,38 +198,19 @@ public:
 	/// <returns></returns>
 	bool getConnected() { return this->connected; }
 
-	/// <summary>
-	/// Returns the type of connected e-bike BT device
-	/// </summary>
-	/// <returns>The bike type of the connected e-bike</returns>
-	BikeType getConnectedBikeType() { if (this->connected) { return this->connectedBikeType; } else { return BikeType::NONE; } }
+	///
+	BluetoothBike& getConnectedBluetoothBike() { return this->connectedBluetoothBike; }
+
+	bool getConnectedBikeStateUpdated() {
+		// If the connectedBikeLastUpdate time of the controller is smaller than update of the connected bike then bike state updated
+		return this->connectedBikeStatusLastUpdateTime < this->connectedBluetoothBike.getBikeStatusLastUpdateTime();
+	}
 
 	/// <summary>
 	/// Returns the connectedBikeStatus structure so values of the bike can be read from the structure.
 	/// </summary>
 	/// <returns>The bike status of the connected e-bike</returns>
-	BikeState& getBikeState() { return bikeState; }
-
-	void resetConnectedBikeStateMonitorAttributeType(MonitorAttributeType monitorAttributeType = MonitorAttributeType::ONCE) { 
-		this->bikeState.setAllMonitorAttributeType(monitorAttributeType);
-	}
-
-	void resetConnectedBikeStateTime(uint32_t time = 0) { 
-		this->bikeState.setAllLastFetchTimeTicks(time);
-	}
-
-	void resetConnectedBikeStateAttributeValue(const BikeStateAttribute::BikeStateAttributeValue &bikeStateAttributeValue) {
-		this->bikeState.setAllAttributeValue(bikeStateAttributeValue);
-	}
-
-	bool readBikeStateAttribute(BikeStateAttributeIndex bikeStateAttributeIndex, MonitorAttributeType monitorAttributeType = MonitorAttributeType::ONCE);
-
-	bool subscribeEbikeNotifications();
-
-	bool subscribeCscNotifications();
-
-	// Cadence
-
+	BikeState& getBikeState() { return this->connectedBluetoothBike.getBikeState(); }
 
 	/// <summary>
 	/// Sets the initial state of the bluetooth device
@@ -299,7 +222,7 @@ public:
 	/// </summary>
 	/// <param name="bleDevice">Device to connect to</param>
 	/// <returns>True if the connection was made</returns>
-	bool connect(BLEDevice* bleDevice);
+	bool connect(BLEDevice& bleDevice);
 
 	/// <summary>
 	/// Disconnect from an existing connection
