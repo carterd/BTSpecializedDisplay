@@ -36,11 +36,21 @@ public:
     ButtonLabel(lv_indev_t* indev);
 
     /// <summary>
+    /// The Destructor we have lv_groups and lv_objs that potentially need cleaning up
+    /// </summary>
+    virtual ~ButtonLabel();
+
+    /// <summary>
     /// This Creates the instance of the Lv Objects associated with the instance and sub components associated with it
     /// </summary>
     /// <param name="parent">The LV object parent on which to attach the created lv object for this instance</param>
     /// <returns>The created LV object instance</returns>
     virtual lv_obj_t* createLvObj(lv_obj_t* parent);
+
+    /// <summary>
+    /// This will attempt to destroy all the Lv Objects associated with the instance and sub components associcated with it
+    /// </summary>
+    virtual void destroyLvObj();
 
     /// <summary>
     /// This means the object and any sub objects should set any groups to be in focus at this point
@@ -78,13 +88,29 @@ public:
     /// <summary>
     void setAutoHide(bool autoHide);
 
+    /// <summary>
+    /// This is the callback when any events detected on the encoder
+    /// </summary>
+    /// <param name="event"></param>
     void encorderActivityCB(lv_event_t* event);
 
+    /// <summary>
+    /// This is a timer callback for a timer that auto hides the button
+    /// </summary>
+    /// <param name="timer"></param>
     void autoHideTimerCB(lv_timer_t* timer);
 
 public:
+    /// <summary>
+    /// The static callback for the any events detected on the encoder
+    /// </summary>
+    /// <param name="event"></param>
     static void lv_event_encorder_cb(lv_event_t* event);
 
+    /// <summary>
+    /// The static callback for the hide timer event
+    /// </summary>
+    /// <param name="timer"></param>
     static void auto_hide_timer_cb(lv_timer_t * timer);
 };
 

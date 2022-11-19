@@ -1,0 +1,196 @@
+#include "NavigationMenu.h"
+#include "ButtonLabel.h"
+#include <LvglThemes/lv_theme_binary.h>
+
+void NavigationMenu::value_changed_cb(lv_event_t* event) {
+	NavigationMenu* navigationMenu = (NavigationMenu*)event->user_data;
+	navigationMenu->valueChangedCB(event);
+}
+
+void NavigationMenu::exit_btn_cb(lv_event_t* event) {
+	((NavigationMenu*) (event->user_data))->exitButtonCB(event);
+}
+
+void NavigationMenu::menu_item_btn_cb(lv_event_t* event) {
+	if (event->code == LV_EVENT_CLICKED) {
+		((NavigationMenu*)(event->user_data))->menuItemButtonCB(event);
+	}
+	if (event->code == LV_EVENT_FOCUSED) {
+		lv_obj_t* btnLabel = lv_obj_get_child(event->target, 0);
+		if (btnLabel) lv_label_set_long_mode(btnLabel, LV_LABEL_LONG_SCROLL_CIRCULAR);
+	}
+	if (event->code == LV_EVENT_DEFOCUSED) {
+		lv_obj_t* btnLabel = lv_obj_get_child(event->target, 0);
+		if (btnLabel) lv_label_set_long_mode(btnLabel, LV_LABEL_LONG_CLIP);
+	}
+}
+
+NavigationMenu::NavigationMenu(const char* titleText, const char* exitButtonText, lv_indev_t* indev) : BaseLvObject()
+{
+	this->indev = indev;
+    this->titleText = titleText;
+    this->exitButtonText = exitButtonText;    
+	this->defocusLvObj = NULL;
+	this->selectedLvObj = NULL;
+    this->focusAnimation = false;
+}
+
+NavigationMenu::~NavigationMenu()
+{
+	NavigationMenu::destroyLvObj();
+}
+
+lv_obj_t* NavigationMenu::createLvObj(lv_obj_t* parent)
+{
+	// get the style we'll need for the bar
+	theme_binary_styles_t* binary_styles = (theme_binary_styles_t*)lv_disp_get_theme(lv_obj_get_disp(parent))->user_data;
+	lv_style_t* no_scrollbar = &(binary_styles->no_scrollbar);
+	lv_style_t* inv_style = &(binary_styles->inv);
+
+	this->group = lv_group_create();
+	lv_group_set_wrap(this->group, false);
+
+	// add window to screen object and set it to be the exact size
+	this->this_obj = lv_obj_create(parent);
+	lv_obj_set_size(this->this_obj, lv_obj_get_width(parent), lv_obj_get_height(parent));
+	lv_obj_center(this->this_obj);
+
+	// put in the tile with no scroll bar
+	this->option_tileview_obj = lv_tileview_create(this->this_obj);
+	lv_obj_add_style(this->option_tileview_obj, no_scrollbar, LV_PART_SCROLLBAR);
+	lv_obj_add_event_cb(this->option_tileview_obj, NavigationMenu::value_changed_cb, LV_EVENT_VALUE_CHANGED, this);
+
+	// Create the lv_tile to the list of current tiles
+	this->menu_tile_obj = lv_tileview_add_tile(this->option_tileview_obj, 0, 0, LV_DIR_ALL);
+	this->popup_tile_obj = lv_tileview_add_tile(this->option_tileview_obj, 1, 0, LV_DIR_ALL);
+	lv_obj_add_style(this->popup_tile_obj, no_scrollbar, LV_PART_SCROLLBAR);
+	lv_obj_set_user_data(this->popup_tile_obj, this);
+	//lv_obj_set_size(this->menu_obj, lv_obj_get_width(parent), lv_obj_get_height(parent));
+	//lv_obj_center(this->menu_obj);
+
+	// add list top label bar
+	lv_obj_t* list_label = lv_obj_create(this->menu_tile_obj);
+	lv_obj_set_size(list_label, lv_obj_get_width(parent), NAVIGATION_MENU_LABEL_HEIGHT);
+	lv_obj_add_style(list_label, inv_style, LV_PART_MAIN);
+
+	lv_obj_t* scan_label = lv_label_create(list_label);
+	lv_label_set_text(scan_label, this->titleText);
+	lv_obj_align(scan_label, LV_ALIGN_LEFT_MID, 1, 0);
+
+	// add list
+	this->list_obj = lv_list_create(this->menu_tile_obj);
+	lv_obj_set_size(this->list_obj, lv_obj_get_width(parent), lv_obj_get_height(parent) - NAVIGATION_MENU_LABEL_HEIGHT - BUTTON_LABEL_BAR_HEIGHT - 2);
+	lv_obj_align(this->list_obj, LV_ALIGN_TOP_MID, 0, NAVIGATION_MENU_LABEL_HEIGHT + 1);	
+	
+	//Add buttons to the list
+	lv_obj_t* btn_label;
+
+	this->exit_button_obj = lv_list_add_btn(this->list_obj, LV_SYMBOL_PREV, this->exitButtonText);
+	lv_obj_add_event_cb(this->exit_button_obj, NavigationMenu::exit_btn_cb, LV_EVENT_CLICKED, this);
+	btn_label = lv_obj_get_child(this->exit_button_obj, 0);
+	if (lv_obj_has_class(btn_label, &lv_label_class)) {
+		lv_label_set_long_mode(btn_label, LV_LABEL_LONG_CLIP);
+	}
+	lv_group_add_obj(this->group, this->exit_button_obj);
+
+    for (std::vector<ScrollMenuItem*>::iterator it = std::begin(this->scrollMenuItems); it != std::end(this->scrollMenuItems); ++it)
+    {
+        // Create the lv_tile to the list of current tiles
+        lv_obj_t* button_obj = this->addMenuItemButton((*it));		
+    }
+
+	return this->this_obj;
+}
+
+void NavigationMenu::destroyLvObj()
+{
+    if (this->selectedLvObj) this->selectedLvObj->destroyLvObj();
+	if (this->group) lv_group_del(this->group);
+	this->group = NULL;
+	BaseLvObject::destroyLvObj();
+}
+
+void NavigationMenu::focusLvObj(BaseLvObject* defocusLvObj)
+{	
+	lv_indev_set_group(this->indev, this->group);
+	if (defocusLvObj)
+	{
+		this->defocusLvObj = defocusLvObj;
+	}
+	else {
+		this->focusAnimation = true;
+		lv_obj_set_tile_id(this->option_tileview_obj, 0, 0, LV_ANIM_ON);
+	}
+	showButtonLabels();
+}
+
+void NavigationMenu::setButtonLabel(ButtonLabel* buttonLabel)
+{
+	this->buttonLabel = buttonLabel;
+}
+
+void NavigationMenu::showButtonLabels()
+{
+	if (this->buttonLabel) {
+		this->buttonLabel->setButtonLabels(LV_SYMBOL_UP, LV_SYMBOL_OK, LV_SYMBOL_DOWN);
+		this->buttonLabel->show();
+	}
+}
+
+lv_obj_t* NavigationMenu::addMenuItemButton(ScrollMenuItem* menuItem) {
+	lv_obj_t* list_btn = lv_list_add_btn(this->list_obj, NULL, menuItem->getItemText());
+    lv_obj_set_user_data(list_btn, menuItem);
+
+	lv_obj_t* btn_label = lv_obj_get_child(list_btn, 0);
+	if (lv_obj_has_class(btn_label, &lv_label_class)) {
+		lv_label_set_long_mode(btn_label, LV_LABEL_LONG_CLIP);
+	}
+	lv_obj_add_event_cb(list_btn, NavigationMenu::menu_item_btn_cb, LV_EVENT_CLICKED, this);
+	lv_obj_add_event_cb(list_btn, NavigationMenu::menu_item_btn_cb, LV_EVENT_FOCUSED, this);
+	lv_obj_add_event_cb(list_btn, NavigationMenu::menu_item_btn_cb, LV_EVENT_DEFOCUSED, this);
+	lv_group_add_obj(this->group, list_btn);
+
+	return list_btn;
+}
+
+void NavigationMenu::addMenuItem(ScrollMenuItem* scrollMenuItem)
+{
+    // Append the scrollMenuItem to the list of menu items for use when item is selected
+    this->scrollMenuItems.push_back(scrollMenuItem);
+}
+
+void NavigationMenu::exitButtonCB(lv_event_t* event)
+{	
+	if (this->defocusLvObj) {
+		this->defocusLvObj->focusLvObj();
+	}
+}
+
+void NavigationMenu::menuItemButtonCB(lv_event_t* event) {
+	// Disable menuItem clicking until the selection has been removed
+	if (this->focusAnimation == true) return;
+
+	ScrollMenuItem* scrollMenuItem = (ScrollMenuItem * ) lv_obj_get_user_data(event->target);
+
+	lv_obj_clean(this->popup_tile_obj);
+
+	// Create the popup item if there is one on the scrollMenuItem
+	BaseLvObject* popupItem = scrollMenuItem->getPopupItem();
+	if (popupItem) {
+		this->selectedLvObj = popupItem;
+		popupItem->createLvObj(this->popup_tile_obj);
+		popupItem->focusLvObj(this);		
+	}
+	lv_obj_set_tile_id(this->option_tileview_obj, 1, 1, LV_ANIM_ON);
+}
+
+void NavigationMenu::valueChangedCB(lv_event_t* event) {
+	if (this->focusAnimation) {
+		// Ensure that on of the activit buttons are active
+		lv_indev_set_group(this->indev, this->group);
+		// Animation to set focus is over
+		this->focusAnimation = false;
+		this->selectedLvObj->destroyLvObj();
+		this->selectedLvObj = NULL;
+	}
+}

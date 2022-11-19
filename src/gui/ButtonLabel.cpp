@@ -12,11 +12,12 @@ void ButtonLabel::auto_hide_timer_cb(lv_timer_t* timer) {
     buttonLabel->autoHideTimerCB(timer);
 }
 
-ButtonLabel::ButtonLabel(lv_indev_t* indev) : BaseLvObject()
-{
+ButtonLabel::ButtonLabel(lv_indev_t* indev) : BaseLvObject() {
     this->indev = indev;
-    this->group = lv_group_create();
+}
 
+ButtonLabel::~ButtonLabel() {
+    ButtonLabel::destroyLvObj();
 }
 
 lv_obj_t* ButtonLabel::createLvObj(lv_obj_t* parent) {
@@ -25,6 +26,9 @@ lv_obj_t* ButtonLabel::createLvObj(lv_obj_t* parent) {
     lv_style_t* inv_style = &(binary_styles->inv);
     lv_style_t* no_scrollbar = &(binary_styles->no_scrollbar);
     lv_style_t* button_no_highlight = &(binary_styles->button_no_highlight);
+
+    // Create the group at this point
+    this->group = lv_group_create();
 
     // add button label bar
     this->this_obj = lv_obj_create(parent);
@@ -70,6 +74,17 @@ lv_obj_t* ButtonLabel::createLvObj(lv_obj_t* parent) {
     lv_obj_center(this->right_button_label_obj);
 
     return this->this_obj;
+}
+
+void ButtonLabel::destroyLvObj() {
+    if (this->group) lv_group_del(this->group);
+    this->group = NULL;
+    BaseLvObject::destroyLvObj();
+    this->activity_btn_1_obj = NULL;
+    this->activity_btn_2_obj = NULL;
+    this->left_button_label_obj = NULL;
+    this->right_button_label_obj = NULL;
+    this->centre_button_label_obj = NULL;
 }
 
 void ButtonLabel::focusLvObj(BaseLvObject* defocusLvObj)

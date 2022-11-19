@@ -205,7 +205,12 @@ enum class EbikeStatusOther { WHEEL_CIRCUMFERENCE=0x00, UNKNOWN_1=0x01, UNKNOWN_
 //   (see Specialized Read Key Write Characteristic for specifics)
 // Variable-Length Ebike Status Value
 //   (see Specialized Read Value Characterisitic for specifics)
-//
+//   GEN1 [0x01, 0x10] U-Int-8 Peak Assit Eco/Trail/Trubo, value changes convert to decimal, tens digit is assit level 0-10, unit digit is; 1 for Eco, 2 for Trial, 3 for Trubo
+//   GEN2 [0x01, 0x10] U-Int-8 Peak Assit Eco, U-Int-8 Peak Assit Trail, U-Int-8 Peak Assit Turbo
+//   [0x02, 0x03] U-Int-8 Assit Eco Percentage
+//   [0x02, 0x04] U-Int-8 Assit Trail Percentage
+//   [0x02, 0x05] U-Int-8 Assit Turbo Percentage
+//   [0x02, 0x06] U-Int-8 Fake Channel No
 #define UUID_SPECIALIZED_WRITE_KEY_VALUE_CHARACTERISTIC_GEN1  "00000012-0000-4b49-4e4f-525441474947"
 #define UUID_SPECIALIZED_WRITE_KEY_VALUE_CHARACTERISTIC_GEN2  "00000012-3731-3032-494d-484f42525554"
 

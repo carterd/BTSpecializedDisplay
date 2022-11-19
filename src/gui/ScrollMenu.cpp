@@ -29,6 +29,15 @@ ScrollMenu::ScrollMenu(lv_indev_t* indev) : BaseLvObject()
     this->selectedItem = -1;
 }
 
+ScrollMenu::~ScrollMenu()
+{
+    // Frist ensure all ScrollMenuItems are removed
+    for (std::vector<ScrollMenuItem*>::iterator it = std::begin(this->scrollMenuItems); it != std::end(this->scrollMenuItems); ++it) {
+        delete(*it);
+    }
+    ScrollMenu::destroyLvObj();
+}
+
 lv_obj_t* ScrollMenu::createLvObj(lv_obj_t* parent)
 {
     // get the style we'll need for the bar
@@ -71,13 +80,21 @@ lv_obj_t* ScrollMenu::createLvObj(lv_obj_t* parent)
         tile_pos++;
     }
 
-    // Finally do the button label to it's top
+    // Finally do the button label so it's top
     if (this->buttonLabel) {
         this->buttonLabel->createLvObj(this->this_obj);
         this->buttonLabelStartShown ? this->buttonLabel->setShown() : this->buttonLabel->setHidden();        
     }
 
     return this->this_obj;
+}
+
+void ScrollMenu::destroyLvObj()
+{
+    if (this->group) lv_group_del(this->group);
+    this->group = NULL;
+    BaseLvObject::destroyLvObj();
+    this->options_tileview_obj = NULL;
 }
 
 void ScrollMenu::focusLvObj(BaseLvObject* defocusLvObj)

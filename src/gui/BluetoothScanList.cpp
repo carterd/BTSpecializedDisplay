@@ -12,11 +12,11 @@ void BluetoothScanList::device_btn_cb(lv_event_t* event) {
 	}
 	if (event->code == LV_EVENT_FOCUSED) {
 		lv_obj_t* btnLabel = lv_obj_get_child(event->target, 1);
-		lv_label_set_long_mode(btnLabel, LV_LABEL_LONG_SCROLL_CIRCULAR);
+		if (btnLabel)  lv_label_set_long_mode(btnLabel, LV_LABEL_LONG_SCROLL_CIRCULAR);
 	}
 	if (event->code == LV_EVENT_DEFOCUSED) {
 		lv_obj_t* btnLabel = lv_obj_get_child(event->target, 1);
-		lv_label_set_long_mode(btnLabel, LV_LABEL_LONG_CLIP);
+		if (btnLabel) lv_label_set_long_mode(btnLabel, LV_LABEL_LONG_CLIP);
 	}
 }
 
@@ -29,10 +29,13 @@ BluetoothScanList::BluetoothScanList(BluetoothBikeController* bluetoothControlle
 	this->indev = indev;
 	this->bluetoothController = bluetoothController;
 	this->configStore = configStore;
-	this->group = lv_group_create();
-	lv_group_set_wrap(this->group, false);
 	this->scanning = false;
 	this->defocusLvObj = NULL;
+}
+
+BluetoothScanList::~BluetoothScanList()
+{
+	BluetoothScanList::destroyLvObj();
 }
 
 lv_obj_t* BluetoothScanList::createLvObj(lv_obj_t* parent)
@@ -40,6 +43,9 @@ lv_obj_t* BluetoothScanList::createLvObj(lv_obj_t* parent)
 	// get the style we'll need for the bar
 	theme_binary_styles_t* binary_styles = (theme_binary_styles_t*)lv_disp_get_theme(lv_obj_get_disp(parent))->user_data;
 	lv_style_t* inv_style = &(binary_styles->inv);
+
+	this->group = lv_group_create();
+	lv_group_set_wrap(this->group, false);
 
 	this->this_obj = lv_obj_create(parent);	
 	lv_obj_set_size(this->this_obj, lv_obj_get_width(parent), lv_obj_get_height(parent));
@@ -78,6 +84,13 @@ lv_obj_t* BluetoothScanList::createLvObj(lv_obj_t* parent)
 	lv_group_add_obj(this->group, this->exit_button_obj);
 
 	return this->this_obj;
+}
+
+void BluetoothScanList::destroyLvObj()
+{
+	if (this->group) lv_group_del(this->group);
+	this->group = NULL;
+	BaseLvObject::destroyLvObj();
 }
 
 void BluetoothScanList::focusLvObj(BaseLvObject* defocusLvObj)

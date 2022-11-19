@@ -100,8 +100,8 @@ public:
         float valueFloat;
         HardwareVersion valueHardwareVersion;
         FirmwareVersion valueFirmwareVersion;
-        AssistLevels assistLevels;
-        NumberString numberString;
+        AssistLevels valueAssistLevels;
+        NumberString valueNumberString;
         SpeedCadenceReading cscReading;
     };
 public:
@@ -151,7 +151,7 @@ public:
     }
 
     bool setStateAttribute(BikeStateAttributeIndex bikeStateAttributeIndex, NumberString& bikeStateAttribute, uint32_t lastFetchTimeTicks) {
-        this->bikeStateAttributes[static_cast<int>(bikeStateAttributeIndex)].bikeStateAttributeValue.numberString = bikeStateAttribute;
+        this->bikeStateAttributes[static_cast<int>(bikeStateAttributeIndex)].bikeStateAttributeValue.valueNumberString = bikeStateAttribute;
         return this->setStateAttribute(bikeStateAttributeIndex, lastFetchTimeTicks);
     }
 
@@ -166,7 +166,7 @@ public:
     }
 
     bool setStateAttribute(BikeStateAttributeIndex bikeStateAttributeIndex, AssistLevels& bikeStateAttribute, uint32_t lastFetchTimeTicks) {
-        this->bikeStateAttributes[static_cast<int>(bikeStateAttributeIndex)].bikeStateAttributeValue.assistLevels = bikeStateAttribute;
+        this->bikeStateAttributes[static_cast<int>(bikeStateAttributeIndex)].bikeStateAttributeValue.valueAssistLevels = bikeStateAttribute;
         return this->setStateAttribute(bikeStateAttributeIndex, lastFetchTimeTicks);
     }
 
@@ -209,7 +209,8 @@ public:
 
     void setAllLastFetchTimeTicks(uint32_t lastFetchTimeTicks);
 
-    void setAllAttributeValue(const BikeStateAttribute::BikeStateAttributeValue& bikeStateAttributeValue);
+    void setAllAttributeValueOfType(BikeStateAttributeType bikeStateAttributeType, const BikeStateAttribute::BikeStateAttributeValue& bikeStateAttributeValue);
+    //void setAllAttributeValue(const BikeStateAttribute::BikeStateAttributeValue& bikeStateAttributeValue);
 };
 
 

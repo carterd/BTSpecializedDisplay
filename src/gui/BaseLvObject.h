@@ -7,7 +7,6 @@
 /// This is the base of all our LvObjects which should be built frist as an abstarct
 /// collection then a call to createLvObj should instanciate the required lv objects.
 /// </summary>
-
 class BaseLvObject
 {
 protected:
@@ -18,11 +17,21 @@ protected:
 
 public:
     /// <summary>
+    /// Destructor to ensure the root lv object is deleted
+    /// </summary>
+    virtual ~BaseLvObject();
+
+    /// <summary>
     /// This Creates the instance of the Lv Objects associated with the instance and sub components associated with it
     /// </summary>
     /// <param name="parent">The LV object parent on which to attach the created lv object for this instance</param>
     /// <returns>The created LV object instance</returns>
     virtual lv_obj_t* createLvObj(lv_obj_t* parent) = 0;
+
+    /// <summary>
+    /// This will attempt to destroy all the Lv Objects associated with the instance and sub components associcated with it
+    /// </summary>
+    virtual void destroyLvObj();
 
     /// <summary>
     /// This means the object and any sub objects should set any groups to be in focus at this point

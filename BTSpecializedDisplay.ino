@@ -16,8 +16,10 @@
 #include "src/LvglGui.h"
 #include "src/dev/BluetoothBikeController.h"
 
+#define MIN_RESET_BUTTON_PRESS_TIME_MS 10 * 1000
+
 static ButtonEncoder encoder(16, 14, 15);
-static Adafruit_SH1107 display(64, 128, &Wire, 8);
+static Adafruit_SH1107 display(64, 128, &Wire, 20);
 
 
 /**
@@ -35,11 +37,26 @@ lv_font_t myAdaFont = {};
 BluetoothBikeController* bluetoothBikeController;
 ConfigStore* configStore;
 
+bool resetButtonTest() {
+  unsigned long startTime = millis();
+  do {
+    encoder.update();
+  } while (encoder.keyPressed() && encoder.lastKeyPressed() == Encoder::EncoderKey::ENCODER_ENTER);
+  if (millis() - startTime > MIN_RESET_BUTTON_PRESS_TIME_MS) return true;
+  return false;
+}
+
+void setDisplayContrast() {
+  display.setContrast(configStore->getDisplayConfig().contrast);
+}
+
 void setup() {
   delay(200);
   pinMode(LED_BUILTIN, OUTPUT);
   for (int i = 0; i < 10; i++ ) {
     display.begin(0x3C, true);
+    display.clearDisplay();
+    display.display();
     //display.dispaly();
     digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
     delay(10);                       // wait for a second
@@ -52,12 +69,12 @@ void setup() {
   //while (!Serial);
 
   // Initialise display
-  while (!display.begin(0x3C, true)) {
-      digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
-      delay(2000);                       // wait for a second
-
-  }; // Address 0x3C default
-  //display.clearDisplay();
+  bool displayWorking = false;
+  while (!displayWorking) {
+    displayWorking = display.begin(0x3C, true); // Address 0x3C default
+    digitalWrite(LED_BUILTIN, HIGH);            // turn the LED on (HIGH is the voltage level)
+    if (!displayWorking) delay(2000);           // wait for a second
+  };
 
   // Initialise display glue
   LvGLStatus result = displayGlue.begin(&display, displayCallback_SH110X, (INPUT_TYPE *) &encoder, inputCallback_ButtonEncoder, LV_INDEV_TYPE_ENCODER, true);
@@ -65,20 +82,28 @@ void setup() {
     led_error(result);
   }
 
-  display.setContrast(0x0F);
+  bluetoothBikeController = new BluetoothBikeController();
+  configStore = new ConfigStore();
+  bluetoothBikeController->init();
+  configStore->init();
+
+  if (resetButtonTest()) {
+    configStore->defaults();
+  }
+
+  setDisplayContrast();
 
   lv_disp_t *display = displayGlue.getLvDisplay();
   lv_indev_t *indev = displayGlue.getLvInputDevice();
   
+  // initalise the font required for the given display
   adafruitToLvGLFont(&PixelOperator8pt7b, &myAdaFont, &lv_font_symbols_8);
 
+  // initialise the binary theme
   lv_theme_t* binary_theme = lv_theme_binary_init(displayGlue.getLvDisplay(), true, &myAdaFont);
   lv_disp_set_rotation(NULL, LV_DISP_ROT_180);
   lv_disp_set_theme(display, binary_theme);
 
-  LV_LOG_USER("STARTING");  
-  bluetoothBikeController = new BluetoothBikeController();
-  configStore = new ConfigStore();
   lvgl_setup(configStore, bluetoothBikeController, display, indev);
 }
 

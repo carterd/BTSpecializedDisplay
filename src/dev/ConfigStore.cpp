@@ -8,7 +8,11 @@
 #include <LittleFS_Mbed_RP2040.h>
 #include <Arduino.h>
 
-ConfigStore::ConfigStore() : knownDevicesFilename(MBED_LITTLEFS_FILE_PREFIX "/knownDevices.bin") {
+ConfigStore::ConfigStore() : 
+    knownDevicesFilename(MBED_LITTLEFS_FILE_PREFIX "/knownDevices.bin"),
+    bikeConfigFilename(MBED_LITTLEFS_FILE_PREFIX "/bikeConfig.bin"),
+    displayConfigFilename(MBED_LITTLEFS_FILE_PREFIX "/displayConfig.bin")
+{
 }
 
 void ConfigStore::init() {    
@@ -18,11 +22,52 @@ void ConfigStore::init() {
     {
         return;
     }
-    if (this->readBTAddressMap()) {
+    if (this->readBTAddressMap() && this->readBikeConfig() && this->readDisplayConfig()) {
         Serial.println("LITTLEFS read File");
     } else {
         Serial.println("LITTLEFS failure read File");
+        this->defaults();
+        this->writeBTAddressMap();
+        this->writeBikeConfig();
+        this->writeDisplayConfig();
     }
+}
+
+void ConfigStore::defaults() {
+    this->btAddressMap.clear();
+    this->bikeConfig = { 
+        UNMANAGED_CONFIG,       // beeper 0 No beeping, 1 beeps
+        UNMANAGED_CONFIG,       // fakeChannel
+        UNMANAGED_CONFIG,       // Wheel Circumf
+        UNMANAGED_CONFIG,       // assistLevelEco Should be something like 5,20,25,100 et-al
+        UNMANAGED_CONFIG,       // assistLevelTrail
+        UNMANAGED_CONFIG,       // assistLevelTurbo
+        UNMANAGED_CONFIG,       // peakAssistEco Should be just 0-10
+        UNMANAGED_CONFIG,       // peakAssistTrail
+        UNMANAGED_CONFIG,       // peakAssistTurbo
+    };
+    this->displayConfig = {
+        0x002F,                 // Between 0x2F and 0x00
+        0x0000,                 // Enumeration of preset monitor settings  
+    };
+}
+
+void ConfigStore::updateBikeConfig(BikeConfig bikeConfig) {
+    this->bikeConfig = bikeConfig;
+    this->writeBikeConfig();
+}
+
+ConfigStore::BikeConfig ConfigStore::getBikeConfig() {
+    return this->bikeConfig;
+}
+
+void ConfigStore::updateDisplayConfig(DisplayConfig displayConfig) {
+    this->displayConfig = displayConfig;
+    this->writeDisplayConfig();
+}
+
+ConfigStore::DisplayConfig ConfigStore::getDisplayConfig() {
+    return this->displayConfig;
 }
 
 void ConfigStore::removeBTAddress(const char* address) {
@@ -74,12 +119,72 @@ void ConfigStore::addBTAddress(String* addressString, String* displayString) {
     } 
 }
 
+bool ConfigStore::readDisplayConfig() {
+    FILE *file = fopen(this->displayConfigFilename, "r");
+    if (file) {        
+        bool error = false;
+        error &= this->readInt(file, &(this->displayConfig.contrast));
+        error &= this->readInt(file, &(this->displayConfig.monitorType));                
+        fclose(file);
+        return !error;
+    }
+    return false;
+}
+
+bool ConfigStore::writeDisplayConfig() {
+    FILE *file = fopen(this->displayConfigFilename, "w");
+    if (file) {
+        this->writeInt(file, &(this->displayConfig.contrast));
+        this->writeInt(file, &(this->displayConfig.monitorType));
+        fclose(file);
+        return true;
+    }
+    return false;
+}
+
+bool ConfigStore::readBikeConfig() {    
+    FILE *file = fopen(this->bikeConfigFilename, "r");
+    if (file) {
+        bool error = false;
+        error &= this->readInt(file, &(this->bikeConfig.beeper));
+        error &= this->readInt(file, &(this->bikeConfig.fakeChannel));
+        error &= this->readInt(file, &(this->bikeConfig.wheelCircumference));
+        error &= this->readInt(file, &(this->bikeConfig.assistLevelEco));
+        error &= this->readInt(file, &(this->bikeConfig.assistLevelTrail));
+        error &= this->readInt(file, &(this->bikeConfig.assistLevelTurbo));
+        error &= this->readInt(file, &(this->bikeConfig.peakAssistEco));
+        error &= this->readInt(file, &(this->bikeConfig.peakAssistTrail));
+        error &= this->readInt(file, &(this->bikeConfig.peakAssistTurbo));
+        fclose(file);
+        return !error;
+    }
+    return false;
+}
+
+bool ConfigStore::writeBikeConfig() {
+    FILE *file = fopen(this->bikeConfigFilename, "w");
+    if (file) {
+        this->writeInt(file, &(this->bikeConfig.beeper));
+        this->writeInt(file, &(this->bikeConfig.fakeChannel));
+        this->writeInt(file, &(this->bikeConfig.wheelCircumference));
+        this->writeInt(file, &(this->bikeConfig.assistLevelEco));
+        this->writeInt(file, &(this->bikeConfig.assistLevelTrail));
+        this->writeInt(file, &(this->bikeConfig.assistLevelTurbo));
+        this->writeInt(file, &(this->bikeConfig.peakAssistEco));
+        this->writeInt(file, &(this->bikeConfig.peakAssistTrail));
+        this->writeInt(file, &(this->bikeConfig.peakAssistTurbo));
+        fclose(file);
+        return true;
+    }
+    return false;
+}
+
 bool ConfigStore::readBTAddressMap() {
     this->btAddressMap.clear();
     FILE *file = fopen(this->knownDevicesFilename, "r");
     if (file) {
         int16_t addressesSize = 0;
-        this->readInt(file, &addressesSize);
+        if (!this->readInt(file, &addressesSize)) return false;
         for (int16_t i = 0; i < addressesSize; i++) {
             String addressString;
             String displayValueString;

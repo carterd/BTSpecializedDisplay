@@ -130,9 +130,10 @@ void BikeState::setAllLastFetchTimeTicks(uint32_t lastFetchTimeTicks) {
     }
 }
 
-void BikeState::setAllAttributeValue(const BikeStateAttribute::BikeStateAttributeValue& bikeStateAttributeValue) {
+void BikeState::setAllAttributeValueOfType(BikeStateAttributeType bikeStateAttributeType, const BikeStateAttribute::BikeStateAttributeValue& bikeStateAttributeValue) {
     for (int i = 0; i < static_cast<int>(BikeStateAttributeIndex::BIKE_STATE_ATTRIBUTE_SIZE); i++) {
-        bikeStateAttributes[i].bikeStateAttributeValue = bikeStateAttributeValue;
+        if (bikeStateAttributes[i].bikeStateAttributeType == bikeStateAttributeType)
+            bikeStateAttributes[i].bikeStateAttributeValue = bikeStateAttributeValue;
     }
 }
 

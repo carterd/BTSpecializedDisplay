@@ -30,6 +30,13 @@ BluetoothConnection::BluetoothConnection(BluetoothBikeController* bluetoothContr
     this->exiting = false;
 }
 
+BluetoothConnection::~BluetoothConnection()
+{
+    this->monitorLvObj->destroyLvObj();
+    //delete(this->monitorLvObj);
+    BluetoothConnection::destroyLvObj();
+}
+
 lv_obj_t* BluetoothConnection::createLvObj(lv_obj_t* parent)
 {
     // get the style we'll need for the bar
@@ -87,6 +94,12 @@ lv_obj_t* BluetoothConnection::createLvObj(lv_obj_t* parent)
     
     // Return the connection lv_obj just in case
     return this->this_obj;
+}
+
+void BluetoothConnection::destroyLvObj() {
+    if (this->group) lv_group_del(this->group);
+    this->group = NULL;
+    BaseLvObject::destroyLvObj();
 }
 
 void BluetoothConnection::focusLvObj(BaseLvObject* defocusLvObj)

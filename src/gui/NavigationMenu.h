@@ -1,33 +1,38 @@
-#ifndef _BLUETOOTH_SCAN_LIST_H
-#define _BLUETOOTH_SCAN_LIST_H
+#ifndef _NAVIGATION_MENU_H
+#define _NATIGATION_MENU_H
 
 #include <lvgl.h>
 
 #include "BaseLvObject.h"
+#include "ScrollMenuItem.h"
 #include "ButtonLabel.h"
-#include "..\dev\BluetoothBikeController.h"
-#include "..\dev\ConfigStore.h"
 
+#include <vector>
 #include <unordered_map>
 
-#define BLUETOOTH_SCAN_LIST_LABEL_HEIGHT 16
+#define NAVIGATION_MENU_LABEL_HEIGHT 16
 
 /// <summary>
 /// This is the scanning list of possible bluetooth connections
 /// </summary>
-class BluetoothScanList : public BaseLvObject
+class NavigationMenu : public BaseLvObject
 {
 private:
+	lv_obj_t* menu_tile_obj;
+	lv_obj_t* popup_tile_obj;
 	lv_obj_t* list_obj;
 	lv_obj_t* exit_button_obj;
-	lv_obj_t* scan_anim_obj;
+	lv_obj_t* option_tileview_obj;
 	lv_group_t* group;
 	lv_indev_t* indev;
 	ButtonLabel* buttonLabel;
-	BluetoothBikeController* bluetoothController;
-	ConfigStore* configStore;
-	std::unordered_map<lv_obj_t*, BLEDevice> buttonDeviceMap;
-	bool scanning;
+
+	const char* exitButtonText;
+	const char* titleText;
+	std::vector <ScrollMenuItem*> scrollMenuItems;
+	BaseLvObject* selectedLvObj;
+	//std::unordered_map<lv_obj_t*, ScrollMenuItem*> scrollMenuItemMap;
+	bool focusAnimation;
 	/// <summary>
 	/// This is the object given focus on this object loosing focus
 	/// </summary>
@@ -35,51 +40,26 @@ private:
 
 private:
 	/// <summary>
-	/// This helper function removes all list entries for the current scan list object
-	/// </summary>
-	void removeDeviceItems();
-	/// <summary>
 	/// Displays the button label if one has been assoicated with the scan list
 	/// </summary>
 	void showButtonLabels();
-	/// <summary>
-	/// This starts the BT scanning
-	/// </summary>
-	void startBTScan();
-	/// <summary>
-	/// This stops the BT scanning
-	/// </summary>
-	void stopBTScan();
-	/// <summary>
-	/// Add a detected BLEDevice to the scan list object.
-	/// </summary>
-	/// <param name="bleDevice">The BLEDevice to add to the scan list</param>
-	/// <returns>The device button created in the list</returns>
-	lv_obj_t* addDeviceItem(BLEDevice* bleDevice);
 	/// <summary>
 	/// Add a button onto the list with given display text and a possible known device icon
 	/// </summary>
 	/// <param name="displayText">Display text in the list</param>
 	/// <param name="knownDevice">True if the device is known hence shown with an icon</param>
 	/// <returns>The created list item button object</returns>
-	lv_obj_t* addDeviceButton(const char* displayText, bool knownDevice);
-	/// <summary>
-	/// Returns a given matching list item button object for a given BLEDevice
-	/// </summary>
-	/// <param name="bleDevice">The BLE device for which to find the </param>
-	/// <returns></returns>
-	lv_obj_t* getDeviceButton(BLEDevice* bleDevice);
+	lv_obj_t* addMenuItemButton(ScrollMenuItem* menuItem);
 	
 public:
 	/// <summary>
 	/// Constructor of the Bluetooth scan list hence shows a list of dectected bluetooth devices/
 	/// </summary>
-	/// <param name="bluetoothMaster">The bluetooth controller object</param>
-	/// <param name="configStore">The config store containing know bluetooth devices</param>
+	/// <param name="exitButtonText">The text to display for exit menu option of the menu</param>
 	/// <param name="indev">The indev used for taking context of the encoder</param>
-	BluetoothScanList(BluetoothBikeController* bluetoothMaster, ConfigStore* configStore, lv_indev_t* indev);
+	NavigationMenu(const char* titleText, const char* exitButtonText, lv_indev_t* indev);
 
-	virtual ~BluetoothScanList();
+	virtual ~NavigationMenu();
 
 	/// <summary>
 	/// This Creates the instance of the Lv Objects associated with the instance and sub components associated with it
@@ -101,6 +81,12 @@ public:
 	/// <param name="buttonLabel">The button label object for this gui object</param>
 	void setButtonLabel(ButtonLabel* buttonLabel);	
 
+    /// <summary>
+    /// Add the given menu item objec to this list in the order called with this function
+    /// </summary>
+    /// <param name="scrollMenuItem">The menu item to add to the list</param>
+    void addMenuItem(ScrollMenuItem* scrollMenuItem);
+
 	/// <summary>
 	/// The callback on the exit button clicked
 	/// </summary>
@@ -111,18 +97,17 @@ public:
 	/// The callback on a specific detected device clicked
 	/// </summary>
 	/// <param name="event">The lv event that identifies pressing the device entry</param>
-	void deviceButtonCB(lv_event_t* event);
+	void menuItemButtonCB(lv_event_t* event);
 
 	/// <summary>
-	/// The callback on the list required to be updated, i.e. a bluetooth device detected
+	/// Callback when scroll animation has gone to an item or we've returned from an item
 	/// </summary>
-	/// <param name="event">The lv event that identifies pressing the device entry</param>
-	void refreshCB(lv_event_t* event);
-
+	/// <param name="event"></param>
+	void valueChangedCB(lv_event_t* event);
 public:
 	static void exit_btn_cb(lv_event_t* event);
-	static void device_btn_cb(lv_event_t* event);
-	static void refresh_cb(lv_event_t* event);
+	static void menu_item_btn_cb(lv_event_t* event);
+	static void value_changed_cb(lv_event_t* event);
 };
 
 #endif

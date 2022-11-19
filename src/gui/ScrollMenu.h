@@ -29,12 +29,16 @@ public:
     /// <param name="indev">The indev used for taking context of the encoder</param>
     ScrollMenu(lv_indev_t* indev);
 
+    virtual ~ScrollMenu();
+
     /// <summary>
     /// This Creates the instance of the Lv Objects associated with the instance and sub components associated with it
     /// </summary>
     /// <param name="parent">The LV object parent on which to attach the created lv object for this instance</param>
     /// <returns>The created LV object instance</returns>
     virtual lv_obj_t* createLvObj(lv_obj_t* parent);
+
+    virtual void destroyLvObj();
 
     /// <summary>
     /// This means the object and any sub objects should set any groups to be in focus at this point

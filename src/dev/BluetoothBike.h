@@ -266,8 +266,28 @@ public:
     /// values types so all attribute irrespective of union type will be set with the same value.
     /// </summary>
     /// @param defaultBikeStateAttributeValue The default bike state value to set all bike state attributes    
-	void resetBikeStateAttributeValue(const BikeStateAttribute::BikeStateAttributeValue &defaultBikeStateAttributeValue) {
-		this->bikeState.setAllAttributeValue(defaultBikeStateAttributeValue);
+	void resetBikeStateAttributeValue() {
+		BikeStateAttribute::BikeStateAttributeValue attribute;
+		attribute.valueNumberString = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+		this->bikeState.setAllAttributeValueOfType(BikeStateAttributeType::NUMBER_STRING, attribute);
+		attribute.cscReading = { 0, 0 };
+		this->bikeState.setAllAttributeValueOfType(BikeStateAttributeType::SPEED_CADENCE_READING, attribute);
+		attribute.valueUint32 = 0;
+		this->bikeState.setAllAttributeValueOfType(BikeStateAttributeType::UINT32_T, attribute);
+		attribute.valueFirmwareVersion = {0x00, 0x00, 0x00};
+		this->bikeState.setAllAttributeValueOfType(BikeStateAttributeType::FIRMWARE_VERSION, attribute);
+		attribute.valueAssistLevels = { 0x00, 0x00, 0x00 };
+		this->bikeState.setAllAttributeValueOfType(BikeStateAttributeType::ASSIST_LEVELS, attribute);
+		attribute.valueHardwareVersion = { 0x00, 0x00 };
+		this->bikeState.setAllAttributeValueOfType(BikeStateAttributeType::HARDWARE_VERSION, attribute);
+		attribute.valueUint16 = 0;
+		this->bikeState.setAllAttributeValueOfType(BikeStateAttributeType::UINT16_T, attribute);
+		attribute.valueUint8 = 0;
+		this->bikeState.setAllAttributeValueOfType(BikeStateAttributeType::UINT8_T, attribute);
+		attribute.valueBool = false;
+		this->bikeState.setAllAttributeValueOfType(BikeStateAttributeType::BOOL, attribute);
+		attribute.valueFloat = 0.0;
+		this->bikeState.setAllAttributeValueOfType(BikeStateAttributeType::FLOAT_T, attribute);
 	}
 
     /// <summary>

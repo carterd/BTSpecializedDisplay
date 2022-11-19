@@ -125,11 +125,15 @@ public:
     /// <param name="configStore">an image to be the background image while connecting</param>
     BluetoothConnection(BluetoothBikeController* bluetoothMaster, ConfigStore* configStore, lv_img_dsc_t* image, lv_indev_t* indev);
 
+    virtual ~BluetoothConnection();
+
     /// <summary>
     /// Returns the LV object instance to represent this class instance
     /// </summary>
     /// <returns>The LV object instance to represent this class instance</returns>
     virtual lv_obj_t* createLvObj(lv_obj_t* parent);
+
+    virtual void destroyLvObj();
 
     /// <summary>
     /// This means the object and any sub objects should set any groups to be in focus at this point
