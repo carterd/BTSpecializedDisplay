@@ -18,8 +18,11 @@
 
 #define MIN_RESET_BUTTON_PRESS_TIME_MS 10 * 1000
 
+#define ADAFRUIT_SH1107_RESET_D_PIN 20
+
+
 static ButtonEncoder encoder(16, 14, 15);
-static Adafruit_SH1107 display(64, 128, &Wire, 20);
+static Adafruit_SH1107 display(64, 128, &Wire, ADAFRUIT_SH1107_RESET_D_PIN);
 
 
 /**

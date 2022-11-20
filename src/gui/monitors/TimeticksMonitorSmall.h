@@ -33,6 +33,4 @@ public:
 	virtual void statusUpdate();
 };
 
-
-
 #endif
