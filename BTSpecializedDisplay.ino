@@ -22,7 +22,7 @@
 
 
 static ButtonEncoder encoder(16, 14, 15);
-static Adafruit_SH1107 display(64, 128, &Wire, ADAFRUIT_SH1107_RESET_D_PIN);
+static Adafruit_SH1107 adafruitDisplay(64, 128, &Wire, ADAFRUIT_SH1107_RESET_D_PIN);
 
 
 /**
@@ -43,29 +43,33 @@ ConfigStore* configStore;
 bool resetButtonTest() {
   unsigned long startTime = millis();
   do {
+    unsigned long i =  (millis() - startTime) / (MIN_RESET_BUTTON_PRESS_TIME_MS / adafruitDisplay.width());
     encoder.update();
+    if ((encoder.keyPressed() && encoder.lastKeyPressed() == Encoder::EncoderKey::ENCODER_ENTER)) { 
+      adafruitDisplay.fillCircle(adafruitDisplay.width() / 2, adafruitDisplay.height() / 2, i, SH110X_WHITE);
+      adafruitDisplay.display();
+    }
   } while (encoder.keyPressed() && encoder.lastKeyPressed() == Encoder::EncoderKey::ENCODER_ENTER);
   if (millis() - startTime > MIN_RESET_BUTTON_PRESS_TIME_MS) return true;
   return false;
 }
 
-void setDisplayContrast() {
-  display.setContrast(configStore->getDisplayConfig().contrast);
-}
-
 void setup() {
-  delay(200);
+  // Allow time for display to wake up
+  delay(250);
   pinMode(LED_BUILTIN, OUTPUT);
+  /*
   for (int i = 0; i < 10; i++ ) {
-    display.begin(0x3C, true);
-    display.clearDisplay();
-    display.display();
+    adafruitDisplay.begin(0x3C, true);
+    adafruitDisplay.clearDisplay();
+    adafruitDisplay.display();
     //display.dispaly();
     digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
     delay(10);                       // wait for a second
     digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
     delay(10);                       // wait for a second
   }
+  */
 
   // Remote if no serial monitor
   //Serial.begin(9600);
@@ -74,13 +78,15 @@ void setup() {
   // Initialise display
   bool displayWorking = false;
   while (!displayWorking) {
-    displayWorking = display.begin(0x3C, true); // Address 0x3C default
+    displayWorking = adafruitDisplay.begin(0x3C, true); // Address 0x3C default
     digitalWrite(LED_BUILTIN, HIGH);            // turn the LED on (HIGH is the voltage level)
     if (!displayWorking) delay(2000);           // wait for a second
   };
+  adafruitDisplay.clearDisplay();
+  adafruitDisplay.display();
 
   // Initialise display glue
-  LvGLStatus result = displayGlue.begin(&display, displayCallback_SH110X, (INPUT_TYPE *) &encoder, inputCallback_ButtonEncoder, LV_INDEV_TYPE_ENCODER, true);
+  LvGLStatus result = displayGlue.begin(&adafruitDisplay, displayCallback_SH110X, (INPUT_TYPE *) &encoder, inputCallback_ButtonEncoder, LV_INDEV_TYPE_ENCODER, true);
   if (result != LVGL_OK) {    
     led_error(result);
   }
@@ -94,8 +100,6 @@ void setup() {
     configStore->defaults();
   }
 
-  setDisplayContrast();
-
   lv_disp_t *display = displayGlue.getLvDisplay();
   lv_indev_t *indev = displayGlue.getLvInputDevice();
   
@@ -107,7 +111,7 @@ void setup() {
   lv_disp_set_rotation(NULL, LV_DISP_ROT_180);
   lv_disp_set_theme(display, binary_theme);
 
-  lvgl_setup(configStore, bluetoothBikeController, display, indev);
+  lvgl_setup(configStore, bluetoothBikeController, displayGlue, indev);
 }
 
 void loop() {

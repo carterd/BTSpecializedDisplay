@@ -19,7 +19,15 @@
 #define MOTOR_FIRMWARE_VERSION_PATCH_NUMBER_BUFFER_INDEX 4
 
 /**
- * @brief This represents the interface to the bike and is a wrapper for BLEDevice interface to the bikes
+ * @brief This represents the interface to the bike and is a wrapper for BLEDevice interface to the bikes.
+ * 
+ * The current implementation can only support a single instance of a connected Bike. Rather than allowing
+ * multiple instances of BluetoothBikes to be discovered and connected to, but such functaionlity isn't needed here.
+ * However, we've not put a restriction on the number of instances of BluetoothBikeController instances 
+ * (still only gonna be 1)!
+ * 
+ * The Controller has two basic modes, that of searching for BLEDevices that could be instances of BluetoothBikes, and 
+ * that of attempting to connect to a BLEDevice as an instance of a BluetoothBike.
  * 
  */
 class BluetoothBikeController
@@ -32,11 +40,20 @@ private:
 	static std::vector<BluetoothBikeController*> bluetoothBikeControllers;
 public:
 	/// <summary>
-	/// This is the updateHandler static method
+	/// This is the updateHandler static method called from BLEDevice for notifications of CSC characterisitics of a bike.
 	/// </summary>
 	static void update_csc_handler_cb(BLEDevice device, BLECharacteristic characteristic);
+	/// <summary>
+	/// This is the updateHandler static method called from BLEDevice for notifications of Ebike characterisitics.
+	/// </summary>
 	static void update_ebs_handler_cb(BLEDevice device, BLECharacteristic characteristic);
+	/// <summary>
+	/// This is the updateHandler static method called from BLEDevice for connection events
+	/// </summary>
 	static void connect_handler_cb(BLEDevice device);
+	/// <summary>
+	/// This is the updateHandler static method called from BLEDevice for disconnect events
+	/// </summary>
 	static void disconnect_handler_cb(BLEDevice device);
 private:
 	/// <summary>
@@ -73,10 +90,22 @@ private:
 	/// </summary>
 	uint8_t readBuffer[20];
 
+	/// <summary>
+	/// Identify if any new devices have been found when in scanning mode and hence requires such changes to be processed by 
+	/// the current lvgl listener object via LV_EVENT_REFRESH event.
+	/// </summary>
 	void checkForScanningChange();
 
+	/// <summary>
+	/// Identify if any changes have occured in the bike state so that such state changes can be displayed or recorded by the 
+	/// the current lvgl listener object via LV_EVENT_REFRESH event.
+	/// </summary>
 	void checkForConnectionChange();
 
+	/// <summary>
+	/// Helper function that checks for a stale attributes of a given monitorAttributeType and may not have been updated by
+	/// any notification and therefore requires an explicit read.
+	/// </summary>
 	void checkForStaleBikeStateAttribute(MonitorAttributeType monitorAttributeType, uint32_t maximumTime);
 
 protected:
@@ -115,49 +144,24 @@ protected:
 	/// </summary>
 	BluetoothBike connectedBluetoothBike;
 
-	/// <summary>
-	/// The available device detected by a scan or used as the device in connections
-	/// </summary>
-	//BLEDevice connectedDevice;
-
-	/// <summary>
-	/// This is the BLE Characteristic for CSC Measurement 
-	/// </summary>
-	//BLECharacteristic cscMeasurementBleCha;
-
-	/// <summary>
-	/// This is the BLE Characteristic for CSC Feature
-	/// </summary>
-	//BLECharacteristic cscFeatureBleCha;
-
-	/// <summary>
-	/// This is the BLE Characteristic for SC Control Point
-	/// </summary>
-	//BLECharacteristic scControlPointBleCha;
-
-	/// <summary>
-	/// This is the BLE Characteristic for Ebike Specialized Read Key
-	/// </summary>
-	//BLECharacteristic ebsReadKeyBleCha;
-
-	/// <summary>
-	/// This is the BLE Characteristic for Ebike Specialized Read Value
-	/// </summary>
-	//BLECharacteristic ebsReadValueBleCha;
-
-	/// <summary>
-	/// This is the BLE Characteristic for Ebike Specialized Write Key-Value
-	/// </summary>
-	//BLECharacteristic ebsWriteKeyValueBleCha;
-
-	/// <summary>
-	/// This is the BLE Characteristic for Ebike Specialized Notify Key Value 
-	/// </summary>
-	//BLECharacteristic ebsNotifyKeyValueBleCha;
 protected:
+	/// <summary>
+	/// This is the class callback for CscCharacteristic notification to find the device and update the given bluetoothBike object
+	/// and update it's state. 
+	/// </summary>	
 	void updateCscCharacteristicCB(BLEDevice device, BLECharacteristic characteristic);
+	/// <summary>
+	/// This is the class callback for EbsCharacteristic notification to find the device and update the given bluetoothBike object
+	/// and update it's state. 
+	/// </summary>	
 	void updateEbsCharacteristicCB(BLEDevice device, BLECharacteristic characteristic);
+	/// <summary>
+	/// This is the class callback for connection event
+	/// </summary>	
 	void updateConnectCB(BLEDevice device);
+	/// <summary>
+	/// This is the class callback for disconnect event
+	/// </summary>	
 	void updateDisconnectCB(BLEDevice device);
 
 public:
@@ -166,6 +170,9 @@ public:
 	/// </summary>
 	BluetoothBikeController();
 
+	/// <summary>
+	/// Distructor of the bluetooth controller object
+	/// </summary>
 	~BluetoothBikeController();
 
 	/// <summary>
@@ -187,20 +194,20 @@ public:
 	BLEDevice getScannedDevice() { if (this->scannedDeviceAvailable) { return this->scannedDevice; } else { return BLEDevice(); } }
 
 	/// <summary>
-	/// Returns the currently connected device or blank device if no connection</return>
-	/// </summary>
-	/// <returns>The currently connected device or blank device if no connection</return>
-	//BLEDevice getConnectedDevice() { if (this->connected) { return this->connectedDevice; } else { return BLEDevice(); } }
-
-	/// <summary>
 	/// Returns true if the controller has connected to a device
 	/// </summary>
 	/// <returns></returns>
 	bool getConnected() { return this->connected; }
 
-	///
+	/// <summary>
+	/// Accessor that returns the current connected bluetoothBike instance
+	/// </summary>
 	BluetoothBike& getConnectedBluetoothBike() { return this->connectedBluetoothBike; }
 
+ 	/// <summary>
+	/// Returns true if the bike state of the connected bike has been updated since the last call to checkForConnectionChange(),
+	/// hence we should at this point be identifying that an update of the GUI should be performed.
+	/// </summary>
 	bool getConnectedBikeStateUpdated() {
 		// If the connectedBikeLastUpdate time of the controller is smaller than update of the connected bike then bike state updated
 		return this->connectedBikeStatusLastUpdateTime < this->connectedBluetoothBike.getBikeStatusLastUpdateTime();

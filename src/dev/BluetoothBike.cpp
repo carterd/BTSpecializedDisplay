@@ -1,5 +1,6 @@
 
 #include "BluetoothBike.h"
+#include "BluetoothBikeRequest.h"
 #include "BluetoothBikeController.h"
 
 #include <ArduinoBLE.h>
@@ -29,6 +30,7 @@ void BluetoothBike::setBleDevice(BLEDevice& bleDevice) {
    	    this->resetBikeStateMonitorAttributeType();
    	    this->resetBikeStateLastFetchTime();
   	    this->resetBikeStateAttributeValue();
+        this->bikeType = BikeType::NONE;
 	}
 	this->bleDevice = bleDevice;
 }
@@ -118,6 +120,143 @@ bool BluetoothBike::isConnected() {
 //
 
 /**
+ * @brief Specifically Writes the ebs value by sending a request to ebsWrite
+ * 
+ * @param ebikeStatusArea The status area such as MOTOR, BATTERY or OTHER
+ * @param ebikeStatusParameter The specific parameter in the status area to read such as CAPACITY
+ * @param valuePtr Pointer to the value to be set
+ * @return true The attribute has been successfully processed and if enable the status has been updated with the read.
+ * @return false An issue occured during the read operation and the status attribute will not have been updated.
+ */
+bool BluetoothBike::writeEbsBikeValue(EbikeStatusArea ebikeStatusArea, EbikeStatusAttribute ebikeStatusAttribute, void* valuePtr) {
+  static uint8_t writeBuffer[20];
+  int length = 2;
+  writeBuffer[0] = static_cast<int>(ebikeStatusArea);
+
+	switch (ebikeStatusArea) {
+	case EbikeStatusArea::BATTERY:
+	case EbikeStatusArea::SECONDARY_BATTERY:
+    {
+      writeBuffer[1] = static_cast<int>(ebikeStatusAttribute.ebikeStatusBattery);
+      switch (ebikeStatusAttribute.ebikeStatusBattery) {
+        default:
+          // Currently no BatteryAttributes can be written to hence an automatic failure here
+          return false;
+      }
+    }
+		break;
+	case EbikeStatusArea::MOTOR:
+    {
+      writeBuffer[1] = static_cast<int>(ebikeStatusAttribute.ebikeStatusMotor);
+      switch (ebikeStatusAttribute.ebikeStatusMotor) {
+        case EbikeStatusMotor::ASSIST_LEVEL:
+        // ASSIST_LEVEL uint16 ( between 1 and 3 )
+        {
+          uint16_t assistLevelValue = *((uint16_t*) (valuePtr));
+          if (assistLevelValue < 1 || assistLevelValue > 3) return false;
+          writeBuffer[2] = assistLevelValue & 0xff;
+          writeBuffer[3] = assistLevelValue >> 8;
+          length += 2;
+        }
+        break;
+        case EbikeStatusMotor::PEAK_POWER_ASSIST:
+        // PEAK_ASSIST ( AssistLevels GEN2 , uint8_t GEN1)
+        {
+          if (this->getBikeType() == BikeType::GEN1) {
+            // PEAK_POWER_ASSIST must be pre mapped to a uint8_t value rather than the AssitLevels struct
+            uint8_t peakAssistValue = *((uint8_t*) (valuePtr));
+            writeBuffer[2] = peakAssistValue;
+            length += 1;
+          }
+          else if (this->getBikeType() == BikeType::GEN2) {
+            AssistLevels* peakAssistValue = (AssistLevels*) (valuePtr);
+            writeBuffer[2] = peakAssistValue->eco;
+            writeBuffer[3] = peakAssistValue->trail;
+            writeBuffer[4] = peakAssistValue->turbo;
+            length += 3;
+          }
+          else return false;
+        }
+        break;
+        default:        
+          // All other MotorAttributes cannot be written to hence an automatic failure here
+          return false;
+      }
+    }
+    break;
+	case EbikeStatusArea::OTHER:
+    {
+      writeBuffer[1] = static_cast<int>(ebikeStatusAttribute.ebikeStatusOther);
+      switch (ebikeStatusAttribute.ebikeStatusOther) {
+        // BEEPER uint8 ( 0 or 1 )
+        case EbikeStatusOther::BEEPER:
+        {
+          uint8_t beeperValue = *((uint8_t*) (valuePtr));
+          if (beeperValue != 0 && beeperValue != 1) return false;
+          writeBuffer[2] = beeperValue;
+          length += 1;
+        }
+        break;
+        // FAKE_CHANNEL uint8 ( Not Sure )
+        case EbikeStatusOther::FAKE_CHANNEL:
+        {          
+          uint8_t fakeChannelValue = *((uint8_t*) (valuePtr));
+          writeBuffer[2] = fakeChannelValue;
+          length += 1;
+        }
+        break;
+        case EbikeStatusOther::WHEEL_CIRCUMFERENCE:
+        // WHEEL_CIRCUMFERENCE uint16 ( in mm )
+        {
+          uint16_t wheelCircumferenceValue = *((uint16_t*) (valuePtr));
+          writeBuffer[2] = wheelCircumferenceValue & 0xff;
+          writeBuffer[3] = wheelCircumferenceValue >> 8;
+          length += 2;
+        }
+        break;
+        case EbikeStatusOther::SUPPORT_ASSIST_ECO:
+        {
+          AssistLevels* assistEcoValue = (AssistLevels*) (valuePtr);
+          writeBuffer[2] = assistEcoValue->eco;
+          length += 1;
+        }
+        break;
+        case EbikeStatusOther::SUPPORT_ASSIST_TRAIL:
+        {
+          AssistLevels* assistEcoValue = (AssistLevels*)(valuePtr);
+          writeBuffer[2] = assistEcoValue->trail;
+          length += 1;
+        }
+        break;
+        case EbikeStatusOther::SUPPORT_ASSIST_TURBO:
+        {
+          AssistLevels* assistEcoValue = (AssistLevels*)(valuePtr);
+          writeBuffer[2] = assistEcoValue->turbo;
+          length += 1;
+        }
+        break;
+        case EbikeStatusOther::BIKE_ON_OFF:
+        {
+          uint8_t onOffValue = *((uint8_t*) (valuePtr));
+          writeBuffer[2] = onOffValue;
+          length += 1;
+        }
+        break;
+        default:
+          // All other OtherAttributes cannot be written to hence an automatic failure here
+          return false;
+      }
+    }
+    break;
+	}
+  if (!this->ebsWriteKeyValueBleCha.writeValue(writeBuffer, length)) {
+    LV_LOG_ERROR("ebsWriteKeyValueBleCha.writeValue FAILURE");
+    return false;
+  }
+  return true;
+}
+
+/**
  * @brief Specifically Reads the ebs value by sending a request to ebsReadKeyBleCha and reading the response
  * from ebsReadValueBleCha.
  * 
@@ -203,9 +342,9 @@ void BluetoothBike::readBufferToEbsBikeState() {
                                             this->bufferToUint8(MOTOR_FIRMWARE_VERSION_PATCH_NUMBER_BUFFER_INDEX) }; 
           bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::MOTOR_FIRMWARE_VERSION, firmwareVersion, time);
         } break;
-        case EbikeStatusMotor::PEAK_ASSIST:
+        case EbikeStatusMotor::PEAK_POWER_ASSIST:
         {
-            AssistLevels assistLevels = this->bikeState.getStateAttribute(BikeStateAttributeIndex::PEAK_ASSIST_LEVELS).bikeStateAttributeValue.valueAssistLevels;
+            AssistLevels assistLevels = this->bikeState.getStateAttribute(BikeStateAttributeIndex::PEAK_POWER_ASSIST_LEVELS).bikeStateAttributeValue.valueAssistLevels;
             switch (this->bikeType) {
             case BikeType::GEN1: {                
                 uint8_t peakTypeAndValue = this->bufferToUint8();
@@ -218,14 +357,14 @@ void BluetoothBike::readBufferToEbsBikeState() {
                 }
             } break;
             case BikeType::GEN2: {
-                AssistLevels assistLevels = this->bikeState.getStateAttribute(BikeStateAttributeIndex::PEAK_ASSIST_LEVELS).bikeStateAttributeValue.valueAssistLevels;
+                AssistLevels assistLevels = this->bikeState.getStateAttribute(BikeStateAttributeIndex::PEAK_POWER_ASSIST_LEVELS).bikeStateAttributeValue.valueAssistLevels;
                 assistLevels.eco = this->bufferToUint8(2);
                 assistLevels.trail = this->bufferToUint8(3);
                 assistLevels.turbo = this->bufferToUint8(4);
-                bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::PEAK_ASSIST_LEVELS, assistLevels, time);
+                bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::PEAK_POWER_ASSIST_LEVELS, assistLevels, time);
             } break;
             } break;
-            bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::PEAK_ASSIST_LEVELS, assistLevels, time);
+            bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::PEAK_POWER_ASSIST_LEVELS, assistLevels, time);
         } break;
         case EbikeStatusMotor::HARDWARE_NO_PART1: {
             char* motorHardwareNumber = this->bikeState.getStateAttribute(BikeStateAttributeIndex::MOTOR_HARDWARE_VERSION).bikeStateAttributeValue.valueNumberString.value;
@@ -257,19 +396,19 @@ void BluetoothBike::readBufferToEbsBikeState() {
       EbikeStatusOther ebikeStatusOther = static_cast<EbikeStatusOther>(this->readBuffer[1]);
       switch (ebikeStatusOther) {
         case EbikeStatusOther::WHEEL_CIRCUMFERENCE: bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::WHEEL_CIRCUMFERENCE, this->bufferToUint16(), time); break;
-        case EbikeStatusOther::ASSIST_ECO: {
-          this->bikeState.getStateAttribute(BikeStateAttributeIndex::ASSIST_PERCENTAGE).bikeStateAttributeValue.valueAssistLevels.eco = this->bufferToUint8();
-          bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::ASSIST_PERCENTAGE, time);
+        case EbikeStatusOther::SUPPORT_ASSIST_ECO: {
+          this->bikeState.getStateAttribute(BikeStateAttributeIndex::SUPPORT_ASSIST_LEVELS).bikeStateAttributeValue.valueAssistLevels.eco = this->bufferToUint8();
+          bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::SUPPORT_ASSIST_LEVELS, time);
         } 
         break;
-        case EbikeStatusOther::ASSIST_TRAIL: {
-            this->bikeState.getStateAttribute(BikeStateAttributeIndex::ASSIST_PERCENTAGE).bikeStateAttributeValue.valueAssistLevels.trail = this->bufferToUint8();
-            bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::ASSIST_PERCENTAGE, time);
+        case EbikeStatusOther::SUPPORT_ASSIST_TRAIL: {
+            this->bikeState.getStateAttribute(BikeStateAttributeIndex::SUPPORT_ASSIST_LEVELS).bikeStateAttributeValue.valueAssistLevels.trail = this->bufferToUint8();
+            bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::SUPPORT_ASSIST_LEVELS, time);
         }
         break;
-        case EbikeStatusOther::ASSIST_TURBO: {
-            this->bikeState.getStateAttribute(BikeStateAttributeIndex::ASSIST_PERCENTAGE).bikeStateAttributeValue.valueAssistLevels.turbo = this->bufferToUint8();
-            bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::ASSIST_PERCENTAGE, time);
+        case EbikeStatusOther::SUPPORT_ASSIST_TURBO: {
+            this->bikeState.getStateAttribute(BikeStateAttributeIndex::SUPPORT_ASSIST_LEVELS).bikeStateAttributeValue.valueAssistLevels.turbo = this->bufferToUint8();
+            bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::SUPPORT_ASSIST_LEVELS, time);
         }
         break;
         case EbikeStatusOther::BIKE_ON_OFF:         bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::BIKE_ON_OFF_STATE, this->bufferToUint8(), time); break;
@@ -359,12 +498,12 @@ void BluetoothBike::readBufferToCscMeasurement()
   }
 }
 
-
 bool BluetoothBike::readRequest(BluetoothBikeRequest bluetoothBikeRequest) {
-  bool result = this->readRequestCommand(bluetoothBikeRequest.request1);
-  if (result) result = this->readRequestCommand(bluetoothBikeRequest.request2);
-
-  return result;
+    for (int commandIndex = 0; commandIndex < bluetoothBikeRequest.getNumberOfCommands(); commandIndex++) {
+        bool result = this->readRequestCommand(bluetoothBikeRequest.getCommand(commandIndex));
+        if (!result) return false;
+    }
+    return true;
 }
 
 bool BluetoothBike::readRequestCommand(BluetoothBikeRequest::BluetoothBikeRequestCommand bluetoothBikeRequestCommand) {
@@ -375,11 +514,47 @@ bool BluetoothBike::readRequestCommand(BluetoothBikeRequest::BluetoothBikeReques
   return true;
 }
 
+bool BluetoothBike::writeRequest(BluetoothBikeRequest bluetoothBikeRequest, void* valuePtr) {
+    for (int commandIndex = 0; commandIndex < bluetoothBikeRequest.getNumberOfCommands(); commandIndex++) {
+        bool result = this->writeRequestCommand(bluetoothBikeRequest.getCommand(commandIndex), valuePtr);
+        if (!result) return false;
+    }
+    return true;
+}
+
+bool BluetoothBike::writeRequestCommand(BluetoothBikeRequest::BluetoothBikeRequestCommand bluetoothBikeRequestCommand, void* valuePtr) {
+  if (bluetoothBikeRequestCommand.isValid()) {
+    // A bit of a special at this point in order to cope with PEAK_ASSIST
+    if (bluetoothBikeRequestCommand.area == EbikeStatusArea::MOTOR && 
+      bluetoothBikeRequestCommand.attribute.ebikeStatusMotor == EbikeStatusMotor::PEAK_POWER_ASSIST && 
+      this->getBikeType() == BikeType::GEN1)
+    {
+      AssistLevels* peakAssistValue = (AssistLevels*) (valuePtr);
+      uint8_t ecoValue = peakAssistValue->eco + 1;
+      uint8_t trailValue = peakAssistValue->trail + 2;
+      uint8_t turboValue = peakAssistValue->turbo + 3;
+      return this->writeEbsBikeValue(bluetoothBikeRequestCommand.area, bluetoothBikeRequestCommand.attribute, &ecoValue) &&
+        this->writeEbsBikeValue(bluetoothBikeRequestCommand.area, bluetoothBikeRequestCommand.attribute, &trailValue) &&
+        this->writeEbsBikeValue(bluetoothBikeRequestCommand.area, bluetoothBikeRequestCommand.attribute, &turboValue);
+    }
+    return this->writeEbsBikeValue(bluetoothBikeRequestCommand.area, bluetoothBikeRequestCommand.attribute, valuePtr);
+  }
+  // return true if requesting to read request on something which isn't mapped to a valid request
+  return true;
+}
+
 bool BluetoothBike::readBikeStateAttribute(BikeStateAttributeIndex bikeStateAttributeIndex, MonitorAttributeType monitorAttributeType) {
     bool result;
     this->setMinimumBikeStateMonitorAttributeType(bikeStateAttributeIndex, monitorAttributeType);
     BluetoothBikeRequest bluetoothBikeRequest = BluetoothBike::bikeStateToBluetoothBikeRequest.getBluetoothBikeRequest(bikeStateAttributeIndex, this->bikeType);
     result = this->readRequest(bluetoothBikeRequest);
+    return result;
+}
+
+bool BluetoothBike::writeBikeStateAttribute(BikeStateAttributeIndex bikeStateAttributeIndex, void* valuePtr) {
+    bool result;
+    BluetoothBikeRequest bluetoothBikeRequest = BluetoothBike::bikeStateToBluetoothBikeRequest.getBluetoothBikeRequest(bikeStateAttributeIndex, this->bikeType);
+    result = this->writeRequest(bluetoothBikeRequest, valuePtr);
     return result;
 }
 

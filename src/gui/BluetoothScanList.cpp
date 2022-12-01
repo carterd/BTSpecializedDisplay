@@ -148,7 +148,7 @@ lv_obj_t* BluetoothScanList::addDeviceItem(BLEDevice* bleDevice)
 	// If the config has this address configured then we need to set knowDevice and also check to update an existing label
 	if (this->configStore->containsBTAddress(&addressString)) {
 		knownDevice = true;
-		if (displayString != (*(this->configStore->getDisplayString(&addressString)))) {
+		if (displayString != (*(this->configStore->getBTAddressDisplayString(&addressString)))) {
 			// It's a known device but we need to update the label in the store
 			this->configStore->addBTAddress(&addressString, &displayString);
 			if (list_btn != NULL) {

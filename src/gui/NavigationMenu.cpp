@@ -16,16 +16,16 @@ void NavigationMenu::menu_item_btn_cb(lv_event_t* event) {
 		((NavigationMenu*)(event->user_data))->menuItemButtonCB(event);
 	}
 	if (event->code == LV_EVENT_FOCUSED) {
-		lv_obj_t* btnLabel = lv_obj_get_child(event->target, 0);
+		lv_obj_t* btnLabel = lv_obj_get_child(event->target, 1);
 		if (btnLabel) lv_label_set_long_mode(btnLabel, LV_LABEL_LONG_SCROLL_CIRCULAR);
 	}
 	if (event->code == LV_EVENT_DEFOCUSED) {
-		lv_obj_t* btnLabel = lv_obj_get_child(event->target, 0);
+		lv_obj_t* btnLabel = lv_obj_get_child(event->target, 1);
 		if (btnLabel) lv_label_set_long_mode(btnLabel, LV_LABEL_LONG_CLIP);
 	}
 }
 
-NavigationMenu::NavigationMenu(const char* titleText, const char* exitButtonText, lv_indev_t* indev) : BaseLvObject()
+NavigationMenu::NavigationMenu(const char* titleText, const char* exitButtonText, lv_indev_t* indev, ButtonLabel* buttonLabel) : BaseLvObject()
 {
 	this->indev = indev;
     this->titleText = titleText;
@@ -33,6 +33,7 @@ NavigationMenu::NavigationMenu(const char* titleText, const char* exitButtonText
 	this->defocusLvObj = NULL;
 	this->selectedLvObj = NULL;
     this->focusAnimation = false;
+	this->buttonLabel = buttonLabel;
 }
 
 NavigationMenu::~NavigationMenu()
@@ -111,18 +112,45 @@ void NavigationMenu::destroyLvObj()
 }
 
 void NavigationMenu::focusLvObj(BaseLvObject* defocusLvObj)
-{	
+{
 	lv_indev_set_group(this->indev, this->group);
 	if (defocusLvObj)
 	{
+		this->initMenuItems();
 		this->defocusLvObj = defocusLvObj;
 	}
 	else {
 		this->focusAnimation = true;
 		lv_obj_set_tile_id(this->option_tileview_obj, 0, 0, LV_ANIM_ON);
 	}
+	this->updateLvObj();
 	showButtonLabels();
 }
+
+void NavigationMenu::finishMenuItems() {
+	for (std::vector<ScrollMenuItem*>::iterator it = std::begin(this->scrollMenuItems); it != std::end(this->scrollMenuItems); ++it)
+	{
+		// Create the lv_tile to the list of current tiles
+		(*it)->menuItemFinishedCB();
+	}
+}
+
+void NavigationMenu::initMenuItems() {
+	for (std::vector<ScrollMenuItem*>::iterator it = std::begin(this->scrollMenuItems); it != std::end(this->scrollMenuItems); ++it)
+	{
+		// Create the lv_tile to the list of current tiles
+		(*it)->menuItemInitCB();
+	}
+}
+
+void NavigationMenu::updateLvObj() {
+    for (std::vector<ScrollMenuItem*>::iterator it = std::begin(this->scrollMenuItems); it != std::end(this->scrollMenuItems); ++it)
+    {
+        // Create the lv_tile to the list of current tiles
+        this->updateMenuItemButton(*it);
+    }
+}
+
 
 void NavigationMenu::setButtonLabel(ButtonLabel* buttonLabel)
 {
@@ -137,11 +165,12 @@ void NavigationMenu::showButtonLabels()
 	}
 }
 
+
 lv_obj_t* NavigationMenu::addMenuItemButton(ScrollMenuItem* menuItem) {
-	lv_obj_t* list_btn = lv_list_add_btn(this->list_obj, NULL, menuItem->getItemText());
+	lv_obj_t* list_btn = lv_list_add_btn(this->list_obj, LV_SYMBOL_OK, menuItem->getItemText());
     lv_obj_set_user_data(list_btn, menuItem);
 
-	lv_obj_t* btn_label = lv_obj_get_child(list_btn, 0);
+	lv_obj_t* btn_label = lv_obj_get_child(list_btn, 1);
 	if (lv_obj_has_class(btn_label, &lv_label_class)) {
 		lv_label_set_long_mode(btn_label, LV_LABEL_LONG_CLIP);
 	}
@@ -150,7 +179,33 @@ lv_obj_t* NavigationMenu::addMenuItemButton(ScrollMenuItem* menuItem) {
 	lv_obj_add_event_cb(list_btn, NavigationMenu::menu_item_btn_cb, LV_EVENT_DEFOCUSED, this);
 	lv_group_add_obj(this->group, list_btn);
 
+	this->updateMenuItemButton(menuItem);
+
 	return list_btn;
+}
+
+lv_obj_t* NavigationMenu::getMenuItemButton(ScrollMenuItem* menuItem) {
+    for (int i = 0; i < lv_obj_get_child_cnt(this->list_obj); i++) {
+        lv_obj_t* menuItemButton = lv_obj_get_child(this->list_obj, i);
+        if (lv_obj_get_user_data(menuItemButton) == menuItem) {
+            return menuItemButton;
+        }
+    }
+    return NULL;
+}
+
+void NavigationMenu::updateMenuItemButton(ScrollMenuItem* menuItem) {
+    lv_obj_t* menuItemButton = this->getMenuItemButton(menuItem);
+    if (menuItemButton) {
+       	lv_obj_t* btn_img = lv_obj_get_child(menuItemButton, 0);
+	    if (lv_obj_has_class(btn_img, &lv_img_class) && !menuItem->isChecked()) {
+            if (!lv_obj_has_flag(btn_img, LV_OBJ_FLAG_HIDDEN))
+		        lv_obj_add_flag(btn_img, LV_OBJ_FLAG_HIDDEN);
+	    } else {
+            if (lv_obj_has_flag(btn_img, LV_OBJ_FLAG_HIDDEN))
+                lv_obj_clear_flag(btn_img, LV_OBJ_FLAG_HIDDEN);
+        }
+    }
 }
 
 void NavigationMenu::addMenuItem(ScrollMenuItem* scrollMenuItem)
@@ -162,6 +217,8 @@ void NavigationMenu::addMenuItem(ScrollMenuItem* scrollMenuItem)
 void NavigationMenu::exitButtonCB(lv_event_t* event)
 {	
 	if (this->defocusLvObj) {
+		// Ensure we store any state associate with navigation items
+		this->finishMenuItems();
 		this->defocusLvObj->focusLvObj();
 	}
 }
@@ -180,8 +237,13 @@ void NavigationMenu::menuItemButtonCB(lv_event_t* event) {
 		this->selectedLvObj = popupItem;
 		popupItem->createLvObj(this->popup_tile_obj);
 		popupItem->focusLvObj(this);		
+		lv_obj_set_tile_id(this->option_tileview_obj, 1, 0, LV_ANIM_ON);
 	}
-	lv_obj_set_tile_id(this->option_tileview_obj, 1, 1, LV_ANIM_ON);
+	else {
+		scrollMenuItem->noPopupAction();
+	}
+	
+	this->updateLvObj();
 }
 
 void NavigationMenu::valueChangedCB(lv_event_t* event) {
@@ -193,4 +255,5 @@ void NavigationMenu::valueChangedCB(lv_event_t* event) {
 		this->selectedLvObj->destroyLvObj();
 		this->selectedLvObj = NULL;
 	}
+	this->updateLvObj();
 }

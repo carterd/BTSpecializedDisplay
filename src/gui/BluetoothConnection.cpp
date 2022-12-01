@@ -181,6 +181,14 @@ void BluetoothConnection::connectionSuccess()
 {
     lv_obj_add_flag(this->label_obj, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(this->spinner_obj, LV_OBJ_FLAG_HIDDEN);
+
+    // On successful connection we should ensure the bike config is set correctly
+    BikeConfig bikeConfig = this->configStore->getBikeConfig();
+    BluetoothBike& bluetoothBike = this->bluetoothController->getConnectedBluetoothBike();
+    if (bikeConfig.beeper.managed) bluetoothBike.writeBikeStateAttribute(BikeStateAttributeIndex::BEEP_ON_OFF_STATE, &(bikeConfig.beeper.value));
+    //if (bikeConfig.wheelCircumference.managed) bluetoothBike.writeBikeStateAttribute(BikeStateAttributeIndex::WHEEL_CIRCUMFERENCE, &(bikeConfig.wheelCircumference.value));
+    if (bikeConfig.supportAssistLevels.managed) bluetoothBike.writeBikeStateAttribute(BikeStateAttributeIndex::SUPPORT_ASSIST_LEVELS, &(bikeConfig.supportAssistLevels.value));
+    if (bikeConfig.peakPowerAssistLevels.managed) bluetoothBike.writeBikeStateAttribute(BikeStateAttributeIndex::PEAK_POWER_ASSIST_LEVELS, &(bikeConfig.peakPowerAssistLevels.value));
     
     // Ensure the monitor screen is set up and move the gui to showing it
     this->switchToMonitorLvObject();
@@ -203,12 +211,9 @@ void BluetoothConnection::checkForConnection() {
                         {
                         case BikeType::GEN1:
                         case BikeType::GEN2:
-#if (CONNECT_ONLY_WHEN_BATTERY_CONNECTED==1)
-                            if (this->bluetoothController->getConnectedBluetoothBike().readBikeStateAttribute(BikeStateAttributeIndex::BATTERY_CONNECTED_STATE 
-                                && this->bluetoothController->getBikeState().getStateAttribute(BikeStateAttributeIndex::BATTERY_CONNECTED_STATE).bikeStateAttributeValue.valueBool)
-#else
-                            if (this->bluetoothController->getConnectedBluetoothBike().readBikeStateAttribute(BikeStateAttributeIndex::BATTERY_CONNECTED_STATE))
-#endif
+                            if (this->bluetoothController->getConnectedBluetoothBike().readBikeStateAttribute(BikeStateAttributeIndex::BATTERY_CONNECTED_STATE)
+                                && (this->bluetoothController->getBikeState().getStateAttribute(BikeStateAttributeIndex::BATTERY_CONNECTED_STATE).bikeStateAttributeValue.valueBool
+                                    || configStore->getDisplayConfig().connectBatteryOnly))
                             {
                                 // Connected
                                 this->connectionSuccess();

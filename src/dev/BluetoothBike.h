@@ -7,6 +7,7 @@
 #include <algorithm>
 
 #include "BluetoothBikeDefinitions.h"
+#include "BluetoothBikeRequest.h"
 #include "BluetoothBikeState.h"
 
 #define BATTERY_FIRMWARE_VERSION_MAJOR_NUMBER_BUFFER_INDEX 3
@@ -18,7 +19,17 @@
 #define MOTOR_FIRMWARE_VERSION_PATCH_NUMBER_BUFFER_INDEX 4
 
 /**
- * @brief This represents the interface to the bike and is a wrapper for BLEDevice interface to the bikes
+ * @brief This represents the interface to the bike and is a wrapper for BLEDevice interface to the turbo bikes.
+ * 
+ * The BluetoothBike object is created, whereby it is identified as having no-bike assocaited with it, hence
+ * various accessors such as isConnected() returns false and getBikeType() returns BikeType::NONE.
+ * 
+ * On setting the BleDevice using setBleDevice(), the BluetoothBike will reset all it's state if the BleDevice is
+ * different to the BleDevice currently wrapped by the BluetoothBike. On setBleDevice() the underlying BleDevice is
+ * presumed disconnected hence after setBleDevice() the connect() method should be used to attempt to connect to a bike.
+ * 
+ * Only on connect() will the BluetoothBike object attempt to obtain the correct BluetoothCharacteristics and from these
+ * obtain the type and state of the Battery/Bike being connected to.
  * 
  */
 class BluetoothBike
@@ -78,6 +89,8 @@ private:
 		}
 	}
 
+	bool writeEbsBikeValue(EbikeStatusArea ebikeStatusArea, EbikeStatusAttribute ebikeStatusAttribute, void* valuePtr);
+
 	/// <summary>
 	/// Read an ebike value specifcally a battery parameter, the value is read into the connectedBikeStatus.
 	/// </summary>
@@ -115,22 +128,37 @@ private:
 	bool readRequestCommand(BluetoothBikeRequest::BluetoothBikeRequestCommand bluetoothBikeRequestCommand);
 
 	/// <summary>
+	/// Write an ebike value specifcally a battery parameter, the value is read into the connectedBikeStatus.
+	/// </summary>
+	/// <param name="ebikeStatusArea">The area parameter to read from this should be 0x00 or 0x04 for battery and extra battery</param>
+	/// <param name="ebikeStatusBatteryParameter">The specific battery parameter to read</param>
+	/// <return>True if the parameter has been read correctly.</return>
+	bool writeEbsBikeValue(int ebikeStatusArea, int ebikeStatusParameter, void* valuePtr);
+
+	bool writeRequest(BluetoothBikeRequest bluetoothBikeRequest, void* valuePtr);
+
+	bool writeRequestCommand(BluetoothBikeRequest::BluetoothBikeRequestCommand bluetoothBikeRequestCommand, void* valuePtr);
+
+	/// <summary>
 	/// This helper function converts the current content of the readBuffer to connectedBikeStatus.
 	/// </summary>
 	void readBufferToEbsBikeState();
 
     /// <summary>
     /// This helper function converts the current content of the readBuffer to connectedCscMeasurements.
+	/// </summary>
 	void readBufferToCscMeasurement();
 
-	///
-	///
-	///
+	/// <summary>
+	/// This helper function attempts to enable notification of EbsCharacteristics so changes are processed by 
+	/// updateEbsCharacteristicCB function.
+	/// </summary>
 	bool subscribeEbsNotifications();
 
-	///
-	///
-	/// 
+	/// <summary>
+	/// This helper function attempts to enable notification of CscCharacteristics so changes are processed by 
+	/// updateCscCharacteristicCB function.
+	/// </summary>
 	bool subscribeCscNotifications();
 
 	/// <summary>
@@ -195,7 +223,13 @@ protected:
 	/// </summary>
 	BLECharacteristic ebsNotifyKeyValueBleCha;
 public:
+	/// <summary>
+	/// The callback for CscCharacteritic notifications from the BleDevice.
+	/// </summary>
 	void updateCscCharacteristicCB(BLEDevice device, BLECharacteristic characteristic);
+	/// <summary>
+	/// The callback for EbsCharacteritic notifications from the BleDevice.
+	/// </summary>
 	void updateEbsCharacteristicCB(BLEDevice device, BLECharacteristic characteristic);
 
 public:
@@ -204,6 +238,14 @@ public:
 	/// </summary>
 	BluetoothBike();
 
+	/// <summary>
+	/// Set the BLEDevice for the BluetoothBike, the BLEDevice should be treated as disconnected and hence
+	/// require a subsequence call to connect() after the setBleDevice() call. 
+	/// </summary>
+	/// Interestingly we only reset  attributes if the BLEDevice has changed, therefore state can be mantained 
+	/// between loss of signal disconnects. NOTE: However if you require say MonitorAttributeType to be reset 
+	/// then the user is explicitly required to set the BLEDevice to an empty BLEDeive to ensure all parameters
+	/// of BluetoothBike are reset (as if connecting for the first time).
 	void setBleDevice(BLEDevice& bleDevice);
 
     /// <summary>
@@ -216,6 +258,9 @@ public:
     /// </summary>
     bool disconnect();
 
+	/// <summary>
+    /// Performs poll on the BLEDevice, and hence possibly fires updates due to notifications.
+    /// </summary>
 	void poll();
 
     /// <summary>
@@ -291,11 +336,19 @@ public:
 	}
 
     /// <summary>
-    ///
+    /// Read the bike state attribute identified by the bikeStateAttributeIndex, also allow the monitorAttributeType to be defined for this attribute.
+	/// note the updating of the monitorAttributeType will not update the MonitorAttributeType for this attribute if a higher level MonitorAttributeType is already set.
     /// </summary>
     /// @param bikeStateAttributeIndex This bike attribute index to specify the attribute to read 
     /// @param monitorAttributeType This is the monitor attribute type to set for the attribute
 	bool readBikeStateAttribute(BikeStateAttributeIndex bikeStateAttributeIndex, MonitorAttributeType monitorAttributeType = MonitorAttributeType::ONCE);
+
+	/// <summary>
+	/// Write the bike state attribute identified by the bikeStateAttributeIndex, also allow the monitorAttributeType to be defined for this attribute.
+    /// </summary>
+	/// @param bikeStateAttributeIndex This bike attribute index to specify the attribute to read
+	/// @param valuePtr pointer to the new value for the attribute
+	bool writeBikeStateAttribute(BikeStateAttributeIndex bikeStateAttributeIndex, void* valuePtr);
 
 	void setBikeStateMonitorAttributeType(BikeStateAttributeIndex bikeStateAttributeIndex, MonitorAttributeType monitorAttributeType) {
 		this->bikeState.setMonitorAttributeType(bikeStateAttributeIndex, monitorAttributeType);

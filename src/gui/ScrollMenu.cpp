@@ -1,5 +1,7 @@
 #include <LvglThemes/lv_theme_binary.h>
 
+#include <algorithm>
+
 #include "ScrollMenu.h"
 
 void ScrollMenu::value_changed_cb(lv_event_t* event) {
@@ -17,7 +19,7 @@ void ScrollMenu::tile_btn_defocus_cb(lv_event_t* event) {
     scrollMenu->tileButtonDefocusCB(event);
 }
 
-ScrollMenu::ScrollMenu(lv_indev_t* indev) : BaseLvObject()
+ScrollMenu::ScrollMenu(lv_indev_t* indev, ButtonLabel* buttonLabel) : BaseLvObject()
 {
     // Store display
     this->indev = indev;
@@ -26,7 +28,9 @@ ScrollMenu::ScrollMenu(lv_indev_t* indev) : BaseLvObject()
     this->buttonLabel = NULL;
     this->options_tileview_obj = NULL;
     this->group = NULL;
-    this->selectedItem = -1;
+    this->selectedItem = 0;
+    this->selectedItemAnimated = false;
+    this->setButtonLabel(buttonLabel);
 }
 
 ScrollMenu::~ScrollMenu()
@@ -107,23 +111,24 @@ void ScrollMenu::focusLvObj(BaseLvObject* defocusLvObj)
 
     // TODO: Sort this out a bit wonky
     if (lv_obj_get_child_cnt(this->options_tileview_obj)) {
-        if (this->selectedItem < 0) {
+        if (this->selectedItemAnimated) {
+            static lv_group_t* empty_group = lv_group_create();
+            this->focusAnimation = true;
+
+            lv_obj_set_tile_id(this->options_tileview_obj, this->selectedItem, 0, LV_ANIM_ON);
+            lv_indev_set_group(this->indev, empty_group);
+        }
+        else
+        {
             // Attempt to set the correct enables entity
-            lv_obj_set_tile_id(this->options_tileview_obj, -(this->selectedItem + 1), 0, LV_ANIM_OFF);
+            lv_obj_set_tile_id(this->options_tileview_obj, this->selectedItem, 0, LV_ANIM_OFF);
             lv_indev_set_group(this->indev, this->group);
             
             lv_obj_t* active_obj = lv_tileview_get_tile_act(this->options_tileview_obj);
             lv_obj_t* btn_obj = lv_obj_get_child(active_obj, 0);
             lv_group_focus_obj(btn_obj);
         }
-        else {
-            this->focusAnimation = true;
-            lv_obj_set_tile_id(this->options_tileview_obj, this->selectedItem, 0, LV_ANIM_ON);
-        }
-
     }
-
-    this->selectedItem = -1;
 }
 
 void ScrollMenu::setButtonLabel(ButtonLabel* buttonLabel, bool buttonLabelStartShown)
@@ -138,30 +143,43 @@ void ScrollMenu::addMenuItem(ScrollMenuItem* scrollMenuItem)
     this->scrollMenuItems.push_back(scrollMenuItem);
 }
 
+void ScrollMenu::selectScrollMenuItem(ScrollMenuItem* scrollMenuItem) {
+
+    // Get the current tile that user has navigated to
+    lv_obj_t* obj = lv_tileview_get_tile_act(this->options_tileview_obj);
+
+    std::vector<ScrollMenuItem*>::iterator it = std::find(std::begin(this->scrollMenuItems), std::end(this->scrollMenuItems), scrollMenuItem);
+
+    if (it != std::end(this->scrollMenuItems)) {
+        int tilePos = it - std::begin(this->scrollMenuItems);
+        this->selectedItem = tilePos;
+        this->selectedItemAnimated = scrollMenuItem->getAnimatedSelect();
+        lv_obj_set_tile_id(this->options_tileview_obj, tilePos, 1, this->selectedItemAnimated ? LV_ANIM_ON : LV_ANIM_OFF);
+        scrollMenuItem->focusLvObj(this);
+    }
+}
 
 void ScrollMenu::tileButtonCB(lv_event_t* e) {
     // Don't allow clicks while selection is being animated
     if (this->selectAnimation) return;
 
-    lv_obj_t* obj = lv_tileview_get_tile_act(this->options_tileview_obj);
+    // Get the current tile that user has navigated to
+    lv_obj_t* selected_obj = lv_tileview_get_tile_act(this->options_tileview_obj);
 
-    int tile_pos = 0;
     for (std::vector<ScrollMenuItem*>::iterator it = std::begin(this->scrollMenuItems); it != std::end(this->scrollMenuItems); ++it)
     {
         ScrollMenuItem* scrollMenuItem = *it;
-
         lv_obj_t* obj_cmp = lv_obj_get_parent(scrollMenuItem->getLvObj());
 
-        if (obj_cmp == obj) {
-            this->selectedItem = tile_pos;
-            lv_obj_set_tile_id(this->options_tileview_obj, tile_pos, 1, scrollMenuItem->getAnimatedSelect() ? LV_ANIM_ON : LV_ANIM_OFF);
-            if (!scrollMenuItem->getAnimatedSelect()) {
-                this->selectedItem = -(tile_pos + 1);
-            }
-            scrollMenuItem->focusLvObj(this);
+        // If the scroll menu item's parent object, i.e. the tile holding the item equals the selected_object then this is the scrollMenuItem to select
+        if (obj_cmp == selected_obj) {
+            //    this->selectedItem = tile_pos;
+            //  this->selectedItemAnimated = scrollMenuItem->getAnimatedSelect();
+            //  lv_obj_set_tile_id(this->options_tileview_obj, tile_pos, 1, scrollMenuItem->getAnimatedSelect() ? LV_ANIM_ON : LV_ANIM_OFF);
+            //  scrollMenuItem->focusLvObj(this);
+            this->selectScrollMenuItem(scrollMenuItem);
             return;
         }
-        tile_pos++;
     }
 }
 

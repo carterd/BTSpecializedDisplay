@@ -57,9 +57,15 @@ The enclosure is designed in Blender, and an associated .blend file is included.
  # Mounting
 
  The enclosure is designed to be mounted on the top-tube of the bike, and a power cable running from the Display can be routed
- to the Brose motor where 6 volts outputs are provided for front and rear lights. For connection to the Brose Motor use something
- like:
+ to the Brose motor where 6 volts outputs are provided for front and rear lights. 
+ 
+ # Connection
+ 
+ For connection to the Brose Motor use something like:
 
    * Exposure E-Bike Light Connector - Brose 
 
    * Lupine Light Cable for E-Bike - Brose
+
+Additional lengths from the brose Motor connector to the Display mounted on the top-tube can be implemented using more standard
+Ebike Julet Waterproof connectors.

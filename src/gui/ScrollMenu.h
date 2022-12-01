@@ -20,14 +20,16 @@ private:
     bool buttonLabelStartShown = false;
     bool focusAnimation = false;
     bool selectAnimation = false;
+
     int selectedItem;
+    bool selectedItemAnimated;
 
 public:
     /// <summary>
     /// Constructor for the scroll menu
     /// </summary>
     /// <param name="indev">The indev used for taking context of the encoder</param>
-    ScrollMenu(lv_indev_t* indev);
+    ScrollMenu(lv_indev_t* indev, ButtonLabel* buttonLabel = NULL);
 
     virtual ~ScrollMenu();
 
@@ -75,6 +77,12 @@ public:
     /// </summary>
     /// <param name="event"></param>
     void valueChangedCB(lv_event_t* event);
+
+    /// <summary>
+    /// This will if not already selected a menu item and shift the focus to this menu item
+    /// </summary>
+    /// <param name="scrollMenuItem"></param>
+    void selectScrollMenuItem(ScrollMenuItem* scrollMenuItem);
 
 public:
     static void value_changed_cb(lv_event_t* event);

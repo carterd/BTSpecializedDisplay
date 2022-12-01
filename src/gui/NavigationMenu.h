@@ -1,5 +1,5 @@
 #ifndef _NAVIGATION_MENU_H
-#define _NATIGATION_MENU_H
+#define _NAVIGATION_MENU_H
 
 #include <lvgl.h>
 
@@ -50,14 +50,30 @@ private:
 	/// <param name="knownDevice">True if the device is known hence shown with an icon</param>
 	/// <returns>The created list item button object</returns>
 	lv_obj_t* addMenuItemButton(ScrollMenuItem* menuItem);
-	
+
+	lv_obj_t* getMenuItemButton(ScrollMenuItem* menuItem);
+
+	/// <summary>
+	/// Ensure this given menu item reflects its state
+	/// </summary>
+	void updateMenuItemButton(ScrollMenuItem* menuItem);
+
+	/// <summary>
+	/// So with navigation menu possible required to init menu items that have statefulness on focusing this menu
+	/// </summary>
+	void initMenuItems();
+
+	/// <summary>
+	/// So with navigation menu possible required to store the state of the menu when the menu has been finished with
+	/// </summary>
+	void finishMenuItems();
 public:
 	/// <summary>
 	/// Constructor of the Bluetooth scan list hence shows a list of dectected bluetooth devices/
 	/// </summary>
 	/// <param name="exitButtonText">The text to display for exit menu option of the menu</param>
 	/// <param name="indev">The indev used for taking context of the encoder</param>
-	NavigationMenu(const char* titleText, const char* exitButtonText, lv_indev_t* indev);
+	NavigationMenu(const char* titleText, const char* exitButtonText, lv_indev_t* indev, ButtonLabel* buttonLabel = NULL);
 
 	virtual ~NavigationMenu();
 
@@ -76,6 +92,11 @@ public:
 	virtual void focusLvObj(BaseLvObject* defocusLvObj = NULL);
 
 	/// <summary>
+	/// Ensure the LvObject menu is updated with all the required menu items have the correct ticks et-al.
+	/// </summary>
+    void updateLvObj();
+
+	/// <summary>
 	/// Used to set the button label for this object or NULL for no button label
 	/// </summary>
 	/// <param name="buttonLabel">The button label object for this gui object</param>
@@ -91,7 +112,7 @@ public:
 	/// The callback on the exit button clicked
 	/// </summary>
 	/// <param name="event">The lv event that identifies pressing the exit button</param>
-	void exitButtonCB(lv_event_t* event);
+	virtual void exitButtonCB(lv_event_t* event);
 
 	/// <summary>
 	/// The callback on a specific detected device clicked

@@ -1,6 +1,7 @@
-# Bluetooth Specialized Display (https://github.com/carterd/BTSpecializedDisplay)
+# Bluetooth Specialized Display Circuit Diagram (https://github.com/carterd/BTSpecializedDisplay)
 
-Ebike display for Specialized Turbo bikes, these include Kenevo/Levo/Creo.
+This Readme descibes the components and circuit connections for the external Ebike display for Specialized Turbo bikes, 
+these include Kenevo/Levo/Creo.
 
 # Components
 

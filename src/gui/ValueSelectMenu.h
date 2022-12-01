@@ -56,7 +56,7 @@ public:
 	/// </summary>
 	/// <param name="exitButtonText">The text to display for exit menu option of the menu</param>
 	/// <param name="indev">The indev used for taking context of the encoder</param>
-	ValueSelectMenu(const char* titleText, const char* exitButtonText, lv_indev_t* indev);
+	ValueSelectMenu(const char* titleText, const char* exitButtonText, lv_indev_t* indev, ButtonLabel* buttonLabel = NULL);
 
 	virtual ~ValueSelectMenu();
 
@@ -67,6 +67,9 @@ public:
 	/// <returns>The created LV object instance</returns>
 	virtual lv_obj_t* createLvObj(lv_obj_t* parent);
 
+	/// <summary>
+	/// Clean up the Lv objects for this instance, including any groups
+	/// </summary>
 	virtual void destroyLvObj();
 
 	/// <summary>
@@ -74,6 +77,9 @@ public:
 	/// </summary>
 	virtual void focusLvObj(BaseLvObject* defocusLvObj = NULL);
 
+	/// <summary>
+	/// Ensure the LvObject menu is updated with all the required menu items have the correct ticks et-al.
+	/// </summary>
     void updateLvObj();
 
 	/// <summary>
@@ -92,7 +98,7 @@ public:
 	/// The callback on the exit button clicked
 	/// </summary>
 	/// <param name="event">The lv event that identifies pressing the exit button</param>
-	void exitButtonCB(lv_event_t* event);
+	virtual void exitButtonCB(lv_event_t* event);
 
 	/// <summary>
 	/// The callback on a specific detected device clicked

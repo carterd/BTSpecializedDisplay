@@ -20,12 +20,13 @@ void ValueSelectMenu::menu_item_btn_cb(lv_event_t* event) {
 	}
 }
 
-ValueSelectMenu::ValueSelectMenu(const char* titleText, const char* exitButtonText, lv_indev_t* indev) : BaseLvObject()
+ValueSelectMenu::ValueSelectMenu(const char* titleText, const char* exitButtonText, lv_indev_t* indev, ButtonLabel* buttonLabel) : BaseLvObject()
 {
 	this->indev = indev;
     this->titleText = titleText;
     this->exitButtonText = exitButtonText;    
 	this->defocusLvObj = NULL;
+	this->setButtonLabel(buttonLabel);
 }
 
 ValueSelectMenu::~ValueSelectMenu()
@@ -151,7 +152,7 @@ lv_obj_t* ValueSelectMenu::getMenuItemButton(ValueSelectMenuItem* menuItem) {
 }
 
 void ValueSelectMenu::updateMenuItemButton(ValueSelectMenuItem* menuItem) {
-    lv_obj_t* menuItemButton = getMenuItemButton(menuItem);
+    lv_obj_t* menuItemButton = this->getMenuItemButton(menuItem);
     if (menuItemButton) {
        	lv_obj_t* btn_img = lv_obj_get_child(menuItemButton, 0);
 	    if (lv_obj_has_class(btn_img, &lv_img_class) && !menuItem->isChecked()) {

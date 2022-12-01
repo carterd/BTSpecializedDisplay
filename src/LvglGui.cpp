@@ -4,6 +4,7 @@
 #include <LvglThemes/lv_theme_binary.h>
 #include <LvglFonts/lv_font_symbols_8.h>
 #include <Utilities/Adafruit_To_LvGL_Font.h>
+#include <Adafruit_LvGL_Glue.h>
 
 #include "LvglGui.h"
 
@@ -13,7 +14,7 @@
 #include "gui/ValueSelectMenu.h"
 #include "gui/ValueSelectMenuItem.h"
 #include "gui/ButtonLabel.h"
-#include "gui/NavigationMenu.h"
+//#include "gui/NavigationMenu.h"
 #include "gui/BluetoothScanList.h"
 #include "gui/BluetoothConnection.h"
 #include "gui/monitors/BatteryMonitorMain.h"
@@ -22,106 +23,109 @@
 #include "gui/monitors/TimeticksMonitorSmall.h"
 #include "gui/monitors/CrankRotationsMonitorSmall.h"
 
+#include "gui/configMenus/DisplayBrightnessMenu.h"
+#include "gui/configMenus/DisplayConnectOnBootMenu.h"
+#include "gui/configMenus/DisplayConnectBatteryOnlyMenu.h"
+#include "gui/configMenus/BikeBeeperMenu.h"
+
+#include "gui/configMenus/ConfigMainMenu.h"
+
 #include "img/PressButton.h"
 #include "img/Spanner.h"
 #include "img/Bluetooth.h"
 
+#include "dev/Display.h"
 #include "dev/BluetoothBikeController.h"
 
 #include <Arduino.h>
 
 void setDisplayContrast();
 
-static ConfigStore::DisplayConfig displayConfig;
 static ConfigStore* configStorePtr;
 
-int brightnessInit() {
-    displayConfig = configStorePtr->getDisplayConfig();
-    return displayConfig.contrast;
+/*
+int displayConfigInt16Init(void* userData) {
+    return *((int16_t*)userData);
 }
 
-void brightnessUpdate(int contrast) {
-    LV_LOG_USER("brightnessUpdate:start");
-    displayConfig.contrast = contrast;
-    LV_LOG_USER("brightnessUpdate:update");
-    configStorePtr->updateDisplayConfig(displayConfig);
-    LV_LOG_USER("brightnessUpdate:done update");
-    LV_LOG_USER("brightnessUpdate:setting done");
-    setDisplayContrast();
-    LV_LOG_USER("brightnessUpdate:contrast done");
+void displayConfigInt16Update(int updateValue, void* userData) {
+    *(int16_t*)userData = updateValue;
 }
 
-IntegerSelectMenu& createBrightnessMenu(ConfigStore *configStore, lv_indev_t* indev) {
-    configStorePtr = configStore;
-    static IntegerSelectMenu brightnessConfigMenu("Brightness", "Back", brightnessInit, brightnessUpdate, indev);
-    brightnessConfigMenu.addMenuItem("Low", 0x01);
-    brightnessConfigMenu.addMenuItem("Med", 0x14);
-    brightnessConfigMenu.addMenuItem("High", 0x2F);
-    return brightnessConfigMenu;
+ScrollMenuItem DisplayBrightnessMenu(ConfigStore* configStore, lv_indev_t* indev) {
+    static IntegerSelectMenu brightnessConfigMenu("Brightness", "Back", IntegerSelectMenu::defaultInt16Init, IntegerSelectMenu::defaultInt16Update, indev, configStore->getDisplayConfig(). )
+    , brightnessConfigMenuItem("Brightness")
+{
+    this->brightnessConfigMenu.addMenuItem("Low", 0x01);
+    this->brightnessConfigMenu.addMenuItem("Med", 0x14);
+    this->brightnessConfigMenu.addMenuItem("High", 0x2F);
+
+    this->brightnessConfigMenuItem.setPopupItem(&this->brightnessConfigMenu);
 }
+*/
 
 /**
  * @brief Set up the components of the LVGL display
  * 
  */
-void lvgl_setup(ConfigStore *configStore, BluetoothBikeController *bluetoothBikeController, lv_disp_t* display, lv_indev_t* indev) {
-    
-    // Brightness
-    static ScrollMenuItem brightnessConfigMenuItem("Brightness");
-    IntegerSelectMenu& brightnessConfigMenu = createBrightnessMenu(configStore, indev);
+void lvgl_setup(ConfigStore *configStore, BluetoothBikeController *bluetoothBikeController, Adafruit_LvGL_Glue& displayGlue, lv_indev_t* indev) {
 
-    brightnessConfigMenuItem.setPopupItem(&brightnessConfigMenu);
+    // Configure the Display
+    lv_disp_t* lv_display = displayGlue.getLvDisplay();
+    static Display display(displayGlue.display);
+    display.setContrast(configStore->getDisplayConfig().contrast);
 
-    lv_obj_t *screen_obj = lv_scr_act();
-    static ScrollMenu scrollMenu(indev);
     static ButtonLabel buttonLabel(indev);
-    static ScrollMenuItem connectMenuItem(&pressbutton, false);
-    static ScrollMenuItem settingsMenuItem(&spanner);
-    static ScrollMenuItem bluetoothMenuItem(&bluetooth);
-    scrollMenu.addMenuItem(&connectMenuItem);
-    scrollMenu.addMenuItem(&settingsMenuItem);
-    scrollMenu.addMenuItem(&bluetoothMenuItem);
 
-    // display config menu
-    static NavigationMenu displayConfigMenu("Display", "Back", indev);
-    displayConfigMenu.setButtonLabel(&buttonLabel);
-    displayConfigMenu.addMenuItem(&brightnessConfigMenuItem);
-    static ScrollMenuItem displayConfigMenuItem("Display");
-    displayConfigMenuItem.setPopupItem(&displayConfigMenu);
-    // bike config menu
-    static NavigationMenu bikeConfigMenu("Bike", "Back", indev);
-    bikeConfigMenu.setButtonLabel(&buttonLabel);
-    static ScrollMenuItem bikeConfigMenuItem("Bike");
-    bikeConfigMenuItem.setPopupItem(&bikeConfigMenu);
-    // Config menu
-    static NavigationMenu configMenu("Config", "Exit", indev);
-    configMenu.setButtonLabel(&buttonLabel);
-    configMenu.addMenuItem(&displayConfigMenuItem);
-    configMenu.addMenuItem(&bikeConfigMenuItem);
 
-    static BluetoothScanList bluetoothScanList(bluetoothBikeController, configStore, indev);
-    bluetoothScanList.setButtonLabel(&buttonLabel);
+
+    // 
+    // Connect Menu Item
+    //
+    static BluetoothConnection bluetoothConnection(bluetoothBikeController, configStore, &pressbutton, indev);
 
     static CrankRotationsMonitorSmall crankRotationsMonitorSmall;
     static TimeticksMonitorSmall timeticksMonitor;
     static BatteryMonitorMain batteryMonitor;
-    static AssistMonitorSmall assistMonitor;
-    static MainSmallMonitorLayout mainSmallMonitorLayout(&batteryMonitor, &crankRotationsMonitorSmall);
-    //static MainSmallMonitorLayout mainSmallMonitorLayout(&batteryMonitor, &timeticksMonitor);
-    static BluetoothConnection bluetoothConnection(bluetoothBikeController, configStore, &pressbutton, indev);
+    static AssistMonitorSmall assistMonitorSmall;
+    static MainSmallMonitorLayout mainSmallMonitorLayout(&batteryMonitor, &assistMonitorSmall);
+    // Create the connection
     bluetoothConnection.setMonitor(&mainSmallMonitorLayout);
     bluetoothConnection.setButtonLabel(&buttonLabel);
-
-    //static BluetoothScanList bluetoothScanList(NULL, indev);
-    
-    
-    
-    bluetoothMenuItem.setPopupItem(&bluetoothScanList);
+    // Create the menu item popup being the connection
+    static ScrollMenuItem connectMenuItem(&pressbutton, false);
     connectMenuItem.setPopupItem(&bluetoothConnection);
-    settingsMenuItem.setPopupItem(&configMenu);
 
-    scrollMenu.setButtonLabel(&buttonLabel);
 
-    scrollMenu.createLvObj(screen_obj);
-    scrollMenu.focusLvObj();  
+    //
+    // Settings Menu Item
+    //
+    static ConfigMainMenu configMainMenu(*configStore, display, indev, &buttonLabel);
+    
+    //
+    // Bluetooth Menu Item
+    //
+    static BluetoothScanList bluetoothScanList(bluetoothBikeController, configStore, indev);
+    bluetoothScanList.setButtonLabel(&buttonLabel);
+    static ScrollMenuItem bluetoothMenuItem(&bluetooth);    
+    bluetoothMenuItem.setPopupItem(&bluetoothScanList);    
+
+    //
+    // Main Menu
+    //
+    static ScrollMenu mainMenu(indev, &buttonLabel);
+    mainMenu.addMenuItem(&connectMenuItem);
+    mainMenu.addMenuItem(&configMainMenu.configMainMenuItem);
+    mainMenu.addMenuItem(&bluetoothMenuItem);
+
+    lv_obj_t *screen_obj = lv_scr_act();
+    mainMenu.createLvObj(screen_obj);
+    mainMenu.focusLvObj();
+
+    //
+    // If connect on boot and there is at least one address to connect to
+    //
+    if (configStore->getDisplayConfig().connectOnBoot && configStore->countBTAddresses() > 0) {
+        mainMenu.selectScrollMenuItem(&connectMenuItem);
+    }
 }

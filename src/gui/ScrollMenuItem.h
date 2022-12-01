@@ -36,6 +36,31 @@ public:
     void setPopupItem(BaseLvObject* popupItem);
     BaseLvObject* getPopupItem();
     bool getAnimatedSelect();
+
+    /// <summary>
+    /// It maybe possible for text menu items to be checkable this returns the current checked state of the menuItem
+    /// </summary>
+    virtual bool isChecked() {
+        return false;
+    }
+    /// <summary>
+    /// This function will be called by navigation menu if there is no popup item for this menu item to perform an action rather navigation.
+    /// </summary>
+    virtual void noPopupAction() {
+        // default is do no action
+    }
+    /// <summary>
+    /// It's possible that the scroll menu item with navigation has some state that needs initialising for display purposes, (i.e. pre focusLvObj)
+    /// </summary>
+    virtual void menuItemInitCB() {
+        // default is do no action
+    }
+    /// <summary>
+    /// It's possible that the scroll menu item with navigation has some state that needs setting before exiting the menu to store state
+    /// </summary>
+    virtual void menuItemFinishedCB() {
+        // default is do no action
+    }
 };
 
 #endif
