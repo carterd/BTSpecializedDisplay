@@ -1,12 +1,12 @@
-#include "CrankRotationsMonitorSmall.h"
+#include "BatteryCapacitySmall.h"
 
 #include <LvglThemes/lv_theme_binary.h>
 
 
-CrankRotationsMonitorSmall::CrankRotationsMonitorSmall() {
+BatteryCapacitySmall::BatteryCapacitySmall() {
 }
 
-lv_obj_t* CrankRotationsMonitorSmall::createLvObj(lv_obj_t* parent) {    
+lv_obj_t* BatteryCapacitySmall::createLvObj(lv_obj_t* parent) {    
 	// get the style we'll need for the bar
 	theme_binary_styles_t* binary_styles = (theme_binary_styles_t*)lv_disp_get_theme(lv_obj_get_disp(parent))->user_data;
 	lv_style_t* no_scrollbar = &(binary_styles->no_scrollbar);
@@ -19,7 +19,7 @@ lv_obj_t* CrankRotationsMonitorSmall::createLvObj(lv_obj_t* parent) {
 	
 	lv_obj_t* label_obj = lv_label_create(this->this_obj);
     lv_obj_set_align(label_obj, LV_ALIGN_LEFT_MID);
-    lv_label_set_text(label_obj, "Cad:");
+    lv_label_set_text(label_obj, "Bat:");
 
     this->value_obj = lv_label_create(this->this_obj);
     lv_obj_set_style_bg_color(this->value_obj, lv_color_black(), LV_PART_MAIN);
@@ -29,21 +29,20 @@ lv_obj_t* CrankRotationsMonitorSmall::createLvObj(lv_obj_t* parent) {
 	return this->this_obj;
 }
 
-void CrankRotationsMonitorSmall::focusLvObj(BaseLvObject* defocusLvObj)
+void BatteryCapacitySmall::focusLvObj(BaseLvObject* defocusLvObj)
 {
-	// The LVObj that'll get the refreshes and should there hook into updates
-    this->bluetoothBikeController->getConnectedBluetoothBike().readBikeStateAttribute(BikeStateAttributeIndex::CRANK_ROTATIONS_PER_MIN, MonitorAttributeType::EVERY_TEN_SECONDS);
-	this->bluetoothBikeController->getConnectedBluetoothBike().readBikeStateAttribute(BikeStateAttributeIndex::CRANK_ROTATIONS, MonitorAttributeType::EVERY_TEN_SECONDS);
+	// The LVObj that'll get the refreshes and should there hook into updates    
+	this->bluetoothBikeController->getConnectedBluetoothBike().readBikeStateAttribute(BikeStateAttributeIndex::BATTERY_CHARGE_PERCENT, MonitorAttributeType::EVERY_MINUTE);
 	this->update();
 }
 
-void CrankRotationsMonitorSmall::statusUpdate()
+void BatteryCapacitySmall::statusUpdate()
 {
     this->update();
 }
 
-void CrankRotationsMonitorSmall::update() {
+void BatteryCapacitySmall::update() {
     char ticksString[32];
-    sprintf(ticksString, "%.1f", this->bluetoothBikeController->getBikeState().getStateAttribute(BikeStateAttributeIndex::CRANK_ROTATIONS_PER_MIN).bikeStateAttributeValue.valueFloat);
+    sprintf(ticksString, "%d", this->bluetoothBikeController->getBikeState().getStateAttribute(BikeStateAttributeIndex::BATTERY_CHARGE_PERCENT).bikeStateAttributeValue.valueUint8);
     lv_label_set_text(this->value_obj, ticksString);
 }

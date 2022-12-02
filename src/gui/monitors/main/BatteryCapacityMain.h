@@ -1,9 +1,9 @@
 #ifndef _BATTERY_MONITOR_MAIN_H
 #define _BATTERY_MONITOR_MAIN_H
 
-#include "..\MonitorLvObject.h"
+#include "..\..\MonitorLvObject.h"
 
-class BatteryMonitorMain : public MonitorLvObject
+class BatteryCapacityMain : public MonitorLvObject
 {
 private:
 
@@ -20,7 +20,7 @@ private:
     void update();
 
 public:
-    BatteryMonitorMain();
+    BatteryCapacityMain();
 
     /// <summary>
     /// Returns the LV object instance to represent this class instance

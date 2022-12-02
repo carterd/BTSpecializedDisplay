@@ -16,17 +16,22 @@ lv_obj_t* TimeticksMonitorSmall::createLvObj(lv_obj_t* parent) {
 	this->this_obj = lv_obj_create(parent);
 	lv_obj_set_size(this->this_obj, lv_obj_get_width(parent), lv_obj_get_height(parent));
 	lv_obj_set_align(this->this_obj, LV_ALIGN_CENTER);
-	
-	this->label_obj = lv_label_create(this->this_obj);
-    lv_obj_set_align(this->label_obj, LV_ALIGN_LEFT_MID);
-	
+
+	lv_obj_t* label_obj = lv_label_create(this->this_obj);
+	lv_obj_set_align(label_obj, LV_ALIGN_LEFT_MID);
+	lv_label_set_text(label_obj, "Clk:");
+
+	this->value_obj = lv_label_create(this->this_obj);
+	lv_obj_set_style_bg_color(this->value_obj, lv_color_black(), LV_PART_MAIN);
+	lv_obj_set_style_bg_opa(this->value_obj, LV_OPA_COVER, LV_PART_MAIN);
+	lv_obj_set_align(this->value_obj, LV_ALIGN_RIGHT_MID);
 	return this->this_obj;
 }
 
 void TimeticksMonitorSmall::focusLvObj(BaseLvObject* defocusLvObj)
 {
 	// The LVObj that'll get the refreshes and should there hook into updates
-	this->bluetoothBikeController->getConnectedBluetoothBike().readBikeStateAttribute(BikeStateAttributeIndex::BIKE_ON_OFF_STATE, MonitorAttributeType::EVERY_TEN_SECONDS);
+	this->bluetoothBikeController->getConnectedBluetoothBike().readBikeStateAttribute(BikeStateAttributeIndex::BIKE_ON_OFF_STATE, MonitorAttributeType::EVERY_SECOND);
 	this->update();
 }
 
@@ -37,6 +42,11 @@ void TimeticksMonitorSmall::statusUpdate()
 
 void TimeticksMonitorSmall::update() {
     char ticksString[32];
-    sprintf(ticksString, "%.1f", millis() / 1000.0);
-    lv_label_set_text(this->label_obj, ticksString);
+	long totalSeconds = millis() / 1000.0;
+	int seconds = totalSeconds % 60;
+	long totalMinutes = (totalSeconds - seconds) / 60;
+	int minutes = totalMinutes % 60;
+	int hours = (totalMinutes - minutes) / 60;
+    sprintf(ticksString, "%02d:%02d:%02d", hours, minutes, seconds);
+    lv_label_set_text(this->value_obj, ticksString);
 }

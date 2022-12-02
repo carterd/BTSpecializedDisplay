@@ -18,6 +18,9 @@
 #define MOTOR_FIRMWARE_VERSION_MINOR_NUMBER_BUFFER_INDEX 2
 #define MOTOR_FIRMWARE_VERSION_PATCH_NUMBER_BUFFER_INDEX 4
 
+#define WHEEL_ROTATIONS_STOPPED_TIMEOUT_MS 2000
+#define CRANK_ROTATIONS_STOPPED_TIMEOUT_MS 2000
+
 /**
  * @brief This represents the interface to the bike and is a wrapper for BLEDevice interface to the turbo bikes.
  * 
@@ -231,6 +234,8 @@ public:
 	/// The callback for EbsCharacteritic notifications from the BleDevice.
 	/// </summary>
 	void updateEbsCharacteristicCB(BLEDevice device, BLECharacteristic characteristic);
+
+	void calculatedStateAttribute(BikeStateAttributeIndex bikeStateAttributeIndex);
 
 public:
 	/// <summary>

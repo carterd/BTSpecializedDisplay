@@ -1,32 +1,20 @@
-#ifndef _ASSIST_MONITOR_SMALL_H
-#define _ASSIST_MONITOR_SMALL_H
+#ifndef _MOTOR_POWER_SMALL_H
+#define _MOTOR_POWER_SMALL_H
 
-#include "..\MonitorLvObject.h"
+#include "..\..\MonitorLvObject.h"
 
 
-#define DOT_SIZE 3
-#define DOT_ROUNDED true
-
-#define ASSIST_LEVEL_TEXT_0 "-"
-#define ASSIST_LEVEL_TEXT_1 "Eco"
-#define ASSIST_LEVEL_TEXT_2 "Trail"
-#define ASSIST_LEVEL_TEXT_3 "Turbo"
-
-class AssistMonitorSmall : public MonitorLvObject
+class MotorPowerSmall : public MonitorLvObject
 {
 private:
-    lv_style_t assist_line_style;
-    lv_point_t assist_line_points[4][2];
-    lv_obj_t* levels[4];
-
-    uint16_t displayedMotorAssistLevel;
-    uint8_t displayedBikeOnOffState;
+    lv_obj_t* value_obj;
+    float wheelCircumferenceMm;
 
 private:
     void update();
 
 public:
-    AssistMonitorSmall();
+    MotorPowerSmall();
 
     /// <summary>
     /// Returns the LV object instance to represent this class instance

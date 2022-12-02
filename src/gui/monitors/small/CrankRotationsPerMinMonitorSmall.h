@@ -1,21 +1,19 @@
-#ifndef _MAIN_SMALL_MONITOR_LAYOUT_H
-#define _MAIN_SMALL_MONITOR_LAYOUT_H
+#ifndef _CRANK_ROTATIONS_MONITOR_SMALL_H
+#define _CRANK_ROTATIONS_MONITOR_SMALL_H
 
-#include "..\MonitorLvObject.h"
+#include "..\..\MonitorLvObject.h"
 
-class MainSmallMonitorLayout : public MonitorLvObject
+
+class CrankRotationsPerMinMonitorSmall : public MonitorLvObject
 {
 private:
-    MonitorLvObject* mainMonitorLvObject;
-    MonitorLvObject* smallMonitorLvObject;
+    lv_obj_t* value_obj;
 
 private:
     void update();
 
 public:
-    MainSmallMonitorLayout(MonitorLvObject* mainMonitorLvObject, MonitorLvObject* smallMonitorLvObject);
-
-    virtual void setBluetoothController(BluetoothBikeController* bluetoothBikeController);
+    CrankRotationsPerMinMonitorSmall();
 
     /// <summary>
     /// Returns the LV object instance to represent this class instance

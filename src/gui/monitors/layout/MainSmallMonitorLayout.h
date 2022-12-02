@@ -1,19 +1,21 @@
-#ifndef _TIMETICKS_MONITOR_SMALL_H
-#define _TIMETICKS_MONITOR_SMALL_H
+#ifndef _MAIN_SMALL_MONITOR_LAYOUT_H
+#define _MAIN_SMALL_MONITOR_LAYOUT_H
 
-#include "..\MonitorLvObject.h"
+#include "..\..\MonitorLvObject.h"
 
-
-class TimeticksMonitorSmall : public MonitorLvObject
+class MainSmallMonitorLayout : public MonitorLvObject
 {
 private:
-    lv_obj_t* label_obj;
+    MonitorLvObject* mainMonitorLvObject;
+    MonitorLvObject* smallMonitorLvObject;
 
 private:
     void update();
 
 public:
-    TimeticksMonitorSmall();
+    MainSmallMonitorLayout(MonitorLvObject* mainMonitorLvObject, MonitorLvObject* smallMonitorLvObject);
+
+    virtual void setBluetoothController(BluetoothBikeController* bluetoothBikeController);
 
     /// <summary>
     /// Returns the LV object instance to represent this class instance

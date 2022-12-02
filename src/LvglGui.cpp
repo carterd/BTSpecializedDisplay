@@ -14,14 +14,20 @@
 #include "gui/ValueSelectMenu.h"
 #include "gui/ValueSelectMenuItem.h"
 #include "gui/ButtonLabel.h"
-//#include "gui/NavigationMenu.h"
+
 #include "gui/BluetoothScanList.h"
 #include "gui/BluetoothConnection.h"
-#include "gui/monitors/BatteryMonitorMain.h"
-#include "gui/monitors/AssistMonitorSmall.h"
-#include "gui/monitors/MainSmallMonitorLayout.h"
-#include "gui/monitors/TimeticksMonitorSmall.h"
-#include "gui/monitors/CrankRotationsMonitorSmall.h"
+#include "gui/monitors/main/BatteryCapacityMain.h"
+#include "gui/monitors/layout/MainSmallMonitorLayout.h"
+#include "gui/monitors/layout/MultiSmallMonitorLayout.h"
+#include "gui/monitors/small/MotorAssistLevelSmall.h"
+#include "gui/monitors/small/TimeticksMonitorSmall.h"
+#include "gui/monitors/small/CrankRotationsPerMinMonitorSmall.h"
+#include "gui/monitors/small/WheelRotationsPerMinMonitorSmall.h"
+#include "gui/monitors/small/BatteryCapacitySmall.h"
+#include "gui/monitors/small/RiderPowerSmall.h"
+#include "gui/monitors/small/MotorPowerSmall.h"
+#include "gui/monitors/small/BlankSmall.h"
 
 #include "gui/configMenus/DisplayBrightnessMenu.h"
 #include "gui/configMenus/DisplayConnectOnBootMenu.h"
@@ -84,13 +90,24 @@ void lvgl_setup(ConfigStore *configStore, BluetoothBikeController *bluetoothBike
     //
     static BluetoothConnection bluetoothConnection(bluetoothBikeController, configStore, &pressbutton, indev);
 
-    static CrankRotationsMonitorSmall crankRotationsMonitorSmall;
+    static CrankRotationsPerMinMonitorSmall crankRotationsPerMinMonitorSmall;
+    static WheelRotationsPerMinMonitorSmall wheelRotationsPerMinMonitorSmall;
     static TimeticksMonitorSmall timeticksMonitor;
-    static BatteryMonitorMain batteryMonitor;
-    static AssistMonitorSmall assistMonitorSmall;
-    static MainSmallMonitorLayout mainSmallMonitorLayout(&batteryMonitor, &assistMonitorSmall);
+    static BatteryCapacitySmall batteryCapacitySmall;
+    static RiderPowerSmall riderPowerSmall;
+    static MotorPowerSmall motorPowerSmall;
+
+    static BatteryCapacityMain batteryMonitor;
+
+
+    static MotorAssistLevelSmall motorAssistLevelSmall;
+    static BlankSmall blankSmall;
+    static MainSmallMonitorLayout mainSmallMonitorLayout(&batteryMonitor, &motorAssistLevelSmall);
+    static MultiSmallMonitorLayout multiSmallMonitorLayout(&wheelRotationsPerMinMonitorSmall, &crankRotationsPerMinMonitorSmall, &batteryCapacitySmall, &timeticksMonitor, &motorAssistLevelSmall, &riderPowerSmall, &motorPowerSmall, &blankSmall);
+    
+
     // Create the connection
-    bluetoothConnection.setMonitor(&mainSmallMonitorLayout);
+    bluetoothConnection.setMonitor(&multiSmallMonitorLayout);
     bluetoothConnection.setButtonLabel(&buttonLabel);
     // Create the menu item popup being the connection
     static ScrollMenuItem connectMenuItem(&pressbutton, false);

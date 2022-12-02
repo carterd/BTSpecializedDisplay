@@ -1,10 +1,10 @@
-#ifndef _CRANK_ROTATIONS_MONITOR_SMALL_H
-#define _CRANK_ROTATIONS_MONITOR_SMALL_H
+#ifndef _TIMETICKS_MONITOR_SMALL_H
+#define _TIMETICKS_MONITOR_SMALL_H
 
-#include "..\MonitorLvObject.h"
+#include "..\..\MonitorLvObject.h"
 
 
-class CrankRotationsMonitorSmall : public MonitorLvObject
+class TimeticksMonitorSmall : public MonitorLvObject
 {
 private:
     lv_obj_t* value_obj;
@@ -13,7 +13,7 @@ private:
     void update();
 
 public:
-    CrankRotationsMonitorSmall();
+    TimeticksMonitorSmall();
 
     /// <summary>
     /// Returns the LV object instance to represent this class instance

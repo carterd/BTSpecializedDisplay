@@ -335,7 +335,7 @@ void BluetoothBike::readBufferToEbsBikeState() {
         case EbikeStatusMotor::ODOMETER:      bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::MOTOR_ODOMETER, this->bufferToUint32(), time); break;
         case EbikeStatusMotor::ASSIST_LEVEL:  bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::MOTOR_ASSIST_LEVEL, this->bufferToUint16(), time); break;
         case EbikeStatusMotor::TEMP:          bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::MOTOR_TEMP, this->bufferToUint8(), time); break;
-        case EbikeStatusMotor::MOTOR_POWER:   bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::MOTOR_FIRMWARE_VERSION, this->bufferToUint16(), time); break;
+        case EbikeStatusMotor::MOTOR_POWER:   bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::MOTOR_POWER, this->bufferToUint16(), time); break;
         case EbikeStatusMotor::FIRMWARE_VERSION: {
           FirmwareVersion firmwareVersion { this->bufferToUint8(MOTOR_FIRMWARE_VERSION_MAJOR_NUMBER_BUFFER_INDEX), 
                                             this->bufferToUint8(MOTOR_FIRMWARE_VERSION_MINOR_NUMBER_BUFFER_INDEX), 
@@ -547,7 +547,14 @@ bool BluetoothBike::readBikeStateAttribute(BikeStateAttributeIndex bikeStateAttr
     bool result;
     this->setMinimumBikeStateMonitorAttributeType(bikeStateAttributeIndex, monitorAttributeType);
     BluetoothBikeRequest bluetoothBikeRequest = BluetoothBike::bikeStateToBluetoothBikeRequest.getBluetoothBikeRequest(bikeStateAttributeIndex, this->bikeType);
-    result = this->readRequest(bluetoothBikeRequest);
+    if (bluetoothBikeRequest.getNumberOfCommands()) {
+      // This is an attribute that can be read via bluetooth
+      result = this->readRequest(bluetoothBikeRequest);
+    } else {
+      // This is an attribute which is either updated through notifications or calculated
+      this->calculatedStateAttribute(bikeStateAttributeIndex);
+      result = true;
+    }
     return result;
 }
 
@@ -556,6 +563,25 @@ bool BluetoothBike::writeBikeStateAttribute(BikeStateAttributeIndex bikeStateAtt
     BluetoothBikeRequest bluetoothBikeRequest = BluetoothBike::bikeStateToBluetoothBikeRequest.getBluetoothBikeRequest(bikeStateAttributeIndex, this->bikeType);
     result = this->writeRequest(bluetoothBikeRequest, valuePtr);
     return result;
+}
+
+void BluetoothBike::calculatedStateAttribute(BikeStateAttributeIndex bikeStateAttributeIndex) {
+  switch (bikeStateAttributeIndex) {
+    case BikeStateAttributeIndex::WHEEL_ROTATIONS_PER_MIN:
+    {
+      uint32_t time = millis();
+      if (this->bikeState.getStateAttribute(BikeStateAttributeIndex::WHEEL_ROTATIONS).lastFetchTimeTicks - time > WHEEL_ROTATIONS_STOPPED_TIMEOUT_MS)
+          this->bikeState.setStateAttribute(BikeStateAttributeIndex::WHEEL_ROTATIONS_PER_MIN, 0.0f, time);
+    }
+    break;
+    case BikeStateAttributeIndex::CRANK_ROTATIONS_PER_MIN:
+    {
+          uint32_t time = millis();
+          if (this->bikeState.getStateAttribute(BikeStateAttributeIndex::CRANK_ROTATIONS).lastFetchTimeTicks - time > CRANK_ROTATIONS_STOPPED_TIMEOUT_MS)
+          this->bikeState.setStateAttribute(BikeStateAttributeIndex::CRANK_ROTATIONS_PER_MIN, 0.0f, time);
+    }
+    break;
+  }
 }
 
 //

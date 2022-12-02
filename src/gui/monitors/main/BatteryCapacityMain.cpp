@@ -1,4 +1,4 @@
-#include "BatteryMonitorMain.h"
+#include "BatteryCapacityMain.h"
 #include <LvglThemes/lv_theme_binary.h>
 
 //static void refresh_cb(lv_event_t* event) {
@@ -15,7 +15,7 @@ static lv_style_t style_line(lv_coord_t width) {
 	return style_line;
 }
 
-BatteryMonitorMain::BatteryMonitorMain() {
+BatteryCapacityMain::BatteryCapacityMain() {
 	this->battery_line_style = style_line(3);
 	this->charge_line_style = style_line(8);
 	lv_obj_t* levels[10];
@@ -24,7 +24,7 @@ BatteryMonitorMain::BatteryMonitorMain() {
 	lv_style_t charge_line_style;
 }
 
-const lv_point_t BatteryMonitorMain::battery_line_points[] = {
+const lv_point_t BatteryCapacityMain::battery_line_points[] = {
 	{32,110},							// Bottom
 	{54, 110}, {55, 109},				// Bottom Right
 	{55, 6}, {54, 5},					// Top Right
@@ -33,7 +33,7 @@ const lv_point_t BatteryMonitorMain::battery_line_points[] = {
 	{8, 109}, {9, 110},					// Bottom Left
 	{32, 110} };						// Bottom
 
-lv_obj_t* BatteryMonitorMain::createLvObj(lv_obj_t* parent) {
+lv_obj_t* BatteryCapacityMain::createLvObj(lv_obj_t* parent) {
 	// get the style we'll need for the bar
 	theme_binary_styles_t* binary_styles = (theme_binary_styles_t*)lv_disp_get_theme(lv_obj_get_disp(parent))->user_data;
 	lv_style_t* no_scrollbar = &(binary_styles->no_scrollbar);
@@ -61,7 +61,7 @@ lv_obj_t* BatteryMonitorMain::createLvObj(lv_obj_t* parent) {
 	return this->this_obj;
 }
 
-void BatteryMonitorMain::statusUpdate()
+void BatteryCapacityMain::statusUpdate()
 {
 	if (this->bluetoothBikeController && this->bluetoothBikeController->getConnected()) {
 		// This bleDevice should always be true as we've already idenfied scanned device available		
@@ -77,7 +77,7 @@ void BatteryMonitorMain::statusUpdate()
 }
 
 
-void BatteryMonitorMain::update() {
+void BatteryCapacityMain::update() {
 	this->displayedPercent = this->bluetoothBikeController->getBikeState().getStateAttribute(BikeStateAttributeIndex::BATTERY_CHARGE_PERCENT).bikeStateAttributeValue.valueUint8;
 	for (int i = 0; i < 10; i++) {
 		lv_obj_t* level = this->levels[i];
@@ -99,7 +99,7 @@ void BatteryMonitorMain::update() {
 	}
 }
 
-void BatteryMonitorMain::focusLvObj(BaseLvObject* defocusLvObj)
+void BatteryCapacityMain::focusLvObj(BaseLvObject* defocusLvObj)
 {
 	// The LVObj that'll get the refreshes and should there hook into updates
 	this->bluetoothBikeController->getConnectedBluetoothBike().readBikeStateAttribute(BikeStateAttributeIndex::BATTERY_CHARGE_PERCENT, MonitorAttributeType::EVERY_MINUTE);
