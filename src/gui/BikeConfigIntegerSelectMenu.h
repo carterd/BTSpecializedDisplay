@@ -15,8 +15,8 @@ private:
     /// </summary>
     bool configureAttributeManaged;
 public:
-    BikeConfigIntegerSelectMenu(const char* titleText, const char* exitButtonText, ConfigStore& configStore, BikeConfigAttributeIndex bikeConfigAttributeIndex, bool configureAttributeManaged, lv_indev_t* indev, ButtonLabel* buttonLabel = NULL) :
-        IntegerSelectMenu(titleText, exitButtonText, indev, buttonLabel), configStore(configStore) {
+    BikeConfigIntegerSelectMenu(const char* titleText, const char* exitButtonText, ConfigStore& configStore, BikeConfigAttributeIndex bikeConfigAttributeIndex, bool configureAttributeManaged, lv_indev_t* indev, ButtonLabelBar* buttonLabelBar = NULL) :
+        IntegerSelectMenu(titleText, exitButtonText, indev, buttonLabelBar), configStore(configStore) {
         this->configStore = configStore;
         this->bikeConfigAttributeIndex = bikeConfigAttributeIndex;
         this->configureAttributeManaged = configureAttributeManaged;

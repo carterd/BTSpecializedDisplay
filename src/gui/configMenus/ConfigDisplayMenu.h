@@ -20,7 +20,7 @@ private:
 public:
 	ScrollMenuItem configDisplayMenuItem;
 public:
-	ConfigDisplayMenu(ConfigStore& configStore, Display& display, lv_indev_t* indev, ButtonLabel* buttonLabel = NULL) :
+	ConfigDisplayMenu(ConfigStore& configStore, Display& display, lv_indev_t* indev, ButtonLabelBar* buttonLabel = NULL) :
 		bikeNavigationMenu("Display", "Back", indev, buttonLabel),
 		configDisplayMenuItem("Display"),
         displayBrightnessMenu(configStore, display, indev, buttonLabel),

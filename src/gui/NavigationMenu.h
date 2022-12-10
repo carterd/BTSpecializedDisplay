@@ -5,7 +5,7 @@
 
 #include "BaseLvObject.h"
 #include "ScrollMenuItem.h"
-#include "ButtonLabel.h"
+#include "ButtonLabelBar.h"
 
 #include <vector>
 #include <unordered_map>
@@ -25,7 +25,7 @@ private:
 	lv_obj_t* option_tileview_obj;
 	lv_group_t* group;
 	lv_indev_t* indev;
-	ButtonLabel* buttonLabel;
+	ButtonLabelBar* buttonLabelBar;
 
 	const char* exitButtonText;
 	const char* titleText;
@@ -43,6 +43,7 @@ private:
 	/// Displays the button label if one has been assoicated with the scan list
 	/// </summary>
 	void showButtonLabels();
+
 	/// <summary>
 	/// Add a button onto the list with given display text and a possible known device icon
 	/// </summary>
@@ -51,6 +52,9 @@ private:
 	/// <returns>The created list item button object</returns>
 	lv_obj_t* addMenuItemButton(ScrollMenuItem* menuItem);
 
+	/// <summary>
+	/// Returns the lv_obj for the given menuItem.
+	/// </summary>
 	lv_obj_t* getMenuItemButton(ScrollMenuItem* menuItem);
 
 	/// <summary>
@@ -73,7 +77,7 @@ public:
 	/// </summary>
 	/// <param name="exitButtonText">The text to display for exit menu option of the menu</param>
 	/// <param name="indev">The indev used for taking context of the encoder</param>
-	NavigationMenu(const char* titleText, const char* exitButtonText, lv_indev_t* indev, ButtonLabel* buttonLabel = NULL);
+	NavigationMenu(const char* titleText, const char* exitButtonText, lv_indev_t* indev, ButtonLabelBar* buttonLabel = NULL);
 
 	virtual ~NavigationMenu();
 
@@ -100,7 +104,7 @@ public:
 	/// Used to set the button label for this object or NULL for no button label
 	/// </summary>
 	/// <param name="buttonLabel">The button label object for this gui object</param>
-	void setButtonLabel(ButtonLabel* buttonLabel);	
+	void setButtonLabel(ButtonLabelBar* buttonLabel);	
 
     /// <summary>
     /// Add the given menu item objec to this list in the order called with this function

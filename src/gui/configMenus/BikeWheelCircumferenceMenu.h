@@ -13,8 +13,8 @@ private:
 public:
 	ScrollMenuItem menuItem;
 public:
-	BikeWheelCircumferenceMenu(ConfigStore& configStore, lv_indev_t* indev, ButtonLabel* buttonLabel = NULL) :
-		integerSelectMenu("Wheel Circumference", "Back", configStore, BikeConfigAttributeIndex::WheelCircumference, true, indev, buttonLabel),
+	BikeWheelCircumferenceMenu(ConfigStore& configStore, lv_indev_t* indev, ButtonLabelBar* buttonLabelBar = NULL) :
+		integerSelectMenu("Wheel Circumference", "Back", configStore, BikeConfigAttributeIndex::WheelCircumference, true, indev, buttonLabelBar),
 		menuItem("Wheel Circumference") 
 	{
 		this->integerSelectMenu.addMenuItem("Unmanaged", UNMANAGED_CONFIG);

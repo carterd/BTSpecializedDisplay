@@ -1,37 +1,38 @@
 #ifndef _WHEEL_ROTATIONS_MONITOR_SMALL_H
 #define _WHEEL_ROTATIONS_MONITOR_SMALL_H
 
-#include "..\..\MonitorLvObject.h"
+#include "BaseNumericSmall.h"
 
 
-class WheelRotationsPerMinMonitorSmall : public MonitorLvObject
+class WheelRotationsPerMinMonitorSmall : public BaseNumericSmall
 {
 private:
-    lv_obj_t* value_obj;
-    float wheelCircumferenceMm;
-
-private:
-    void update();
-
+    uint16_t wheelCircumferenceMm;
 public:
-    WheelRotationsPerMinMonitorSmall();
+    WheelRotationsPerMinMonitorSmall(const char* title = "km/h:") : BaseNumericSmall(BikeStateAttributeIndex::WHEEL_ROTATIONS_PER_MIN, MonitorAttributeType::EVERY_SECOND, title) {}
 
     /// <summary>
-    /// Returns the LV object instance to represent this class instance
+    /// The callback on the list required to be updated, i.e. a bluetooth device detected
     /// </summary>
-    /// <returns>The LV object instance to represent this class instance</returns>
-    virtual lv_obj_t* createLvObj(lv_obj_t* parent);
+    /// <param name="event">The lv event that identifies pressing the device entry</param>
+    virtual void statusUpdate() {
+        char valueString[32];
+        float kmph = this->bluetoothBikeController->getBikeState().getStateAttribute(BikeStateAttributeIndex::WHEEL_ROTATIONS_PER_MIN).bikeStateAttributeValue.valueFloat * this->wheelCircumferenceMm * 60.0f / 1000000.0f;
+        float mph = kmph * 0.621371;
+        sprintf(valueString, "%.1f", kmph);
+        lv_label_set_text(this->value_obj, valueString);
+    }
 
     /// <summary>
-    /// This means the object and any sub objects should set any groups to be in focus at this point
+    /// This will ensure the stats are initialised and the correct interest for the monitor is assigned to the controller
     /// </summary>
-    virtual void focusLvObj(BaseLvObject* defocusLvObj = NULL);
+    virtual void initBluetoothStats() {
+        BaseNumericSmall::initBluetoothStats();
+        this->bluetoothBikeController->getConnectedBluetoothBike().readBikeStateAttribute(BikeStateAttributeIndex::WHEEL_CIRCUMFERENCE, MonitorAttributeType::ONCE);
+        this->wheelCircumferenceMm = this->bluetoothBikeController->getBikeState().getStateAttribute(BikeStateAttributeIndex::WHEEL_CIRCUMFERENCE).bikeStateAttributeValue.valueUint16;
+        this->bluetoothBikeController->getConnectedBluetoothBike().readBikeStateAttribute(BikeStateAttributeIndex::WHEEL_ROTATIONS, MonitorAttributeType::EVERY_TEN_SECONDS);
+    }
 
-   	/// <summary>
-	/// The callback on the list required to be updated, i.e. a bluetooth device detected
-	/// </summary>
-	/// <param name="event">The lv event that identifies pressing the device entry</param>
-	virtual void statusUpdate();
 };
 
 #endif

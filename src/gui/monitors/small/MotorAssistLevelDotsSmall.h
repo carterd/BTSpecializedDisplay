@@ -1,18 +1,27 @@
-#ifndef _MAIN_SMALL_MONITOR_LAYOUT_H
-#define _MAIN_SMALL_MONITOR_LAYOUT_H
+#ifndef _MOTOR_ASSIST_LEVEL_DOTS_SMALL_H
+#define _MOTOR_ASSIST_LEVEL_DOTS_SMALL_H
 
 #include "..\..\MonitorLvObject.h"
 
-class MainSmallMonitorLayout : public MonitorLvObject
+
+#define DOT_SIZE 3
+#define DOT_ROUNDED true
+
+class MotorAssistLevelDotSmall : public MonitorLvObject
 {
 private:
-    MonitorLvObject* mainMonitorLvObject;
-    MonitorLvObject* smallMonitorLvObject;
+    lv_style_t assist_line_style;
+    lv_point_t assist_line_points[4][2];
+    lv_obj_t* levels[4];
+
+    uint16_t displayedMotorAssistLevel;
+    uint8_t displayedBikeOnOffState;
+
+private:
+    void update();
 
 public:
-    MainSmallMonitorLayout(MonitorLvObject* mainMonitorLvObject, MonitorLvObject* smallMonitorLvObject);
-
-    virtual void setBluetoothController(BluetoothBikeController* bluetoothBikeController);
+    MotorAssistLevelDotSmall();
 
     /// <summary>
     /// Returns the LV object instance to represent this class instance
@@ -29,7 +38,7 @@ public:
     /// <summary>
     /// This will ensure the stats are initialised and the correct interest for the monitor is assigned to the controller
     /// </summary>
-    virtual void initBluetoothStats() { this->mainMonitorLvObject->initBluetoothStats(); this->smallMonitorLvObject->initBluetoothStats(); }
+    virtual void initBluetoothStats();
 };
 
 #endif

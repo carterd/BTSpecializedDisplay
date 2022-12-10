@@ -293,7 +293,7 @@ public:
 	/// Returns the connectedBikeStatus structure so values of the bike can be read from the structure.
 	/// </summary>
 	/// <returns>The bike status of the connected e-bike</returns>
-	BikeState& getBikeState() { return bikeState; }
+	BikeState& getBikeState() { return this->bikeState; }
 
     /// <summary>
     /// Resets the monitorAttributeType of all bike state attributes to a given type or defaults to read once Always Ignore

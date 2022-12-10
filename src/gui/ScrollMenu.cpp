@@ -19,18 +19,12 @@ void ScrollMenu::tile_btn_defocus_cb(lv_event_t* event) {
     scrollMenu->tileButtonDefocusCB(event);
 }
 
-ScrollMenu::ScrollMenu(lv_indev_t* indev, ButtonLabel* buttonLabel) : BaseLvObject()
+ScrollMenu::ScrollMenu(lv_indev_t* indev, ButtonLabelBar* buttonLabelBar) : ButtonLabelledLvObject(indev, buttonLabelBar)
 {
-    // Store display
-    this->indev = indev;
-
     // Initialise rest as null
-    this->buttonLabel = NULL;
     this->options_tileview_obj = NULL;
-    this->group = NULL;
     this->selectedItem = 0;
     this->selectedItemAnimated = false;
-    this->setButtonLabel(buttonLabel);
 }
 
 ScrollMenu::~ScrollMenu()
@@ -47,7 +41,7 @@ lv_obj_t* ScrollMenu::createLvObj(lv_obj_t* parent)
     // get the style we'll need for the bar
     theme_binary_styles_t* binary_styles = (theme_binary_styles_t*)lv_disp_get_theme(lv_obj_get_disp(parent))->user_data;
     lv_style_t* no_scrollbar = &(binary_styles->no_scrollbar);
-    lv_style_t* button_no_highlight_style = &(binary_styles->button_no_highlight);
+    //lv_style_t* button_no_highlight_style = &(binary_styles->button_no_highlight);
 
     // add window to screen object and set it to be the exact size
     this->this_obj = lv_obj_create(parent);
@@ -84,12 +78,6 @@ lv_obj_t* ScrollMenu::createLvObj(lv_obj_t* parent)
         tile_pos++;
     }
 
-    // Finally do the button label so it's top
-    if (this->buttonLabel) {
-        this->buttonLabel->createLvObj(this->this_obj);
-        this->buttonLabelStartShown ? this->buttonLabel->setShown() : this->buttonLabel->setHidden();        
-    }
-
     return this->this_obj;
 }
 
@@ -103,11 +91,7 @@ void ScrollMenu::destroyLvObj()
 
 void ScrollMenu::focusLvObj(BaseLvObject* defocusLvObj)
 {
-    if (this->buttonLabel) {
-        this->buttonLabel->setButtonLabels(LV_SYMBOL_LEFT, LV_SYMBOL_OK, LV_SYMBOL_RIGHT);
-        this->buttonLabel->show();
-        this->buttonLabel->setAutoHide(false);
-    }
+    this->updateButtonLabelBar();
 
     // TODO: Sort this out a bit wonky
     if (lv_obj_get_child_cnt(this->options_tileview_obj)) {
@@ -120,22 +104,31 @@ void ScrollMenu::focusLvObj(BaseLvObject* defocusLvObj)
         }
         else
         {
-            // Attempt to set the correct enables entity
-            lv_obj_set_tile_id(this->options_tileview_obj, this->selectedItem, 0, LV_ANIM_OFF);
-            lv_indev_set_group(this->indev, this->group);
+            //static lv_group_t* empty_group = lv_group_create();
+            //this->focusAnimation = true;
+
+            //lv_obj_set_tile_id(this->options_tileview_obj, this->selectedItem, 0, LV_ANIM_ON);
+            //lv_indev_set_group(this->indev, empty_group);
             
+            // Attempt to set the correct enables entity
+            lv_obj_set_tile_id(this->options_tileview_obj, this->selectedItem, 0, LV_ANIM_OFF);            
             lv_obj_t* active_obj = lv_tileview_get_tile_act(this->options_tileview_obj);
             lv_obj_t* btn_obj = lv_obj_get_child(active_obj, 0);
-            lv_group_focus_obj(btn_obj);
+            lv_indev_set_group(this->indev, this->group);
+            lv_group_focus_obj(btn_obj);            
         }
     }
 }
 
-void ScrollMenu::setButtonLabel(ButtonLabel* buttonLabel, bool buttonLabelStartShown)
+void ScrollMenu::updateButtonLabelBar()
 {
-    this->buttonLabel = buttonLabel;
-    this->buttonLabelStartShown = buttonLabelStartShown;
+    if (this->buttonLabelBar) {
+        this->buttonLabelBar->setButtonLabels(LV_SYMBOL_LEFT, LV_SYMBOL_OK, LV_SYMBOL_RIGHT);
+        this->buttonLabelBar->show();
+        this->buttonLabelBar->setAutoHide(false);
+    }
 }
+
 
 void ScrollMenu::addMenuItem(ScrollMenuItem* scrollMenuItem)
 {
@@ -160,7 +153,7 @@ void ScrollMenu::selectScrollMenuItem(ScrollMenuItem* scrollMenuItem) {
 }
 
 void ScrollMenu::tileButtonCB(lv_event_t* e) {
-    // Don't allow clicks while selection is being animated
+    // Don't allow clicks while selection is being animated between options
     if (this->selectAnimation) return;
 
     // Get the current tile that user has navigated to
@@ -173,10 +166,6 @@ void ScrollMenu::tileButtonCB(lv_event_t* e) {
 
         // If the scroll menu item's parent object, i.e. the tile holding the item equals the selected_object then this is the scrollMenuItem to select
         if (obj_cmp == selected_obj) {
-            //    this->selectedItem = tile_pos;
-            //  this->selectedItemAnimated = scrollMenuItem->getAnimatedSelect();
-            //  lv_obj_set_tile_id(this->options_tileview_obj, tile_pos, 1, scrollMenuItem->getAnimatedSelect() ? LV_ANIM_ON : LV_ANIM_OFF);
-            //  scrollMenuItem->focusLvObj(this);
             this->selectScrollMenuItem(scrollMenuItem);
             return;
         }

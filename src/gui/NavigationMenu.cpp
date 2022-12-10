@@ -1,5 +1,5 @@
 #include "NavigationMenu.h"
-#include "ButtonLabel.h"
+#include "ButtonLabelBar.h"
 #include <LvglThemes/lv_theme_binary.h>
 
 void NavigationMenu::value_changed_cb(lv_event_t* event) {
@@ -25,7 +25,7 @@ void NavigationMenu::menu_item_btn_cb(lv_event_t* event) {
 	}
 }
 
-NavigationMenu::NavigationMenu(const char* titleText, const char* exitButtonText, lv_indev_t* indev, ButtonLabel* buttonLabel) : BaseLvObject()
+NavigationMenu::NavigationMenu(const char* titleText, const char* exitButtonText, lv_indev_t* indev, ButtonLabelBar* buttonLabel) : BaseLvObject()
 {
 	this->indev = indev;
     this->titleText = titleText;
@@ -33,7 +33,7 @@ NavigationMenu::NavigationMenu(const char* titleText, const char* exitButtonText
 	this->defocusLvObj = NULL;
 	this->selectedLvObj = NULL;
     this->focusAnimation = false;
-	this->buttonLabel = buttonLabel;
+	this->buttonLabelBar = buttonLabel;
 }
 
 NavigationMenu::~NavigationMenu()
@@ -152,16 +152,16 @@ void NavigationMenu::updateLvObj() {
 }
 
 
-void NavigationMenu::setButtonLabel(ButtonLabel* buttonLabel)
+void NavigationMenu::setButtonLabel(ButtonLabelBar* buttonLabel)
 {
-	this->buttonLabel = buttonLabel;
+	this->buttonLabelBar = buttonLabel;
 }
 
 void NavigationMenu::showButtonLabels()
 {
-	if (this->buttonLabel) {
-		this->buttonLabel->setButtonLabels(LV_SYMBOL_UP, LV_SYMBOL_OK, LV_SYMBOL_DOWN);
-		this->buttonLabel->show();
+	if (this->buttonLabelBar) {
+		this->buttonLabelBar->setButtonLabels(LV_SYMBOL_UP, LV_SYMBOL_OK, LV_SYMBOL_DOWN);
+		this->buttonLabelBar->show();
 	}
 }
 

@@ -43,7 +43,7 @@ void ConfigStore::init() {
 }
 
 void ConfigStore::defaults() {
-    this->btAddressMap.clear();
+    this->btAddressesConfig.clear();
     this->bikeConfig.beeper = BikeConfigAttr<bool>(false, false);                   // beeper 0 No beeping, 1 beeps
     this->bikeConfig.fakeChannel = BikeConfigAttr<uint8_t>(0, false);                // fakeChannel
     this->bikeConfig.wheelCircumference = BikeConfigAttr<uint16_t>(2293, false);     // Wheel Circumf start at 2293 mm
@@ -57,69 +57,43 @@ void ConfigStore::defaults() {
 
 }
 
-void ConfigStore::updateBikeConfig(BikeConfig bikeConfig) {
+void ConfigStore::updateBTAddressesConfig(BTAddressesConfig& btAddressesConfig)
+{
+    // Ensure that btAddressConfig has changed before write
+    if (this->btAddressesConfig.btAddressMap == btAddressesConfig.btAddressMap) {
+        return;
+    }
+    this->btAddressesConfig = btAddressesConfig;
+    this->writeBTAddressMap();
+}
+
+BTAddressesConfig& ConfigStore::getBTAddressesConfig()
+{
+    return this->btAddressesConfig;
+}
+
+void ConfigStore::updateBikeConfig(BikeConfig& bikeConfig) {
+    if (this->bikeConfig == bikeConfig) {
+        return;
+    }
     this->bikeConfig = bikeConfig;
     this->writeBikeConfig();
 }
 
-BikeConfig ConfigStore::getBikeConfig() {
+BikeConfig& ConfigStore::getBikeConfig() {
     return this->bikeConfig;
 }
 
-void ConfigStore::updateDisplayConfig(DisplayConfig displayConfig) {
+void ConfigStore::updateDisplayConfig(DisplayConfig& displayConfig) {
+    if (this->displayConfig == displayConfig) {
+        return;
+    }
     this->displayConfig = displayConfig;
     this->writeDisplayConfig();
 }
 
-DisplayConfig ConfigStore::getDisplayConfig() {
+DisplayConfig& ConfigStore::getDisplayConfig() {
     return this->displayConfig;
-}
-
-void ConfigStore::removeBTAddress(const char* address) {
-    String addressString(address);
-    this->removeBTAddress(&addressString);
-}
-
-void ConfigStore::removeBTAddress(String* addressString) {
-    this->btAddressMap.erase(*addressString);
-}
-
-bool ConfigStore::containsBTAddress(const char* address) {
-    String addressString(address);
-    return this->containsBTAddress(&addressString);
-}
-
-bool ConfigStore::containsBTAddress(String* addressString) {
-    return this->btAddressMap.count(*addressString);
-}
-
-String* ConfigStore::getBTAddressDisplayString(const char* address) {
-    String addressString(address);
-    return this->getBTAddressDisplayString(&addressString);
-}
-
-String* ConfigStore::getBTAddressDisplayString(String* addressString) {
-    if (this->btAddressMap.count(*addressString)) {
-        return &(this->btAddressMap[*addressString]);
-    }
-    return NULL;
-}
-
-int ConfigStore::countBTAddresses() {
-    return this->btAddressMap.size();
-}
-
-void ConfigStore::addBTAddress(const char* address, const char* display) {
-    String addressString(address);
-    String displayString(display);
-    this->addBTAddress(&addressString, &displayString);
-}
-
-void ConfigStore::addBTAddress(String* addressString, String* displayString) {
-       this->btAddressMap[*addressString] = *addressString;
-    if (!this->writeBTAddressMap()) {
-        LV_LOG_USER("FS failure write file");
-    } 
 }
 
 bool ConfigStore::readDisplayConfig() {
@@ -197,7 +171,7 @@ bool ConfigStore::writeBikeConfig() {
 }
 
 bool ConfigStore::readBTAddressMap() {
-    this->btAddressMap.clear();
+    this->btAddressesConfig.clear();
     FILE *file = fopen(this->knownDevicesFilename, "r");
     if (file) {
         uint16_t addressesSize = 0;
@@ -207,7 +181,7 @@ bool ConfigStore::readBTAddressMap() {
             String displayValueString;
             if (!this->readString(file, &addressString)) return false;
             if (!this->readString(file, &displayValueString)) return false;
-            this->btAddressMap[addressString] = displayValueString;
+            this->btAddressesConfig.addBTAddress(addressString ,displayValueString);
         }
         fclose(file);
         return true;
@@ -218,9 +192,9 @@ bool ConfigStore::readBTAddressMap() {
 bool ConfigStore::writeBTAddressMap() {
     FILE *file = fopen(this->knownDevicesFilename, "w");
     if (file) {
-        uint16_t addressesSize = this->btAddressMap.size();
+        uint16_t addressesSize = this->btAddressesConfig.countBTAddresses();
         if (!this->writeUInt16(file, &addressesSize)) return false;
-        for (std::unordered_map<String, String>::iterator it = this->btAddressMap.begin() ; it != this->btAddressMap.end(); it++) {
+        for (std::unordered_map<String, String>::iterator it = this->btAddressesConfig.btAddressMap.begin() ; it != this->btAddressesConfig.btAddressMap.end(); it++) {
             String address = ((*it).first);
             String displayValue = ((*it).second);
             if (!this->writeString(file, &address)) return false;

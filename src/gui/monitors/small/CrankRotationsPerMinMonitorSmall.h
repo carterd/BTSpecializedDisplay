@@ -1,36 +1,20 @@
 #ifndef _CRANK_ROTATIONS_MONITOR_SMALL_H
 #define _CRANK_ROTATIONS_MONITOR_SMALL_H
 
-#include "..\..\MonitorLvObject.h"
+#include "BaseNumericSmall.h"
 
 
-class CrankRotationsPerMinMonitorSmall : public MonitorLvObject
+class CrankRotationsPerMinMonitorSmall : public BaseNumericSmall
 {
-private:
-    lv_obj_t* value_obj;
-
-private:
-    void update();
-
 public:
-    CrankRotationsPerMinMonitorSmall();
+    CrankRotationsPerMinMonitorSmall(const char* title = "Cad:") : BaseNumericSmall(BikeStateAttributeIndex::CRANK_ROTATIONS_PER_MIN, MonitorAttributeType::EVERY_SECOND, title, NULL) {}
 
-    /// <summary>
-    /// Returns the LV object instance to represent this class instance
-    /// </summary>
-    /// <returns>The LV object instance to represent this class instance</returns>
-    virtual lv_obj_t* createLvObj(lv_obj_t* parent);
-
-    /// <summary>
-    /// This means the object and any sub objects should set any groups to be in focus at this point
-    /// </summary>
-    virtual void focusLvObj(BaseLvObject* defocusLvObj = NULL);
-
-   	/// <summary>
-	/// The callback on the list required to be updated, i.e. a bluetooth device detected
-	/// </summary>
-	/// <param name="event">The lv event that identifies pressing the device entry</param>
-	virtual void statusUpdate();
+	virtual void initBluetoothStats()
+	{
+		BaseNumericSmall::initBluetoothStats();
+		// Extra bluetooth stat is required for this attribute
+		this->bluetoothBikeController->getConnectedBluetoothBike().readBikeStateAttribute(BikeStateAttributeIndex::CRANK_ROTATIONS, MonitorAttributeType::EVERY_TEN_SECONDS);
+	}
 };
 
 #endif

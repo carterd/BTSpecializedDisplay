@@ -1,44 +1,42 @@
-#ifndef _BUTTON_LABEL_H
-#define _BUTTON_LABEL_H
+#ifndef _BUTTON_LABEL_BAR_H
+#define _BUTTON_LABEL_BAR_H
 
 #include <lvgl.h>
 
 #include "BaseLvObject.h"
 
+#define AUTO_HIDE_TIMER_MS 5000
 #define BUTTON_LABEL_BAR_HEIGHT 10
 
 /// <summary>
 /// This is the Button Label that identifies what buttons do
 /// </summary>
-class ButtonLabel : public BaseLvObject {
+class ButtonLabelBar : public BaseLvObject {
 private:
-
-    lv_obj_t* activity_btn_1_obj;
-    lv_obj_t* activity_btn_2_obj;
     lv_obj_t* left_button_label_obj;
     lv_obj_t* right_button_label_obj;
     lv_obj_t* centre_button_label_obj;
-    lv_group_t* group;
-    lv_indev_t* indev;
     lv_timer_t* auto_hide_timer;
-
-    BaseLvObject* defocusLvObj;
 
     bool hidden = false;
 
     bool autoHide = false;
-    
+private:
+    /// <summary>
+    /// Sets the AutoHide timer from the current time, and can be over wridden by more setAutoHideTimer events
+    /// </summary>
+    void setAutoHideTimer();
 public:
     /// <summary>
     /// Constructor of the button label strip
     /// </summary>
     /// <param name="indev">The indev used for taking context of the encoder</param>
-    ButtonLabel(lv_indev_t* indev);
+    ButtonLabelBar();
 
     /// <summary>
     /// The Destructor we have lv_groups and lv_objs that potentially need cleaning up
     /// </summary>
-    virtual ~ButtonLabel();
+    virtual ~ButtonLabelBar();
 
     /// <summary>
     /// This Creates the instance of the Lv Objects associated with the instance and sub components associated with it
@@ -89,23 +87,12 @@ public:
     void setAutoHide(bool autoHide);
 
     /// <summary>
-    /// This is the callback when any events detected on the encoder
-    /// </summary>
-    /// <param name="event"></param>
-    void encorderActivityCB(lv_event_t* event);
-
-    /// <summary>
     /// This is a timer callback for a timer that auto hides the button
     /// </summary>
     /// <param name="timer"></param>
     void autoHideTimerCB(lv_timer_t* timer);
 
 public:
-    /// <summary>
-    /// The static callback for the any events detected on the encoder
-    /// </summary>
-    /// <param name="event"></param>
-    static void lv_event_encorder_cb(lv_event_t* event);
 
     /// <summary>
     /// The static callback for the hide timer event

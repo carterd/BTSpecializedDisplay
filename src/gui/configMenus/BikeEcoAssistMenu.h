@@ -20,11 +20,11 @@ private:
 public:
 	ScrollMenuItem configBikeMenuItem;
 public:
-	BikeEcoAssistMenu(ConfigStore& configStore, lv_indev_t* indev, ButtonLabel* buttonLabel = NULL) :
-		navigationMenu("Eco", "Back", indev, buttonLabel),
+	BikeEcoAssistMenu(ConfigStore& configStore, lv_indev_t* indev, ButtonLabelBar* buttonLabelBar = NULL) :
+		navigationMenu("Eco", "Back", indev, buttonLabelBar),
 		configBikeMenuItem("Eco Assist"),
-		bikeAssistLevelsMenu("Support", BikeConfigAttributeIndex::SupportAssistEco, configStore, indev, buttonLabel),
-		bikePeakAssitLevelsMenu("Peak Power", BikeConfigAttributeIndex::PeakPowerAssistEco, configStore, indev, buttonLabel)
+		bikeAssistLevelsMenu("Support", BikeConfigAttributeIndex::SupportAssistEco, configStore, indev, buttonLabelBar),
+		bikePeakAssitLevelsMenu("Peak Power", BikeConfigAttributeIndex::PeakPowerAssistEco, configStore, indev, buttonLabelBar)
 	{
 		// Bike Menus
 		this->navigationMenu.addMenuItem(&bikeAssistLevelsMenu.menuItem);

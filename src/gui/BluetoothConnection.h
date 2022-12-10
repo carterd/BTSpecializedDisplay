@@ -3,9 +3,9 @@
 
 #include <lvgl.h>
 
-#include "BaseLvObject.h"
+#include "ButtonLabelledLvObject.h"
 #include "MonitorLvObject.h"
-#include "ButtonLabel.h"
+#include "ButtonLabelBar.h"
 #include "..\dev\BluetoothBikeController.h"
 #include "..\dev\ConfigStore.h"
 
@@ -13,26 +13,24 @@
 #define SEARCHING_STRING "Searching"
 #define CONNECTING_TIMEOUT_MILLIS 180000
 
+class MonitorSelector;
+
 /// <summary>
 /// The connection shows an image with a spinner attempts to make a connection to any connecting 
 /// </summary>
-class BluetoothConnection : public BaseLvObject
+class BluetoothConnection : public ButtonLabelledLvObject
 {
 private:
     /// <summary>
     /// This is the LV background image
     /// </summary>
     lv_img_dsc_t* image;
-    /// <summary>
-    /// The indev for the encoder to give buttons context for exit
-    /// </summary>
-    lv_indev_t* indev;
-    /// <summary>
-    /// The group for the encoder to give buttons context for exit
-    /// </summary>
-    lv_group_t* group;
 
+    /// <summary>
+    /// The tile view object as this just an easy way to give scroll down animation on connection
+    /// </summary>
     lv_obj_t* tileview_obj;
+
     /// <summary>
     /// The connection button
     /// </summary>
@@ -41,7 +39,9 @@ private:
     /// The connection label
     /// </summary>
     lv_obj_t* label_obj;
-
+    /// <summary>
+    /// The Spinner graphic to show connecting activity
+    /// </summary>
     lv_obj_t* spinner_obj;
 
     /// <summary>
@@ -49,12 +49,11 @@ private:
     /// </summary>
     lv_obj_t* connection_tile_obj;
 
+    /// <summary>
+    /// This is a timer use to abort the connection if it's taking too long
+    /// </summary>
     lv_timer_t* connecting_timer;
 
-    /// <summary>
-    /// This is the button label or NULL for not button label
-    /// </summary>
-    ButtonLabel* buttonLabel = NULL;
     /// <summary>
     /// This is the bluetooth controller object
     /// </summary>
@@ -64,14 +63,29 @@ private:
     /// </summary>
     ConfigStore* configStore;
 
+    /// <summary>
+    /// Not currently used simply the milli seconds since turn on when the connection was attempted
+    /// </summary>
     uint32_t connectingStartTime;
 
+    /// <summary>
+    /// The state of the connection is in connecting state
+    /// </summary>
     bool connecting;
 
+    /// <summary>
+    /// The state of the connection is connected state
+    /// </summary>
     bool connected;
 
-    bool monitorLvObjActive;
+    /// <summary>
+    /// Ture when the monitorSelector is the actively shown on the display
+    /// </summary>
+    bool monitorSelectorActive;
 
+    /// <summary>
+    /// Ture when the exit button has been pressed and hence actively exiting the connection
+    /// </summary>
     bool exiting;
 
     /// <summary>
@@ -79,7 +93,7 @@ private:
     /// </summary>
     BaseLvObject* defocusLvObj;
 
-    MonitorLvObject* monitorLvObj;
+    MonitorSelector* monitorSelector;
 
 private:
 
@@ -91,6 +105,7 @@ private:
     /// Call on hiding the button label if one has been defined for this gui object
     /// </summary>
     void hideButtonLabels();
+    void showButtonLabels();
     /// <summary>
     /// This will start the process of connection to any of the BLE devices in the config store
     /// </summary>
@@ -116,6 +131,9 @@ private:
     /// </summary>
     void checkForConnectedUpdates();
 
+protected:
+    virtual void updateButtonLabelBar();
+
 public:
     /// <summary>
     /// The construct of for the bluetooth connection object
@@ -123,7 +141,7 @@ public:
     /// <param name="bluetoothMaster">an instance of the bluetooth controller</param>
     /// <param name="configStore">an instance of the config store for devices to connect to</param>
     /// <param name="configStore">an image to be the background image while connecting</param>
-    BluetoothConnection(BluetoothBikeController* bluetoothMaster, ConfigStore* configStore, lv_img_dsc_t* image, lv_indev_t* indev);
+    BluetoothConnection(BluetoothBikeController* bluetoothMaster, ConfigStore* configStore, lv_img_dsc_t* image, lv_indev_t* indev, ButtonLabelBar* buttonLabelBar = NULL);
 
     virtual ~BluetoothConnection();
 
@@ -133,6 +151,9 @@ public:
     /// <returns>The LV object instance to represent this class instance</returns>
     virtual lv_obj_t* createLvObj(lv_obj_t* parent);
 
+    /// <summary>
+    /// Destroy all the LV objects associated with the connection
+    /// </summary>
     virtual void destroyLvObj();
 
     /// <summary>
@@ -141,16 +162,10 @@ public:
     virtual void focusLvObj(BaseLvObject* defocusLvObj = NULL);
 
     /// <summary>
-    /// Used to set the button label for this object or NULL for no button label
-    /// </summary>
-    /// <param name="buttonLabel">The button label object for this gui object</param>
-    void setButtonLabel(ButtonLabel* buttonLabel) { this->buttonLabel = buttonLabel; };
-
-    /// <summary>
     /// Set the given bluetooth monitor to the connection whereby on connection control passed to the monitor
     /// </summary>
     /// <param name="scrollMenuItem">The menu item to add to the list</param>
-    void setMonitor(MonitorLvObject* monitorLvObj) { this->monitorLvObj = monitorLvObj; };
+    void setMonitorSelector(MonitorSelector* monitorSelector);
 
     /// <summary>
     /// This is called because on getting focus the refresh callback is registered with the bluetooth controller
@@ -168,14 +183,26 @@ public:
     /// This is called once a tile have moved it's position
     /// </summary>
     /// <param name="event"></param>
-    void tileChangedhCB(lv_event_t* event);
+    void tileChangedCB(lv_event_t* event);
 
-    void connectingTimerCB(lv_timer_t* timer);
+    /// <summary>
+    /// This a callback on any kind of activity detected by the encoder
+    /// </summary>
+    /// <param name="event"></param>
+    void encoderActivityCB(lv_event_t* event);
+
+    /// <summary>
+    /// This is the timeout call back for the timeout timer
+    /// </summary>
+    /// <param name="timer"></param>
+    void connectingTimerCB(lv_timer_t* timer);    
 public:
 
     static void refresh_cb(lv_event_t* event);
 
     static void exit_btn_cb(lv_event_t* event);
+
+    static void lv_event_encorder_cb(lv_event_t* event);
 
     static void tile_changed_cb(lv_event_t* event);
 

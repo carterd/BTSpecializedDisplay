@@ -13,8 +13,8 @@ private:
 public:
 	ScrollMenuItem menuItem;
 public:
-	BikeBeeperMenu(ConfigStore& configStore, lv_indev_t* indev, ButtonLabel* buttonLabel = NULL) :
-		integerSelectMenu("Beeper", "Back", configStore, BikeConfigAttributeIndex::Beeper, true, indev, buttonLabel),
+	BikeBeeperMenu(ConfigStore& configStore, lv_indev_t* indev, ButtonLabelBar* buttonLabelBar = NULL) :
+		integerSelectMenu("Beeper", "Back", configStore, BikeConfigAttributeIndex::Beeper, true, indev, buttonLabelBar),
 		menuItem("Beeper") 
 	{
 		this->integerSelectMenu.addMenuItem("Unmanaged", UNMANAGED_CONFIG);

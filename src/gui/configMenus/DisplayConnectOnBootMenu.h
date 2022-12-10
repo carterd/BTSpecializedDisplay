@@ -12,7 +12,7 @@ public:
 	DisplayConfigIntegerSelectMenu integerSelectMenu;
 	ScrollMenuItem menuItem;
 public:
-	DisplayConnectOnBootMenu(ConfigStore& configStore, Display& display, lv_indev_t* indev, ButtonLabel* buttonLabel = NULL) :
+	DisplayConnectOnBootMenu(ConfigStore& configStore, Display& display, lv_indev_t* indev, ButtonLabelBar* buttonLabel = NULL) :
 		integerSelectMenu("On Start", "Back", configStore, DisplayConfigAttributeIndex::ConnectOnBoot, display, indev, buttonLabel),
 		menuItem("On Start") 
 	{

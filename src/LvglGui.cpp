@@ -8,18 +8,21 @@
 
 #include "LvglGui.h"
 
+#include "gui/MainView.h"
 #include "gui/ScrollMenu.h"
 #include "gui/ScrollMenuItem.h"
 #include "gui/IntegerSelectMenu.h"
 #include "gui/ValueSelectMenu.h"
 #include "gui/ValueSelectMenuItem.h"
-#include "gui/ButtonLabel.h"
+#include "gui/ButtonLabelBar.h"
 
 #include "gui/BluetoothScanList.h"
 #include "gui/BluetoothConnection.h"
+#include "gui/MonitorSelector.h"
 #include "gui/monitors/main/BatteryCapacityMain.h"
 #include "gui/monitors/layout/MainSmallMonitorLayout.h"
 #include "gui/monitors/layout/MultiSmallMonitorLayout.h"
+#include "gui/monitors/small/MotorAssistLevelDotsSmall.h"
 #include "gui/monitors/small/MotorAssistLevelSmall.h"
 #include "gui/monitors/small/TimeticksMonitorSmall.h"
 #include "gui/monitors/small/CrankRotationsPerMinMonitorSmall.h"
@@ -81,14 +84,14 @@ void lvgl_setup(ConfigStore *configStore, BluetoothBikeController *bluetoothBike
     static Display display(displayGlue.display);
     display.setContrast(configStore->getDisplayConfig().contrast);
 
-    static ButtonLabel buttonLabel(indev);
-
-
+    
+    static MainView mainView(indev);
+    ButtonLabelBar* buttonLabelBar = mainView.getButtonLabelBar();
 
     // 
     // Connect Menu Item
     //
-    static BluetoothConnection bluetoothConnection(bluetoothBikeController, configStore, &pressbutton, indev);
+    static BluetoothConnection bluetoothConnection(bluetoothBikeController, configStore, &pressbutton, indev, buttonLabelBar);
 
     static CrankRotationsPerMinMonitorSmall crankRotationsPerMinMonitorSmall;
     static WheelRotationsPerMinMonitorSmall wheelRotationsPerMinMonitorSmall;
@@ -99,50 +102,60 @@ void lvgl_setup(ConfigStore *configStore, BluetoothBikeController *bluetoothBike
 
     static BatteryCapacityMain batteryMonitor;
 
-
+    static MotorAssistLevelDotSmall motorAssistLevelDotSmall;
     static MotorAssistLevelSmall motorAssistLevelSmall;
     static BlankSmall blankSmall;
-    static MainSmallMonitorLayout mainSmallMonitorLayout(&batteryMonitor, &motorAssistLevelSmall);
+    static MainSmallMonitorLayout mainSmallMonitorLayout(&batteryMonitor, &motorAssistLevelDotSmall);
     static MultiSmallMonitorLayout multiSmallMonitorLayout(&wheelRotationsPerMinMonitorSmall, &crankRotationsPerMinMonitorSmall, &batteryCapacitySmall, &timeticksMonitor, &motorAssistLevelSmall, &riderPowerSmall, &motorPowerSmall, &blankSmall);
-    
+
+    static MonitorSelector monitorSelector(indev, buttonLabelBar);
+    monitorSelector.addMonitorLvObject(&mainSmallMonitorLayout);
+    monitorSelector.addMonitorLvObject(&multiSmallMonitorLayout);
 
     // Create the connection
-    bluetoothConnection.setMonitor(&multiSmallMonitorLayout);
-    bluetoothConnection.setButtonLabel(&buttonLabel);
+    bluetoothConnection.setMonitorSelector(&monitorSelector);
     // Create the menu item popup being the connection
     static ScrollMenuItem connectMenuItem(&pressbutton, false);
     connectMenuItem.setPopupItem(&bluetoothConnection);
 
-
     //
     // Settings Menu Item
     //
-    static ConfigMainMenu configMainMenu(*configStore, display, indev, &buttonLabel);
+    //static ConfigMainMenu configMainMenu(*configStore, display, indev, NULL);
+    static ConfigMainMenu configMainMenu(*configStore, display, indev, buttonLabelBar);
     
     //
     // Bluetooth Menu Item
     //
-    static BluetoothScanList bluetoothScanList(bluetoothBikeController, configStore, indev);
-    bluetoothScanList.setButtonLabel(&buttonLabel);
+    static BluetoothScanList bluetoothScanList(bluetoothBikeController, configStore, indev, buttonLabelBar);
     static ScrollMenuItem bluetoothMenuItem(&bluetooth);    
-    bluetoothMenuItem.setPopupItem(&bluetoothScanList);    
+    bluetoothMenuItem.setPopupItem(&bluetoothScanList);
 
     //
     // Main Menu
     //
-    static ScrollMenu mainMenu(indev, &buttonLabel);
-    mainMenu.addMenuItem(&connectMenuItem);
-    mainMenu.addMenuItem(&configMainMenu.configMainMenuItem);
-    mainMenu.addMenuItem(&bluetoothMenuItem);
+    
+    lv_obj_t* screen_obj = lv_scr_act();
+    static ScrollMenu mainScrollMenu(indev, buttonLabelBar);
+    mainScrollMenu.addMenuItem(&connectMenuItem);
+    mainScrollMenu.addMenuItem(&configMainMenu.configMainMenuItem);
+    mainScrollMenu.addMenuItem(&bluetoothMenuItem);
 
-    lv_obj_t *screen_obj = lv_scr_act();
-    mainMenu.createLvObj(screen_obj);
-    mainMenu.focusLvObj();
+    mainView.setBaseLvObject(&mainScrollMenu);
+//    mainView.setBaseLvObject(&monitorSelector);
+    mainView.createLvObj(screen_obj);
+    mainView.focusLvObj();
+
+//    monitorSelector.createLvObj(screen_obj);
+//    monitorSelector.focusLvObj();
+
+    //mainScrollMenu.createLvObj(screen_obj);
+    //mainScrollMenu.focusLvObj();
 
     //
     // If connect on boot and there is at least one address to connect to
     //
-    if (configStore->getDisplayConfig().connectOnBoot && configStore->countBTAddresses() > 0) {
-        mainMenu.selectScrollMenuItem(&connectMenuItem);
+    if (configStore->getDisplayConfig().connectOnBoot && configStore->getBTAddressesConfig().countBTAddresses() > 0) {
+        mainScrollMenu.selectScrollMenuItem(&connectMenuItem);
     }
 }

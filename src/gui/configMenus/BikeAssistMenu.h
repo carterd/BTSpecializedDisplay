@@ -85,13 +85,13 @@ private:
 public:
 	ScrollMenuItem menuItem;
 public:
-	BikeAssistMenu(ConfigStore& configStore, lv_indev_t* indev, ButtonLabel* buttonLabel = NULL) :
-		assistNavigationMenu("Assit Levels", "Back", indev, buttonLabel),
+	BikeAssistMenu(ConfigStore& configStore, lv_indev_t* indev, ButtonLabelBar* buttonLabelBar = NULL) :
+		assistNavigationMenu("Assit Levels", "Back", indev, buttonLabelBar),
 		menuItem("Assit Levels"),
 		managedBikeConfigMenuItem("Managed", configStore, BikeConfigAttributeIndex::SupportAssistLevelsManaged),
-		bikeEcoAssitMenu(configStore, indev, buttonLabel),
-		bikeTrailAssitMenu(configStore, indev, buttonLabel),
-		bikeTurboAssitMenu(configStore, indev, buttonLabel)
+		bikeEcoAssitMenu(configStore, indev, buttonLabelBar),
+		bikeTrailAssitMenu(configStore, indev, buttonLabelBar),
+		bikeTurboAssitMenu(configStore, indev, buttonLabelBar)
 	{
         // Bike Menus
 		this->assistNavigationMenu.addMenuItem(&this->managedBikeConfigMenuItem);

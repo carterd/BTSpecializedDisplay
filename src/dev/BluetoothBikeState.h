@@ -28,6 +28,9 @@ struct AssistLevels {
     uint8_t eco;
     uint8_t trail;
     uint8_t turbo;
+    friend bool operator==(const AssistLevels& lhs, const AssistLevels& rhs) {
+        return (lhs.eco == rhs.eco && lhs.trail == rhs.trail && lhs.turbo == rhs.turbo);
+    }
 };
 
 struct NumberString {
@@ -140,6 +143,10 @@ public:
 /// </summary>
 class BikeState {
 private:
+    /// <summary>
+    /// This is the bike attributes stored for the bike state, and hence for each state attribute index there is an associated attribute.
+    /// </summary>
+    /// Each attribute consists of monitor attribute, attribute type and the attribute value.
     BikeStateAttribute bikeStateAttributes[static_cast<int>(BikeStateAttributeIndex::BIKE_STATE_ATTRIBUTE_SIZE)];    
 
 public:

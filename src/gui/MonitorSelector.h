@@ -1,13 +1,16 @@
-#ifndef SCROLL_MENU_H
-#define SCROLL_MENU_H
+#ifndef _MONITOR_SELECTOR_H
+#define _MONITOR_SELECTOR_H
 
 #include <lvgl.h>
 #include <vector>
 
 #include "ButtonLabelledLvObject.h"
-#include "ScrollMenuItem.h"
+#include "MonitorLvObject.h"
+#include "ButtonLabelBar.h"
 
-class ScrollMenu : public ButtonLabelledLvObject
+class BluetoothConnection;
+
+class MonitorSelector : public ButtonLabelledLvObject
 {
 private:
     /// <summary>
@@ -15,10 +18,12 @@ private:
     /// </summary>
     lv_obj_t* options_tileview_obj;
 
+    lv_obj_t* activity_btn_obj;
+
     /// <summary>
     /// The menu items store
     /// </summary>
-    std::vector <ScrollMenuItem*> scrollMenuItems;
+    std::vector <MonitorLvObject*> monitorLvObjects;
 
     /// <summary>
     /// Flag to define if button labels should be displayed when entering menu
@@ -40,21 +45,23 @@ private:
     /// Flag, if true the selecting to and from the menu item is animated.
     /// </summary>
     bool selectedItemAnimated;
-
-protected:
     /// <summary>
-    /// This function is required to be overloaded and set the correct state and label of the button label bar for this lv object
+    /// Pointer back to bluetoothConnection object for exiting
     /// </summary>
+    BluetoothConnection* bluetoothConnection;
+protected:
     virtual void updateButtonLabelBar();
+
+    void selectMonitor(MonitorLvObject* monitorLvObject);
 
 public:
     /// <summary>
     /// Constructor for the scroll menu
     /// </summary>
     /// <param name="indev">The indev used for taking context of the encoder</param>
-    ScrollMenu(lv_indev_t* indev, ButtonLabelBar* buttonLabelBar = NULL);
+    MonitorSelector(lv_indev_t* indev, ButtonLabelBar* buttonLabel = NULL);
 
-    virtual ~ScrollMenu();
+    virtual ~MonitorSelector();
 
     /// <summary>
     /// This Creates the instance of the Lv Objects associated with the instance and sub components associated with it
@@ -70,11 +77,29 @@ public:
     /// </summary>
     virtual void focusLvObj(BaseLvObject* defocusLvObj = NULL);
 
+    virtual void statusUpdate();
+
     /// <summary>
     /// Add the given menu item objec to this list in the order called with this function
     /// </summary>
     /// <param name="scrollMenuItem">The menu item to add to the list</param>
-    void addMenuItem(ScrollMenuItem* scrollMenuItem);
+    void addMonitorLvObject(MonitorLvObject* monitorLvObject);
+
+    /// <summary>
+    /// This will if not already selected a menu item and shift the focus to this menu item
+    /// </summary>
+    /// <param name="scrollMenuItem"></param>
+    void selectMonitorLvObject(MonitorLvObject* monitorLvObject);
+
+    void setBluetoothConnection(BluetoothConnection* bluetoothConnection) { this->bluetoothConnection = bluetoothConnection; }
+
+    /// <summary>
+    /// This is used to pass the bluetooth controller to it's actual collection of monitors
+    /// </summary>
+    /// <param name="bluetoothBikeController"></param>
+    void setBluetoothController(BluetoothBikeController* bluetoothBikeController);
+
+    void initBluetoothStats();
 
     /// <summary>
     /// Callback when a tile item button is clicked
@@ -95,15 +120,16 @@ public:
     void valueChangedCB(lv_event_t* event);
 
     /// <summary>
-    /// This will if not already selected a menu item and shift the focus to this menu item
+    /// This is called when the user presses the exit button for the connection
     /// </summary>
-    /// <param name="scrollMenuItem"></param>
-    void selectScrollMenuItem(ScrollMenuItem* scrollMenuItem);
+    /// <param name="event">The event object for refresh being called into by the scanning</param>
+    void exitButtonCB(lv_event_t* event = NULL);
 
 public:
     static void value_changed_cb(lv_event_t* event);
     static void tile_btn_cb(lv_event_t* event);
     static void tile_btn_defocus_cb(lv_event_t* event);
+    static void exit_btn_cb(lv_event_t* event);
 };
 
 #endif

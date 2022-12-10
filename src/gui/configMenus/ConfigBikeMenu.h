@@ -19,7 +19,7 @@ private:
 public:
 	ScrollMenuItem configBikeMenuItem;
 public:
-	ConfigBikeMenu(ConfigStore& configStore, lv_indev_t* indev, ButtonLabel* buttonLabel = NULL) :
+	ConfigBikeMenu(ConfigStore& configStore, lv_indev_t* indev, ButtonLabelBar* buttonLabel = NULL) :
 		bikeNavigationMenu("Bike", "Back", indev, buttonLabel),
 		configBikeMenuItem("Bike"),
         bikeBeeperMenu(configStore, indev, buttonLabel),

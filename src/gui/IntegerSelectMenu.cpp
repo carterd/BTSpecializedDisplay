@@ -1,6 +1,6 @@
 #include "IntegerSelectMenu.h"
 
-IntegerSelectMenu::IntegerSelectMenu(const char* titleText, const char* exitButtonText, lv_indev_t* indev, ButtonLabel* buttonLabel)
+IntegerSelectMenu::IntegerSelectMenu(const char* titleText, const char* exitButtonText, lv_indev_t* indev, ButtonLabelBar* buttonLabel)
     : ValueSelectMenu(titleText, exitButtonText, indev, buttonLabel)
 {
 }

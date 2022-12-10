@@ -12,7 +12,7 @@ public:
 	DisplayConfigIntegerSelectMenu integerSelectMenu;
 	ScrollMenuItem menuItem;
 public:
-	DisplayConnectBatteryOnlyMenu(ConfigStore& configStore, Display& display, lv_indev_t* indev, ButtonLabel* buttonLabel = NULL) :
+	DisplayConnectBatteryOnlyMenu(ConfigStore& configStore, Display& display, lv_indev_t* indev, ButtonLabelBar* buttonLabel = NULL) :
 		integerSelectMenu("Connection", "Back", configStore, DisplayConfigAttributeIndex::ConnectBatteryOnly, display, indev, buttonLabel),
 		menuItem("Connection") 
 	{

@@ -12,7 +12,7 @@ public:
 	DisplayConfigIntegerSelectMenu integerSelectMenu;
 	ScrollMenuItem menuItem;
 public:
-	DisplayBrightnessMenu(ConfigStore& configStore, Display& display, lv_indev_t* indev, ButtonLabel* buttonLabel = NULL) :
+	DisplayBrightnessMenu(ConfigStore& configStore, Display& display, lv_indev_t* indev, ButtonLabelBar* buttonLabel = NULL) :
 		integerSelectMenu("Brightness", "Back", configStore, DisplayConfigAttributeIndex::Contrast, display, indev, buttonLabel),
 		menuItem("Brightness") 
 	{

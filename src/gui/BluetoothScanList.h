@@ -3,8 +3,8 @@
 
 #include <lvgl.h>
 
-#include "BaseLvObject.h"
-#include "ButtonLabel.h"
+#include "ButtonLabelledLvObject.h"
+#include "ButtonLabelBar.h"
 #include "..\dev\BluetoothBikeController.h"
 #include "..\dev\ConfigStore.h"
 
@@ -15,23 +15,27 @@
 /// <summary>
 /// This is the scanning list of possible bluetooth connections
 /// </summary>
-class BluetoothScanList : public BaseLvObject
+class BluetoothScanList : public ButtonLabelledLvObject
 {
 private:
 	lv_obj_t* list_obj;
 	lv_obj_t* exit_button_obj;
 	lv_obj_t* scan_anim_obj;
-	lv_group_t* group;
-	lv_indev_t* indev;
-	ButtonLabel* buttonLabel;
 	BluetoothBikeController* bluetoothController;
 	ConfigStore* configStore;
-	std::unordered_map<lv_obj_t*, BLEDevice> buttonDeviceMap;
+	std::unordered_map<lv_obj_t*, String> buttonAddressMap;
 	bool scanning;
 	/// <summary>
 	/// This is the object given focus on this object loosing focus
 	/// </summary>
 	BaseLvObject* defocusLvObj;
+	BTAddressesConfig btAddressConfig;
+
+protected:
+	/// <summary>
+	/// Update the state of the button label bar
+	/// </summary>
+	virtual void updateButtonLabelBar();
 
 private:
 	/// <summary>
@@ -39,9 +43,9 @@ private:
 	/// </summary>
 	void removeDeviceItems();
 	/// <summary>
-	/// Displays the button label if one has been assoicated with the scan list
+	/// This helper function adds list entries of already known devices to the list
 	/// </summary>
-	void showButtonLabels();
+	void addKnownDeviceItems();
 	/// <summary>
 	/// This starts the BT scanning
 	/// </summary>
@@ -57,6 +61,13 @@ private:
 	/// <returns>The device button created in the list</returns>
 	lv_obj_t* addDeviceItem(BLEDevice* bleDevice);
 	/// <summary>
+	/// Add a detected Deivce giving the Address and display String
+	/// </summary>
+	/// <param name="addressString"></param>
+	/// <param name="displayString"></param>
+	/// <returns></returns>
+	lv_obj_t* addDeviceItem(const String& addressString, const String& displayString);
+	/// <summary>
 	/// Add a button onto the list with given display text and a possible known device icon
 	/// </summary>
 	/// <param name="displayText">Display text in the list</param>
@@ -68,7 +79,7 @@ private:
 	/// </summary>
 	/// <param name="bleDevice">The BLE device for which to find the </param>
 	/// <returns></returns>
-	lv_obj_t* getDeviceButton(BLEDevice* bleDevice);
+	lv_obj_t* getDeviceButton(const String& addressString);
 	
 public:
 	/// <summary>
@@ -77,8 +88,11 @@ public:
 	/// <param name="bluetoothMaster">The bluetooth controller object</param>
 	/// <param name="configStore">The config store containing know bluetooth devices</param>
 	/// <param name="indev">The indev used for taking context of the encoder</param>
-	BluetoothScanList(BluetoothBikeController* bluetoothMaster, ConfigStore* configStore, lv_indev_t* indev);
+	BluetoothScanList(BluetoothBikeController* bluetoothMaster, ConfigStore* configStore, lv_indev_t* indev, ButtonLabelBar* buttonLabelBar = NULL);
 
+	/// <summary>
+	/// Distructor foer the scan list object
+	/// </summary>
 	virtual ~BluetoothScanList();
 
 	/// <summary>
@@ -88,18 +102,15 @@ public:
 	/// <returns>The created LV object instance</returns>
 	virtual lv_obj_t* createLvObj(lv_obj_t* parent);
 
+	/// <summary>
+	/// Destroy the lv objects for this object
+	/// </summary>
 	virtual void destroyLvObj();
 
 	/// <summary>
 	/// This means the object and any sub objects should set any groups to be in focus at this point
 	/// </summary>
 	virtual void focusLvObj(BaseLvObject* defocusLvObj = NULL);
-
-	/// <summary>
-	/// Used to set the button label for this object or NULL for no button label
-	/// </summary>
-	/// <param name="buttonLabel">The button label object for this gui object</param>
-	void setButtonLabel(ButtonLabel* buttonLabel);	
 
 	/// <summary>
 	/// The callback on the exit button clicked

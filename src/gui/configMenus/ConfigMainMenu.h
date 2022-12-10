@@ -15,7 +15,7 @@ private:
 public:
     ScrollMenuItem configMainMenuItem;
 public:
-	ConfigMainMenu(ConfigStore& configStore, Display& display, lv_indev_t* indev, ButtonLabel* buttonLabel = NULL) :
+	ConfigMainMenu(ConfigStore& configStore, Display& display, lv_indev_t* indev, ButtonLabelBar* buttonLabel = NULL) :
         mainNavigationMenu("Config", "Exit", indev, buttonLabel),
         configMainMenuItem(&spanner),
         configBikeMenu(configStore, indev, buttonLabel),

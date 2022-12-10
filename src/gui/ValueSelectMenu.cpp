@@ -1,5 +1,5 @@
 #include "ValueSelectMenu.h"
-#include "ButtonLabel.h"
+#include "ButtonLabelBar.h"
 #include <LvglThemes/lv_theme_binary.h>
 
 void ValueSelectMenu::exit_btn_cb(lv_event_t* event) {
@@ -20,13 +20,11 @@ void ValueSelectMenu::menu_item_btn_cb(lv_event_t* event) {
 	}
 }
 
-ValueSelectMenu::ValueSelectMenu(const char* titleText, const char* exitButtonText, lv_indev_t* indev, ButtonLabel* buttonLabel) : BaseLvObject()
+ValueSelectMenu::ValueSelectMenu(const char* titleText, const char* exitButtonText, lv_indev_t* indev, ButtonLabelBar* buttonLabelBar) : ButtonLabelledLvObject(indev, buttonLabelBar)
 {
-	this->indev = indev;
     this->titleText = titleText;
     this->exitButtonText = exitButtonText;    
 	this->defocusLvObj = NULL;
-	this->setButtonLabel(buttonLabel);
 }
 
 ValueSelectMenu::~ValueSelectMenu()
@@ -98,7 +96,7 @@ void ValueSelectMenu::focusLvObj(BaseLvObject* defocusLvObj)
 	{
 		this->defocusLvObj = defocusLvObj;		
 	}
-	showButtonLabels();
+	this->updateButtonLabelBar();
 }
 
 void ValueSelectMenu::updateLvObj() {
@@ -110,16 +108,11 @@ void ValueSelectMenu::updateLvObj() {
 
 }
 
-void ValueSelectMenu::setButtonLabel(ButtonLabel* buttonLabel)
+void ValueSelectMenu::updateButtonLabelBar()
 {
-	this->buttonLabel = buttonLabel;
-}
-
-void ValueSelectMenu::showButtonLabels()
-{
-	if (this->buttonLabel) {
-		this->buttonLabel->setButtonLabels(LV_SYMBOL_UP, LV_SYMBOL_OK, LV_SYMBOL_DOWN);
-		this->buttonLabel->show();
+	if (this->buttonLabelBar) {
+		this->buttonLabelBar->setButtonLabels(LV_SYMBOL_UP, LV_SYMBOL_OK, LV_SYMBOL_DOWN);
+		this->buttonLabelBar->show();
 	}
 }
 

@@ -92,42 +92,58 @@ enum class EbikeStatusArea { BATTERY=0, MOTOR=1, OTHER=2, SECONDARY_BATTERY=4, I
 //     0x08 - Firmware Version
 //     0x09 - Serial Number (GEN1 only)
 //     0x0A - Unknown [u-int-32] zeros (see 0108)
+//     0x0B - _NOT_USED_?
 //     0x0C - Charge Percentage
+//     0x0D - _NOT_USED_?
+//     0x0E - _NOT_USED_?
+//     0x0F - _NOT_USED_?
 //     0x10 - Serial Number Part-1 (GEN2 only)
 //     0x11 - Serial Number Part-2 (GEN2 only)
-enum class EbikeStatusBattery { CAPACITY=0x00, CAPACITY_REMAIN=0x01, HEALTH=0x02, TEMP=0x03, CHARGE_CYCLES=0x04, VOLTAGE=0x05, CURRENT=0x06, HARDWARE_VERSION=0x07, FIRMWARE_VERSION=0x08, SERIAL_NO_GEN1=0x09, CHARGE_PERCENT=0x0C, UNKNOWN_A=0x0A, SERIAL_NO_GEN2_PART1=0x10, SERIAL_NO_GEN2_PART2=0x11 };
+enum class EbikeStatusBattery { CAPACITY=0x00, CAPACITY_REMAIN=0x01, HEALTH=0x02, TEMP=0x03, CHARGE_CYCLES=0x04, VOLTAGE=0x05, CURRENT=0x06, HARDWARE_VERSION=0x07, FIRMWARE_VERSION=0x08, SERIAL_NO_GEN1=0x09, UNKNOWN_A=0x0A, CHARGE_PERCENT = 0x0C, SERIAL_NO_GEN2_PART1=0x10, SERIAL_NO_GEN2_PART2=0x11, BIKE_STATE_BATTERY_SIZE=0x12 };
 //   [For Motor Status Area 0x01]
 //     0x00 - Rider Power
 //     0x01 - Motor Cadence
 //     0x02 - Motor Speed
+//     0x03 - _NOT_USED_?
 //     0x04 - Odometer
 //     0x05 - Motor Assist Level
 //     0x06 - UNKNOWN [u-int-8] (always zero)
 //     0x07 - Temperature
 //     0x08 - UNKNOWN [u-int-32] zeros (see 000A)
+//     0x09 - _NOT_USED_?
 //     0x0A - Firmware Version
+//     0x0B - _NOT_USED_?
 //     0x0C - Motor Power
+//     0x0D - _NOT_USED_?
+//     0x0E - _NOT_USED_?
+//     0x0F - _NOT_USED_?
 //     0x10 - Peak Assit Settings
 //     0x11 - Hardware Number Part-1
 //     0x12 - Hardware Number Part-2
 //     0x13 - Serail Number Part-1 
 //     0x14 - Serail Number Part-2
 //     0x15 - Shuttle???
-enum class EbikeStatusMotor { RIDER_POWER=0x00, CADENCE=0x01, SPEED=0x02, ODOMETER=0x04, ASSIST_LEVEL=0x05, UNKNOWN_6=0x06, TEMP=0x07, UNKNOWN_8=0x08, FIRMWARE_VERSION=0x0A, MOTOR_POWER=0x0C, PEAK_POWER_ASSIST=0x10, HARDWARE_NO_PART1=0x11, HARDWARE_NO_PART2=0x12, SERIAL_NO_PART1=0x13, SERIAL_NO_PART2=0x14, SHUTTLE=0x15 };
+enum class EbikeStatusMotor { RIDER_POWER=0x00, CADENCE=0x01, SPEED=0x02, ODOMETER=0x04, ASSIST_LEVEL=0x05, UNKNOWN_6=0x06, TEMP=0x07, UNKNOWN_8=0x08, FIRMWARE_VERSION=0x0A, MOTOR_POWER=0x0C, PEAK_POWER_ASSIST=0x10, HARDWARE_NO_PART1=0x11, HARDWARE_NO_PART2=0x12, SERIAL_NO_PART1=0x13, SERIAL_NO_PART2=0x14, SHUTTLE=0x15, BIKE_STATE_MOTOR_SIZE = 0x16 };
 //   [For Bike Other Status Area 0x02]
 //     0x00 - Wheel Circumference
 //     0x01 - Unknown always 00 Some Kind of bike Version
+//     0x02 - _NOT_USED_?
 //     0x03 - Bike Assit Eco Percentage
 //     0x04 - Bike Assit Trail Percentage
 //     0x05 - Bike Assit Turbo Percentage
 //     0x06 - Bike Fake Channel
 //     0x07 - Unknown (not used)
+//     0x08 - _NOT_USED_?
 //     0x09 - Beeper
 //     0x0A - Unknown always 02
 //     0x0B - Bike On Off State
+//     0x0C - _NOT_USED_?
+//     0x0D - _NOT_USED_?
+//     0x0E - _NOT_USED_?
+//     0x0F - _NOT_USED_?
 //     0x10 - Bike Serial
 //     0x11 - Unknown always (00 00 00)
-enum class EbikeStatusOther { WHEEL_CIRCUMFERENCE=0x00, UNKNOWN_1=0x01, UNKNOWN_2=0x02, SUPPORT_ASSIST_ECO=0x03, SUPPORT_ASSIST_TRAIL=0x04, SUPPORT_ASSIST_TURBO=0x05, FAKE_CHANNEL=0x06, UNKNOWN_7=0x07, UNKONWN_8=0x08, BEEPER=0x09, FIRMWARE_VERSION=0x0A, BIKE_ON_OFF=0x0B, BIKE_SERIAL_NO=0x10, UNKNOWN_11=0x11 };
+enum class EbikeStatusOther { WHEEL_CIRCUMFERENCE=0x00, UNKNOWN_1=0x01, UNKNOWN_2=0x02, SUPPORT_ASSIST_ECO=0x03, SUPPORT_ASSIST_TRAIL=0x04, SUPPORT_ASSIST_TURBO=0x05, FAKE_CHANNEL=0x06, UNKNOWN_7=0x07, UNKONWN_8=0x08, BEEPER=0x09, UNKONWN_A =0x0A, BIKE_ON_OFF=0x0B, BIKE_SERIAL_NO=0x10, UNKNOWN_11=0x11, BIKE_STATE_OTHER_SIZE = 0x12 };
 #define UUID_SPECIALIZED_READ_KEY_CHARACTERISTIC_GEN1    "00000021-0000-4b49-4e4f-525441474947"
 #define UUID_SPECIALIZED_READ_KEY_CHARACTERISTIC_GEN2    "00000021-3731-3032-494d-484f42525554"
 

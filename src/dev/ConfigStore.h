@@ -43,6 +43,9 @@ public:
         this->connectOnBoot = connectOnBoot;
     };
     DisplayConfig() {};
+    friend bool operator==(const DisplayConfig& lhs, const DisplayConfig& rhs) {
+        return (lhs.contrast == rhs.contrast && lhs.monitorType == rhs.monitorType && lhs.connectBatteryOnly == rhs.connectBatteryOnly && lhs.connectOnBoot == rhs.connectOnBoot);
+    }
     void setIntValue(DisplayConfigAttributeIndex displayConfigAttributeIndex, int newValue) {
         switch (displayConfigAttributeIndex) {
             case DisplayConfigAttributeIndex::Contrast:
@@ -88,6 +91,9 @@ public:
     BikeConfigAttr(bool managed) { this->manged = managed; }
     BikeConfigAttr() { this->managed = false; }
     void setMangedValue(T value) { this->managed = true; this->value = value; }
+    friend bool operator==(const BikeConfigAttr<T>& lhs, const BikeConfigAttr<T>& rhs) {
+        return (lhs.managed == rhs.managed && lhs.value == rhs.value);
+    }
 };
 
 
@@ -130,7 +136,9 @@ struct BikeConfig {
             break;
         }
     }
-
+    friend bool operator==(const BikeConfig& lhs, const BikeConfig& rhs) {
+        return (lhs.beeper == rhs.beeper && lhs.fakeChannel == rhs.fakeChannel && lhs.wheelCircumference == rhs.wheelCircumference && lhs.peakPowerAssistLevels == rhs.peakPowerAssistLevels && lhs.supportAssistLevels == rhs.supportAssistLevels);
+    }
     void setIntValue(BikeConfigAttributeIndex bikeConfigAttributeIndex, int newValue) {
         switch (bikeConfigAttributeIndex) {
             case BikeConfigAttributeIndex::Beeper:
@@ -237,6 +245,48 @@ struct BikeConfig {
 
 };
 
+struct BTAddressesConfig {
+    std::unordered_map<String, String> btAddressMap;
+    void clear() {
+        this->btAddressMap.clear();
+    }
+    void addBTAddress(const char* address, const char* display) {
+        String addressString(address);
+        String displayString(display);
+        this->addBTAddress(addressString, displayString);
+    }
+    void addBTAddress(const String& addressString, const String& displayString) {
+        this->btAddressMap[addressString] = displayString;
+    }
+    void removeBTAddress(const char* address) {
+        String addressString(address);
+        this->removeBTAddress(addressString);
+    }
+    void removeBTAddress(const String& addressString) {
+        this->btAddressMap.erase(addressString);
+    }
+    bool containsBTAddress(const char* address) {
+        String addressString(address);
+        return this->containsBTAddress(addressString);
+    }
+    bool containsBTAddress(const String& addressString) {
+        return this->btAddressMap.count(addressString);
+    }
+    String* getBTAddressDisplayString(const char* address) {
+        String addressString(address);
+        return this->getBTAddressDisplayString(addressString);
+    }
+    String* getBTAddressDisplayString(const String& addressString) {
+        if (this->btAddressMap.count(addressString)) {
+            return &(this->btAddressMap[addressString]);
+        }
+        return NULL;
+    }
+    int countBTAddresses() {
+        return this->btAddressMap.size();
+    }
+};
+
 /// <summary>
 /// The config store is a file system store used to store the display's configuration.
 /// The displays configuration is diveded into the DisplayConfig and BikeConfig
@@ -249,7 +299,7 @@ private:
     const char* bikeConfigFilename;
     const char* displayConfigFilename;
 
-    std::unordered_map<String, String> btAddressMap;
+    BTAddressesConfig btAddressesConfig;
     DisplayConfig displayConfig;
     BikeConfig bikeConfig;
 
@@ -276,19 +326,13 @@ public:
     ConfigStore();
     void init();
     void defaults();
-    void addBTAddress(const char* address, const char* display);
-    void addBTAddress(String* addressString, String* displayString);
-    void removeBTAddress(const char* address);
-    void removeBTAddress(String* addressString);
-    void updateBikeConfig(BikeConfig bikeConfig);
-    BikeConfig getBikeConfig();
-    void updateDisplayConfig(DisplayConfig bikeConfig);
-    DisplayConfig getDisplayConfig();
-    bool containsBTAddress(const char* address);
-    bool containsBTAddress(String* addressString);
-    String* getBTAddressDisplayString(const char* address);
-    String* getBTAddressDisplayString(String* addressString);
-    int countBTAddresses();
+
+    void updateBTAddressesConfig(BTAddressesConfig& btAddressesConfig);
+    BTAddressesConfig& getBTAddressesConfig();
+    void updateBikeConfig(BikeConfig& bikeConfig);
+    BikeConfig& getBikeConfig();
+    void updateDisplayConfig(DisplayConfig& bikeConfig);
+    DisplayConfig& getDisplayConfig();
 };
 
 #endif

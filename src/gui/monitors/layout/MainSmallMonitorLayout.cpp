@@ -33,12 +33,6 @@ lv_obj_t* MainSmallMonitorLayout::createLvObj(lv_obj_t* parent) {
 	return this->this_obj;
 }
 
-void MainSmallMonitorLayout::focusLvObj(BaseLvObject* defocusLvObj)
-{
-    this->smallMonitorLvObject->focusLvObj();
-    this->mainMonitorLvObject->focusLvObj();
-}
-
 void MainSmallMonitorLayout::statusUpdate()
 {
 	if (this->bluetoothBikeController && this->bluetoothBikeController->getConnected()) {

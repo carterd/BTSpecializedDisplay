@@ -1,49 +1,44 @@
-#ifndef _ASSIST_MONITOR_SMALL_H
-#define _ASSIST_MONITOR_SMALL_H
+#ifndef _MOTOR_ASSIST_LEVEL_SMALL_H
+#define _MOTOR_ASSIST_LEVEL_SMALL_H
 
-#include "..\..\MonitorLvObject.h"
-
-
-#define DOT_SIZE 3
-#define DOT_ROUNDED true
+#include "BaseNumericSmall.h"
 
 #define ASSIST_LEVEL_TEXT_0 "-"
 #define ASSIST_LEVEL_TEXT_1 "Eco"
 #define ASSIST_LEVEL_TEXT_2 "Trail"
 #define ASSIST_LEVEL_TEXT_3 "Turbo"
 
-class MotorAssistLevelSmall : public MonitorLvObject
+class MotorAssistLevelSmall : public BaseNumericSmall
 {
-private:
-    lv_style_t assist_line_style;
-    lv_point_t assist_line_points[4][2];
-    lv_obj_t* levels[4];
-
-    uint16_t displayedMotorAssistLevel;
-    uint8_t displayedBikeOnOffState;
-
-private:
-    void update();
-
 public:
-    MotorAssistLevelSmall();
+	MotorAssistLevelSmall(const char* title = "Asst:") : BaseNumericSmall(BikeStateAttributeIndex::MOTOR_ASSIST_LEVEL, MonitorAttributeType::EVERY_MINUTE, title) {}
 
-    /// <summary>
-    /// Returns the LV object instance to represent this class instance
-    /// </summary>
-    /// <returns>The LV object instance to represent this class instance</returns>
-    virtual lv_obj_t* createLvObj(lv_obj_t* parent);
+	virtual void initBluetoothStats()
+	{
+		BaseNumericSmall::initBluetoothStats();
+		this->bluetoothBikeController->getConnectedBluetoothBike().readBikeStateAttribute(BikeStateAttributeIndex::BIKE_ON_OFF_STATE, MonitorAttributeType::EVERY_TEN_SECONDS);
+	}
 
-    /// <summary>
-    /// This means the object and any sub objects should set any groups to be in focus at this point
-    /// </summary>
-    virtual void focusLvObj(BaseLvObject* defocusLvObj = NULL);
+	virtual void statusUpdate() {
+		const char* valueString;
+		BikeStateAttribute& bikeStateAttribute = this->bluetoothBikeController->getBikeState().getStateAttribute(this->bikeStateAttributeIndex);
 
-   	/// <summary>
-	/// The callback on the list required to be updated, i.e. a bluetooth device detected
-	/// </summary>
-	/// <param name="event">The lv event that identifies pressing the device entry</param>
-	virtual void statusUpdate();
+		// Convert the value into a string
+		switch (bikeStateAttribute.bikeStateAttributeValue.valueUint8) {
+		case 1:
+			valueString = ASSIST_LEVEL_TEXT_1;
+			break;
+		case 2:
+			valueString = ASSIST_LEVEL_TEXT_2;
+			break;
+		case 3:
+			valueString = ASSIST_LEVEL_TEXT_3;
+			break;
+		default:
+			valueString = ASSIST_LEVEL_TEXT_0;
+		}
+		lv_label_set_text(this->value_obj, valueString);
+	}
 };
 
 #endif

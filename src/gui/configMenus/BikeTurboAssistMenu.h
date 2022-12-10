@@ -20,11 +20,11 @@ private:
 public:
 	ScrollMenuItem configBikeMenuItem;
 public:
-	BikeTurboAssistMenu(ConfigStore& configStore, lv_indev_t* indev, ButtonLabel* buttonLabel = NULL) :
-		navigationMenu("Turbo", "Back", indev, buttonLabel),
+	BikeTurboAssistMenu(ConfigStore& configStore, lv_indev_t* indev, ButtonLabelBar* buttonLabelBar = NULL) :
+		navigationMenu("Turbo", "Back", indev, buttonLabelBar),
 		configBikeMenuItem("Turbo Assist"),
-		bikeAssistLevelsMenu("Support", BikeConfigAttributeIndex::SupportAssistTurbo, configStore, indev, buttonLabel),
-		bikePeakAssitLevelsMenu("Peak Power", BikeConfigAttributeIndex::PeakPowerAssistTurbo, configStore, indev, buttonLabel)
+		bikeAssistLevelsMenu("Support", BikeConfigAttributeIndex::SupportAssistTurbo, configStore, indev, buttonLabelBar),
+		bikePeakAssitLevelsMenu("Peak Power", BikeConfigAttributeIndex::PeakPowerAssistTurbo, configStore, indev, buttonLabelBar)
 	{
 		// Bike Menus
 		this->navigationMenu.addMenuItem(&bikeAssistLevelsMenu.menuItem);

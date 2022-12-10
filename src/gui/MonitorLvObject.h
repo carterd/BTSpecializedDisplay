@@ -9,16 +9,42 @@
 #include "../dev/BluetoothBikeDefinitions.h"
 #include "../dev/BluetoothBikeState.h"
 
+/// <summary>
+/// This is the base object for monitor objects
+/// </summary>
 class MonitorLvObject : public BaseLvObject
 {
 protected:
+    /// <summary>
+    /// A bluetooth controller is to be associated with monitors so they can read intial stats and set which stats are required by the monitor
+    /// </summary>
     BluetoothBikeController* bluetoothBikeController;
 public:
+    /// <summary>
+    /// Default constructor
+    /// </summary>
     MonitorLvObject();
 
+    /// <summary>
+    /// By default the monitors should be passive and hence not require getting focus, but can be overloaded if required
+    /// </summary>
+    virtual void focusLvObj(BaseLvObject* defocusLvObj = NULL) {}
+
+    /// <summary>
+    /// Setter for the bluetoothController
+    /// </summary>
+    /// <param name="bluetoothBikeController"></param>
     virtual void setBluetoothController(BluetoothBikeController* bluetoothBikeController);
 
+    /// <summary>
+    /// Called each time stats are updated, currently this could be stats on other monitors so a check is required to see if the monitor is really updated.
+    /// </summary>
     virtual void statusUpdate() = 0;
+
+    /// <summary>
+    /// Init the stats that the monitor needs to be read and updated from the bike.
+    /// </summary>
+    virtual void initBluetoothStats() = 0;
 };
 
 #endif

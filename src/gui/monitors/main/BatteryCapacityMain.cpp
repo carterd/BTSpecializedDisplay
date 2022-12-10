@@ -76,6 +76,11 @@ void BatteryCapacityMain::statusUpdate()
 	}
 }
 
+void BatteryCapacityMain::initBluetoothStats()
+{
+	this->bluetoothBikeController->getConnectedBluetoothBike().readBikeStateAttribute(BikeStateAttributeIndex::BATTERY_CHARGE_PERCENT, MonitorAttributeType::EVERY_MINUTE);
+}
+
 
 void BatteryCapacityMain::update() {
 	this->displayedPercent = this->bluetoothBikeController->getBikeState().getStateAttribute(BikeStateAttributeIndex::BATTERY_CHARGE_PERCENT).bikeStateAttributeValue.valueUint8;
@@ -97,11 +102,4 @@ void BatteryCapacityMain::update() {
 
 		}
 	}
-}
-
-void BatteryCapacityMain::focusLvObj(BaseLvObject* defocusLvObj)
-{
-	// The LVObj that'll get the refreshes and should there hook into updates
-	this->bluetoothBikeController->getConnectedBluetoothBike().readBikeStateAttribute(BikeStateAttributeIndex::BATTERY_CHARGE_PERCENT, MonitorAttributeType::EVERY_MINUTE);
-	this->update();
 }

@@ -82,3 +82,64 @@ BluetoothBikeRequest BikeStateToBluetoothBikeRequest::getBluetoothBikeRequest(Bi
     }
     return this->bluetoothBikeRequestMap[static_cast<int>(bikeStateAttributeIndex)];
 }
+
+BikeStateAttributeIndex BluetoothBikeRequestToBikeState::notMappedAttributeIndex = BikeStateAttributeIndex::BIKE_STATE_ATTRIBUTE_SIZE;
+
+BluetoothBikeRequestToBikeState::BluetoothBikeRequestToBikeState()
+{
+    this->batteryBikeStateAttributeIndexMap[EbikeStatusBattery::CAPACITY] = BikeStateAttributeIndex::BATTERY_CAPACITY;
+    this->batteryBikeStateAttributeIndexMap[EbikeStatusBattery::CAPACITY_REMAIN] = BikeStateAttributeIndex::BATTERY_CAPACITY_REMAINING;
+    this->batteryBikeStateAttributeIndexMap[EbikeStatusBattery::HEALTH] = BikeStateAttributeIndex::BATTERY_HEALTH;
+    this->batteryBikeStateAttributeIndexMap[EbikeStatusBattery::TEMP] = BikeStateAttributeIndex::BATTERY_TEMP;
+    this->batteryBikeStateAttributeIndexMap[EbikeStatusBattery::CHARGE_CYCLES] = BikeStateAttributeIndex::BATTERY_CHARGE_CYCLES;
+    this->batteryBikeStateAttributeIndexMap[EbikeStatusBattery::VOLTAGE] = BikeStateAttributeIndex::BATTERY_VOLTAGE;
+    this->batteryBikeStateAttributeIndexMap[EbikeStatusBattery::CURRENT] = BikeStateAttributeIndex::BATTERY_CURRENT;
+    this->batteryBikeStateAttributeIndexMap[EbikeStatusBattery::HARDWARE_VERSION] = BikeStateAttributeIndex::BATTERY_HARDWARE_VERSION;
+    this->batteryBikeStateAttributeIndexMap[EbikeStatusBattery::FIRMWARE_VERSION] = BikeStateAttributeIndex::BATTERY_FIRMWARE_VERSION;
+    this->batteryBikeStateAttributeIndexMap[EbikeStatusBattery::CHARGE_PERCENT] = BikeStateAttributeIndex::BATTERY_CHARGE_PERCENT;
+
+    this->motorBikeStateAttributeIndexMap[EbikeStatusMotor::RIDER_POWER] = BikeStateAttributeIndex::RIDER_POWER;
+    this->motorBikeStateAttributeIndexMap[EbikeStatusMotor::CADENCE] = BikeStateAttributeIndex::MOTOR_CADENCE;
+    this->motorBikeStateAttributeIndexMap[EbikeStatusMotor::SPEED] = BikeStateAttributeIndex::MOTOR_SPEED;
+    this->motorBikeStateAttributeIndexMap[EbikeStatusMotor::ODOMETER] = BikeStateAttributeIndex::MOTOR_ODOMETER;
+    this->motorBikeStateAttributeIndexMap[EbikeStatusMotor::ASSIST_LEVEL] = BikeStateAttributeIndex::MOTOR_ASSIST_LEVEL;
+    this->motorBikeStateAttributeIndexMap[EbikeStatusMotor::TEMP] = BikeStateAttributeIndex::MOTOR_TEMP;
+    this->motorBikeStateAttributeIndexMap[EbikeStatusMotor::FIRMWARE_VERSION] = BikeStateAttributeIndex::MOTOR_FIRMWARE_VERSION;
+    this->motorBikeStateAttributeIndexMap[EbikeStatusMotor::SHUTTLE] = BikeStateAttributeIndex::MOTOR_SPEED;
+
+    this->otherBikeStateAttributeIndexMap[EbikeStatusOther::WHEEL_CIRCUMFERENCE] = BikeStateAttributeIndex::WHEEL_CIRCUMFERENCE;
+    this->otherBikeStateAttributeIndexMap[EbikeStatusOther::FAKE_CHANNEL] = BikeStateAttributeIndex::FAKE_CHANNEL_NUMBER;
+    this->otherBikeStateAttributeIndexMap[EbikeStatusOther::BEEPER] = BikeStateAttributeIndex::BEEP_ON_OFF_STATE;
+    this->otherBikeStateAttributeIndexMap[EbikeStatusOther::BIKE_ON_OFF] = BikeStateAttributeIndex::BIKE_ON_OFF_STATE;
+    this->otherBikeStateAttributeIndexMap[EbikeStatusOther::BIKE_SERIAL_NO] = BikeStateAttributeIndex::BIKE_SERIAL_NUMBER;
+}
+
+BikeStateAttributeIndex BluetoothBikeRequestToBikeState::getBikeStateAttributeIndex(EbikeStatusBattery ebikeStatusBattery) {
+    std::unordered_map<EbikeStatusBattery, BikeStateAttributeIndex>::iterator batteryBikeStateAttributeIndexIter = this->batteryBikeStateAttributeIndexMap.find(ebikeStatusBattery);
+    if (batteryBikeStateAttributeIndexIter == batteryBikeStateAttributeIndexMap.end()) {
+        return BluetoothBikeRequestToBikeState::notMappedAttributeIndex;
+    }
+    else {
+        return (*batteryBikeStateAttributeIndexIter).second;
+    }
+}
+
+BikeStateAttributeIndex BluetoothBikeRequestToBikeState::getBikeStateAttributeIndex(EbikeStatusMotor ebikeStatusMotor) {
+    std::unordered_map<EbikeStatusMotor, BikeStateAttributeIndex>::iterator motorBikeStateAttributeIndexIter = this->motorBikeStateAttributeIndexMap.find(ebikeStatusMotor);
+    if (motorBikeStateAttributeIndexIter == motorBikeStateAttributeIndexMap.end()) {
+        return BluetoothBikeRequestToBikeState::notMappedAttributeIndex;
+    }
+    else {
+        return (*motorBikeStateAttributeIndexIter).second;
+    }
+}
+
+BikeStateAttributeIndex BluetoothBikeRequestToBikeState::getBikeStateAttributeIndex(EbikeStatusOther ebikeStatusOther) {
+    std::unordered_map<EbikeStatusOther, BikeStateAttributeIndex>::iterator otherBikeStateAttributeIndexIter = this->otherBikeStateAttributeIndexMap.find(ebikeStatusOther);
+    if (otherBikeStateAttributeIndexIter == otherBikeStateAttributeIndexMap.end()) {
+        return BluetoothBikeRequestToBikeState::notMappedAttributeIndex;
+    }
+    else {
+        return (*otherBikeStateAttributeIndexIter).second;
+    }
+}

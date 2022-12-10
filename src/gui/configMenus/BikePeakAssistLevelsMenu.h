@@ -13,8 +13,8 @@ private:
 public:
 	ScrollMenuItem menuItem;
 public:
-	BikePeakAssistLevelsMenu(const char* menuTitle, BikeConfigAttributeIndex bikeConfigAttributeIndex, ConfigStore& configStore, lv_indev_t* indev, ButtonLabel* buttonLabel = NULL) :
-		integerSelectMenu(menuTitle, "Back", configStore, bikeConfigAttributeIndex, false, indev, buttonLabel),
+	BikePeakAssistLevelsMenu(const char* menuTitle, BikeConfigAttributeIndex bikeConfigAttributeIndex, ConfigStore& configStore, lv_indev_t* indev, ButtonLabelBar* buttonLabelBar = NULL) :
+		integerSelectMenu(menuTitle, "Back", configStore, bikeConfigAttributeIndex, false, indev, buttonLabelBar),
 		menuItem(menuTitle)
 	{
 		this->integerSelectMenu.addMenuItem("10 %", 10);

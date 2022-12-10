@@ -2,6 +2,7 @@
 #define _BLUETOOTH_BIKE_REQUEST_H
 
 #include <vector>
+#include <unordered_map>
 
 #include "BluetoothBikeState.h"
 
@@ -102,6 +103,24 @@ public:
     /// Accessor to return the BluetoothBikeRequest for the given bikeStateAttributeIndex
     /// </summary>
     BluetoothBikeRequest getBluetoothBikeRequest(BikeStateAttributeIndex bikeStateAttributeIndex, BikeType bikeType);
+};
+
+
+class BluetoothBikeRequestToBikeState {
+public:
+    static BikeStateAttributeIndex notMappedAttributeIndex;
+private:
+    std::unordered_map<EbikeStatusBattery, BikeStateAttributeIndex> batteryBikeStateAttributeIndexMap;
+    std::unordered_map<EbikeStatusMotor, BikeStateAttributeIndex> motorBikeStateAttributeIndexMap;
+    std::unordered_map<EbikeStatusOther, BikeStateAttributeIndex> otherBikeStateAttributeIndexMap;
+public:
+    BluetoothBikeRequestToBikeState();
+
+    BikeStateAttributeIndex getBikeStateAttributeIndex(EbikeStatusBattery ebikeStatusBattery);
+
+    BikeStateAttributeIndex getBikeStateAttributeIndex(EbikeStatusMotor ebikeStatusMotor);
+
+    BikeStateAttributeIndex getBikeStateAttributeIndex(EbikeStatusOther ebikeStatusOther);
 };
 
 #endif

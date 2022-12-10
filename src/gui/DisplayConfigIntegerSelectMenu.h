@@ -12,7 +12,7 @@ private:
     Display& display;
     DisplayConfigAttributeIndex displayConfigAttributeIndex;
 public:
-    DisplayConfigIntegerSelectMenu(const char* titleText, const char* exitButtonText, ConfigStore& configStore, DisplayConfigAttributeIndex displayConfigAttributeIndex, Display &display, lv_indev_t* indev, ButtonLabel* buttonLabel = NULL) :
+    DisplayConfigIntegerSelectMenu(const char* titleText, const char* exitButtonText, ConfigStore& configStore, DisplayConfigAttributeIndex displayConfigAttributeIndex, Display &display, lv_indev_t* indev, ButtonLabelBar* buttonLabel = NULL) :
         IntegerSelectMenu(titleText, exitButtonText, indev, buttonLabel), configStore(configStore), display(display) {
         this->configStore = configStore;
         this->displayConfigAttributeIndex = displayConfigAttributeIndex;

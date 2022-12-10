@@ -3,9 +3,9 @@
 
 #include <lvgl.h>
 
-#include "BaseLvObject.h"
+#include "ButtonLabelledLvObject.h"
 #include "ValueSelectMenuItem.h"
-#include "ButtonLabel.h"
+#include "ButtonLabelBar.h"
 
 #include <vector>
 #include <unordered_map>
@@ -15,14 +15,11 @@
 /// <summary>
 /// This is the scanning list of possible bluetooth connections
 /// </summary>
-class ValueSelectMenu : public BaseLvObject
+class ValueSelectMenu : public ButtonLabelledLvObject
 {
 protected:
 	lv_obj_t* list_obj;
 	lv_obj_t* exit_button_obj;
-	lv_group_t* group;
-	lv_indev_t* indev;
-	ButtonLabel* buttonLabel;
 
 	const char* exitButtonText;
 	const char* titleText;
@@ -50,13 +47,19 @@ private:
 
     lv_obj_t* getMenuItemButton(ValueSelectMenuItem* menuItem);
 
+protected:
+	/// <summary>
+	/// This will set the button labells
+	/// </summary>
+	virtual void updateButtonLabelBar();
+
 public:
 	/// <summary>
 	/// Constructor of the Bluetooth scan list hence shows a list of dectected bluetooth devices/
 	/// </summary>
 	/// <param name="exitButtonText">The text to display for exit menu option of the menu</param>
 	/// <param name="indev">The indev used for taking context of the encoder</param>
-	ValueSelectMenu(const char* titleText, const char* exitButtonText, lv_indev_t* indev, ButtonLabel* buttonLabel = NULL);
+	ValueSelectMenu(const char* titleText, const char* exitButtonText, lv_indev_t* indev, ButtonLabelBar* buttonLabelBar = NULL);
 
 	virtual ~ValueSelectMenu();
 
@@ -81,12 +84,6 @@ public:
 	/// Ensure the LvObject menu is updated with all the required menu items have the correct ticks et-al.
 	/// </summary>
     void updateLvObj();
-
-	/// <summary>
-	/// Used to set the button label for this object or NULL for no button label
-	/// </summary>
-	/// <param name="buttonLabel">The button label object for this gui object</param>
-	void setButtonLabel(ButtonLabel* buttonLabel);	
 
     /// <summary>
     /// Add the given menu item objec to this list in the order called with this function

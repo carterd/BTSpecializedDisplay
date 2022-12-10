@@ -428,7 +428,6 @@ void BluetoothBike::readBufferToEbsBikeState() {
   // If we identify a bike status attribute has been changed then update the time stamp in bikeStatuslastUpdateTime
   if (bikeStatusUpdate) {    
     this->bikeStatusLastUpdateTime = time;
-    LV_LOG_USER("MOTOR ASSIST LEVEL read %d", this->bikeStatusLastUpdateTime);
   }
 }
 

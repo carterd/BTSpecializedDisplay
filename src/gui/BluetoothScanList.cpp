@@ -1,5 +1,5 @@
 #include "BluetoothScanList.h"
-#include "ButtonLabel.h"
+#include "ButtonLabelBar.h"
 #include <LvglThemes/lv_theme_binary.h>
 
 void BluetoothScanList::exit_btn_cb(lv_event_t* event) {
@@ -24,7 +24,7 @@ void BluetoothScanList::refresh_cb(lv_event_t* event) {
 	((BluetoothScanList*)(event->user_data))->refreshCB(event);
 }
 
-BluetoothScanList::BluetoothScanList(BluetoothBikeController* bluetoothController, ConfigStore* configStore, lv_indev_t* indev) : BaseLvObject()
+BluetoothScanList::BluetoothScanList(BluetoothBikeController* bluetoothController, ConfigStore* configStore, lv_indev_t* indev, ButtonLabelBar* buttonLabelBar) : ButtonLabelledLvObject(indev, buttonLabelBar)
 {
 	this->indev = indev;
 	this->bluetoothController = bluetoothController;
@@ -97,10 +97,21 @@ void BluetoothScanList::focusLvObj(BaseLvObject* defocusLvObj)
 {	
 	this->defocusLvObj = defocusLvObj;
 	lv_indev_set_group(this->indev, this->group);
+	updateButtonLabelBar();
 
-	showButtonLabels();
+	this->btAddressConfig = this->configStore->getBTAddressesConfig();
+
 	removeDeviceItems();
+	this->buttonAddressMap.clear();
+	addKnownDeviceItems();
 	startBTScan();
+}
+
+void BluetoothScanList::updateButtonLabelBar() {
+	if (this->buttonLabelBar) {
+		this->buttonLabelBar->setButtonLabels(LV_SYMBOL_UP, LV_SYMBOL_OK, LV_SYMBOL_DOWN);
+		this->buttonLabelBar->show();
+	}
 }
 
 void BluetoothScanList::startBTScan()
@@ -110,7 +121,6 @@ void BluetoothScanList::startBTScan()
 		this->bluetoothController->startScan();
 	}
 	lv_label_set_long_mode(this->scan_anim_obj, LV_LABEL_LONG_SCROLL_CIRCULAR);
-	this->buttonDeviceMap.clear();
 	this->scanning = true;
 }
 
@@ -124,11 +134,8 @@ void BluetoothScanList::stopBTScan()
 }
 
 lv_obj_t* BluetoothScanList::addDeviceItem(BLEDevice* bleDevice)
-{	
-	bool knownDevice = false;
-
+{
 	// Attempt to get the current button on the screen for the given device
-	lv_obj_t* list_btn = this->getDeviceButton(bleDevice);
 	String addressString = bleDevice->address();
 
 	// Generate the display string
@@ -144,13 +151,21 @@ lv_obj_t* BluetoothScanList::addDeviceItem(BLEDevice* bleDevice)
 		displayString.concat(")");
 #endif
 	}
+	return this->addDeviceItem(addressString, displayString);
+}
+
+lv_obj_t* BluetoothScanList::addDeviceItem(const String& addressString, const String& displayString) {
+	bool knownDevice = false;
+
+	// Get the list button for the given address if already in the list
+	lv_obj_t* list_btn = this->getDeviceButton(addressString);
 
 	// If the config has this address configured then we need to set knowDevice and also check to update an existing label
-	if (this->configStore->containsBTAddress(&addressString)) {
+	if (this->btAddressConfig.containsBTAddress(addressString)) {
 		knownDevice = true;
-		if (displayString != (*(this->configStore->getBTAddressDisplayString(&addressString)))) {
+		if (displayString != (*(this->btAddressConfig.getBTAddressDisplayString(addressString)))) {
 			// It's a known device but we need to update the label in the store
-			this->configStore->addBTAddress(&addressString, &displayString);
+			this->btAddressConfig.addBTAddress(addressString, displayString);
 			if (list_btn != NULL) {
 				lv_obj_t* btn_label = lv_obj_get_child(list_btn, 1);
 				if (lv_obj_has_class(btn_label, &lv_label_class)) {
@@ -165,7 +180,7 @@ lv_obj_t* BluetoothScanList::addDeviceItem(BLEDevice* bleDevice)
 		list_btn = this->addDeviceButton(displayString.c_str(), knownDevice);		
 	}
 	// Update the found list button with any changes in device
-	this->buttonDeviceMap[list_btn] = *bleDevice;
+	this->buttonAddressMap[list_btn] = addressString;
 
 	return list_btn;
 }
@@ -189,12 +204,12 @@ lv_obj_t* BluetoothScanList::addDeviceButton(const char* displayText, bool known
 	return list_btn;
 }
 
-lv_obj_t* BluetoothScanList::getDeviceButton(BLEDevice* bleDevice) {
-	for (std::unordered_map<lv_obj_t*, BLEDevice>::iterator it = this->buttonDeviceMap.begin(); it != this->buttonDeviceMap.end(); it++) {
+lv_obj_t* BluetoothScanList::getDeviceButton(const String& addressString) {
+	for (std::unordered_map<lv_obj_t*, String>::iterator it = this->buttonAddressMap.begin(); it != this->buttonAddressMap.end(); it++) {
 #ifdef _XSTRING_
-		bool match = it->second.address() == bleDevice->address();
+		bool match = it->second == addressString;
 #else 
-		bool match = it->second.address().equals(bleDevice->address());
+		bool match = it->second.equals(addressString);
 #endif
 		if (match) {
 			return it->first;
@@ -224,9 +239,10 @@ void BluetoothScanList::refreshCB(lv_event_t* event)
 }
 
 void BluetoothScanList::exitButtonCB(lv_event_t* event)
-{	
+{
 	if (this->defocusLvObj) {
 		this->defocusLvObj->focusLvObj();
+		this->configStore->updateBTAddressesConfig(this->btAddressConfig);
 		this->stopBTScan();
 	}
 }
@@ -234,26 +250,25 @@ void BluetoothScanList::exitButtonCB(lv_event_t* event)
 void BluetoothScanList::deviceButtonCB(lv_event_t* event)
 {
 	//iterator<std::map<lv_obj_t*, BluetoothMaster::BLEDetails>> 
-	if (this->buttonDeviceMap.count(event->target)) {		
-		std::unordered_map<lv_obj_t*, BLEDevice>::iterator it = this->buttonDeviceMap.find(event->target);
-		String address = (*it).second.address();
+	if (this->buttonAddressMap.count(event->target)) {
+		std::unordered_map<lv_obj_t*, String>::iterator it = this->buttonAddressMap.find(event->target);
+		String address = (*it).second;
 		String display = lv_label_get_text(lv_obj_get_child(event->target, 1));
 		lv_obj_t* btn_img = lv_obj_get_child(event->target, 0);
 
-		if (this->configStore->containsBTAddress(&address)) {
-			this->configStore->removeBTAddress(&address);
+		if (this->btAddressConfig.containsBTAddress(address)) {
+			this->btAddressConfig.removeBTAddress(address);
 			lv_obj_add_flag(btn_img, LV_OBJ_FLAG_HIDDEN);
 			LV_LOG_USER("Remove Address %s", address.c_str());
 		}
 		else
 		{
 			// TODO: Check that it's a bike fit for registering
-			this->configStore->addBTAddress(&address, &display);
+			this->btAddressConfig.addBTAddress(address, display);
 			lv_obj_clear_flag(btn_img, LV_OBJ_FLAG_HIDDEN);
 			LV_LOG_USER("Adding Address %s", address.c_str());
 			LV_LOG_USER("Display %s", display.c_str());
 		}
-
 
 		if (lv_obj_has_class(btn_img, &lv_img_class)) {
 			
@@ -272,16 +287,10 @@ void BluetoothScanList::removeDeviceItems()
 	}
 }
 
-void BluetoothScanList::setButtonLabel(ButtonLabel* buttonLabel)
+void BluetoothScanList::addKnownDeviceItems()
 {
-	this->buttonLabel = buttonLabel;
-}
-
-void BluetoothScanList::showButtonLabels()
-{
-	if (this->buttonLabel) {
-		this->buttonLabel->setButtonLabels(LV_SYMBOL_UP, LV_SYMBOL_OK, LV_SYMBOL_DOWN);
-		this->buttonLabel->show();
+	for (std::unordered_map<String, String>::iterator it = this->btAddressConfig.btAddressMap.begin(); it != this->btAddressConfig.btAddressMap.end(); it++) {
+		this->addDeviceItem((*it).first, (*it).second);
 	}
 }
 
