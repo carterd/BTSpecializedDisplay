@@ -259,15 +259,12 @@ void BluetoothScanList::deviceButtonCB(lv_event_t* event)
 		if (this->btAddressConfig.containsBTAddress(address)) {
 			this->btAddressConfig.removeBTAddress(address);
 			lv_obj_add_flag(btn_img, LV_OBJ_FLAG_HIDDEN);
-			LV_LOG_USER("Remove Address %s", address.c_str());
 		}
 		else
 		{
 			// TODO: Check that it's a bike fit for registering
 			this->btAddressConfig.addBTAddress(address, display);
 			lv_obj_clear_flag(btn_img, LV_OBJ_FLAG_HIDDEN);
-			LV_LOG_USER("Adding Address %s", address.c_str());
-			LV_LOG_USER("Display %s", display.c_str());
 		}
 
 		if (lv_obj_has_class(btn_img, &lv_img_class)) {

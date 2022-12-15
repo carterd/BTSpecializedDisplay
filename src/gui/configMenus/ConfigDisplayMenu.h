@@ -10,6 +10,7 @@
 #include "DisplayBrightnessMenu.h"
 #include "DisplayConnectBatteryOnlyMenu.h"
 #include "DisplayConnectOnBootMenu.h"
+#include "DisplayUnitsMetricImperialMenu.h"
 
 class ConfigDisplayMenu {
 private:
@@ -17,6 +18,7 @@ private:
     DisplayBrightnessMenu displayBrightnessMenu;
     DisplayConnectBatteryOnlyMenu displayConnectBatteryOnlyMenu;
     DisplayConnectOnBootMenu displayConnectOnBootMenu;
+    DisplayUnitsMetricImperialMenu displayUnitsMetricImperialMenu;
 public:
 	ScrollMenuItem configDisplayMenuItem;
 public:
@@ -25,11 +27,13 @@ public:
 		configDisplayMenuItem("Display"),
         displayBrightnessMenu(configStore, display, indev, buttonLabel),
         displayConnectOnBootMenu(configStore, display, indev, buttonLabel),
-        displayConnectBatteryOnlyMenu(configStore, display, indev, buttonLabel)
+        displayConnectBatteryOnlyMenu(configStore, display, indev, buttonLabel),
+        displayUnitsMetricImperialMenu(configStore, display, indev, buttonLabel)
 	{        
         bikeNavigationMenu.addMenuItem(&displayConnectOnBootMenu.menuItem);
         bikeNavigationMenu.addMenuItem(&displayBrightnessMenu.menuItem);
         bikeNavigationMenu.addMenuItem(&displayConnectBatteryOnlyMenu.menuItem);
+        bikeNavigationMenu.addMenuItem(&displayUnitsMetricImperialMenu.menuItem);
 
         // Configure the menu item
         configDisplayMenuItem.setPopupItem(&bikeNavigationMenu);

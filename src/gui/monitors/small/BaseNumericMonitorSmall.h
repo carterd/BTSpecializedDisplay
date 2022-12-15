@@ -1,9 +1,9 @@
-#ifndef _BASE_NUMERIC_SMALL_H
-#define _BASE_NUMERIC_SMALL_H
+#ifndef _BASE_NUMERIC_MONITOR_SMALL_H
+#define _BASE_NUMERIC_MONITOR_SMALL_H
 
 #include "..\..\MonitorLvObject.h"
 
-class BaseNumericSmall : public MonitorLvObject
+class BaseNumericMonitorSmall : public MonitorLvObject
 {
 protected:
     /// <summary>
@@ -34,7 +34,7 @@ protected:
     const char* printFormat;
 
 public:
-    BaseNumericSmall(BikeStateAttributeIndex bikeStateAttributeIndex, MonitorAttributeType monitorAttributeType, const char* attributeTitle, const char* attributeUnits = NULL, const char* printFormat = NULL);
+    BaseNumericMonitorSmall(BikeStateAttributeIndex bikeStateAttributeIndex, MonitorAttributeType monitorAttributeType, const char* attributeTitle, const char* attributeUnits = NULL, const char* printFormat = NULL);
 
     /// <summary>
     /// Returns the LV object instance to represent this class instance
@@ -46,12 +46,17 @@ public:
     /// The callback on the list required to be updated, i.e. a bluetooth device detected
     /// </summary>
     /// <param name="event">The lv event that identifies pressing the device entry</param>
-    virtual void statusUpdate();
+    virtual void updateLvObj();
 
     /// <summary>
     /// This will ensure the stats are initialised and the correct interest for the monitor is assigned to the controller
     /// </summary>
     virtual void initBluetoothStats();
+
+    /// <summary>
+    /// Only a monitor in focus should be required to update their gui, hence set this object to be infocus hence updates require display updates
+    /// </summary>
+    virtual void focusLvObj(BaseLvObject* defocusLvObj = NULL);
 };
 
 #endif

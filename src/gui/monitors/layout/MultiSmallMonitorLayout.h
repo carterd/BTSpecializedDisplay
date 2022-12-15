@@ -32,6 +32,21 @@ public:
     /// This will ensure the stats are initialised and the correct interest for the monitor is assigned to the controller
     /// </summary>
     virtual void initBluetoothStats();
+
+    /// <summary>
+    /// Only a monitor in focus should be required to update their gui
+    /// </summary>
+    virtual void focusLvObj(BaseLvObject* defocusLvObj = NULL);
+
+    /// <summary>
+    /// For the layout we don't have any actual lv_objects to update
+    /// </summary>
+    virtual void updateLvObj() {}
+
+    /// <summary>
+    /// Defocus a monitor and hence no more updated on the display
+    /// </summary>
+    virtual void defocusLvObj();
 };
 
 #endif

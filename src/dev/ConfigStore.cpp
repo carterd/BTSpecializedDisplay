@@ -54,6 +54,7 @@ void ConfigStore::defaults() {
     this->displayConfig.monitorType = 0x0000;
     this->displayConfig.connectBatteryOnly = false;
     this->displayConfig.connectOnBoot = false;
+    this->displayConfig.unitsMetric = true;
 
 }
 
@@ -99,13 +100,14 @@ DisplayConfig& ConfigStore::getDisplayConfig() {
 bool ConfigStore::readDisplayConfig() {
     FILE *file = fopen(this->displayConfigFilename, "r");
     if (file) {        
-        bool error = false;
-        error &= this->readUInt8(file, &(this->displayConfig.contrast));
-        error &= this->readUInt16(file, &(this->displayConfig.monitorType));
-        error &= this->readBool(file, &(this->displayConfig.connectBatteryOnly));
-        error &= this->readBool(file, &(this->displayConfig.connectOnBoot));
+        bool result = true;
+        result &= this->readUInt8(file, &(this->displayConfig.contrast));
+        result &= this->readUInt16(file, &(this->displayConfig.monitorType));
+        result &= this->readBool(file, &(this->displayConfig.connectBatteryOnly));
+        result &= this->readBool(file, &(this->displayConfig.connectOnBoot));
+        result &= this->readBool(file, &(this->displayConfig.unitsMetric));
         fclose(file);
-        return !error;
+        return result;
     }
     return false;
 }
@@ -117,6 +119,7 @@ bool ConfigStore::writeDisplayConfig() {
         this->writeUInt16(file, &(this->displayConfig.monitorType));
         this->writeBool(file, &(this->displayConfig.connectBatteryOnly));
         this->writeBool(file, &(this->displayConfig.connectOnBoot));
+        this->writeBool(file, &(this->displayConfig.unitsMetric));
         fclose(file);
         return true;
     }
@@ -126,23 +129,23 @@ bool ConfigStore::writeDisplayConfig() {
 bool ConfigStore::readBikeConfig() {    
     FILE *file = fopen(this->bikeConfigFilename, "r");
     if (file) {
-        bool error = false;
-        error &= this->readBool(file, &(this->bikeConfig.beeper.managed));
-        error &= this->readBool(file, &(this->bikeConfig.beeper.value));
-        error &= this->readBool(file, &(this->bikeConfig.fakeChannel.managed));
-        error &= this->readUInt8(file, &(this->bikeConfig.fakeChannel.value));
-        error &= this->readBool(file, &(this->bikeConfig.wheelCircumference.managed));
-        error &= this->readUInt16(file, &(this->bikeConfig.wheelCircumference.value));
-        error &= this->readBool(file, &(this->bikeConfig.supportAssistLevels.managed));
-        error &= this->readUInt8(file, &(this->bikeConfig.supportAssistLevels.value.eco));
-        error &= this->readUInt8(file, &(this->bikeConfig.supportAssistLevels.value.trail));
-        error &= this->readUInt8(file, &(this->bikeConfig.supportAssistLevels.value.turbo));
-        error &= this->readBool(file, &(this->bikeConfig.peakPowerAssistLevels.managed));
-        error &= this->readUInt8(file, &(this->bikeConfig.peakPowerAssistLevels.value.eco));
-        error &= this->readUInt8(file, &(this->bikeConfig.peakPowerAssistLevels.value.trail));
-        error &= this->readUInt8(file, &(this->bikeConfig.peakPowerAssistLevels.value.turbo));
+        bool result = true;
+        result &= this->readBool(file, &(this->bikeConfig.beeper.managed));
+        result &= this->readBool(file, &(this->bikeConfig.beeper.value));
+        result &= this->readBool(file, &(this->bikeConfig.fakeChannel.managed));
+        result &= this->readUInt8(file, &(this->bikeConfig.fakeChannel.value));
+        result &= this->readBool(file, &(this->bikeConfig.wheelCircumference.managed));
+        result &= this->readUInt16(file, &(this->bikeConfig.wheelCircumference.value));
+        result &= this->readBool(file, &(this->bikeConfig.supportAssistLevels.managed));
+        result &= this->readUInt8(file, &(this->bikeConfig.supportAssistLevels.value.eco));
+        result &= this->readUInt8(file, &(this->bikeConfig.supportAssistLevels.value.trail));
+        result &= this->readUInt8(file, &(this->bikeConfig.supportAssistLevels.value.turbo));
+        result &= this->readBool(file, &(this->bikeConfig.peakPowerAssistLevels.managed));
+        result &= this->readUInt8(file, &(this->bikeConfig.peakPowerAssistLevels.value.eco));
+        result &= this->readUInt8(file, &(this->bikeConfig.peakPowerAssistLevels.value.trail));
+        result &= this->readUInt8(file, &(this->bikeConfig.peakPowerAssistLevels.value.turbo));
         fclose(file);
-        return !error;
+        return result;
     }
     return false;
 }

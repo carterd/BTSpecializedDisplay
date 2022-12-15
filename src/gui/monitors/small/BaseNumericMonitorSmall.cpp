@@ -1,9 +1,9 @@
-#include "BaseNumericSmall.h"
+#include "BaseNumericMonitorSmall.h"
 
 #include <LvglThemes/lv_theme_binary.h>
 
 
-BaseNumericSmall::BaseNumericSmall(BikeStateAttributeIndex bikeStateAttributeIndex, MonitorAttributeType monitorAttributeType, const char* attributeTitle, const char* attributeUnits, const char* printFormat) {
+BaseNumericMonitorSmall::BaseNumericMonitorSmall(BikeStateAttributeIndex bikeStateAttributeIndex, MonitorAttributeType monitorAttributeType, const char* attributeTitle, const char* attributeUnits, const char* printFormat) {
 	this->bikeStateAttributeIndex = bikeStateAttributeIndex;
 	this->monitorAttributeType = monitorAttributeType;
 	this->attributeTitle = attributeTitle;
@@ -11,7 +11,7 @@ BaseNumericSmall::BaseNumericSmall(BikeStateAttributeIndex bikeStateAttributeInd
 	this->printFormat = printFormat;
 }
 
-lv_obj_t* BaseNumericSmall::createLvObj(lv_obj_t* parent) {
+lv_obj_t* BaseNumericMonitorSmall::createLvObj(lv_obj_t* parent) {
 	// get the style we'll need for the bar
 	theme_binary_styles_t* binary_styles = (theme_binary_styles_t*)lv_disp_get_theme(lv_obj_get_disp(parent))->user_data;
 	lv_style_t* no_scrollbar = &(binary_styles->no_scrollbar);
@@ -37,7 +37,7 @@ lv_obj_t* BaseNumericSmall::createLvObj(lv_obj_t* parent) {
 	return this->this_obj;
 }
 
-void BaseNumericSmall::statusUpdate()
+void BaseNumericMonitorSmall::updateLvObj()
 {
 	char valueString[32];
 	BikeStateAttribute& bikeStateAttribute = this->bluetoothBikeController->getBikeState().getStateAttribute(this->bikeStateAttributeIndex);
@@ -57,6 +57,9 @@ void BaseNumericSmall::statusUpdate()
 		case BikeStateAttributeType::FLOAT_T:
 			printFormat = "%.1f%s";
 			break;
+		default:
+			printFormat = "";
+			break;
 		}
 	}
 
@@ -72,13 +75,19 @@ void BaseNumericSmall::statusUpdate()
 		sprintf(valueString, printFormat, bikeStateAttribute.bikeStateAttributeValue.valueUint8, attributeUnits);
 		break;
 	case BikeStateAttributeType::FLOAT_T:
-		sprintf(valueString, printFormat, bikeStateAttribute.bikeStateAttributeValue.valueUint8, attributeUnits);
+		sprintf(valueString, printFormat, bikeStateAttribute.bikeStateAttributeValue.valueFloat, attributeUnits);
 		break;
 	}
 	lv_label_set_text(this->value_obj, valueString);
 }
 
-void BaseNumericSmall::initBluetoothStats()
+void BaseNumericMonitorSmall::initBluetoothStats()
 {
 	this->bluetoothBikeController->getConnectedBluetoothBike().readBikeStateAttribute(this->bikeStateAttributeIndex, this->monitorAttributeType);
+}
+
+void BaseNumericMonitorSmall::focusLvObj(BaseLvObject* defocusLvObj)
+{
+	// Ensure this item's state is in focus at this point
+	MonitorLvObject::focusLvObj(defocusLvObj);
 }

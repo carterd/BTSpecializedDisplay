@@ -1,9 +1,9 @@
-#ifndef _BLANK_SMALL_H
-#define _BLANK_SMALL_H
+#ifndef _BLANK_MONITOR_SMALL_H
+#define _BLANK_MONITOR_SMALL_H
 
 #include "..\..\MonitorLvObject.h"
 
-class BlankSmall : public MonitorLvObject
+class BlankMonitorSmall : public MonitorLvObject
 {
 private:
 
@@ -25,6 +25,11 @@ public:
     /// This will ensure the stats are initialised and the correct interest for the monitor is assigned to the controller
     /// </summary>
     virtual void initBluetoothStats() {}
+
+    /// <summary>
+    /// No need to perform and update of the LV object as this object is static
+    /// </summary>
+    virtual void updateLvObj() {}
 };
 
 #endif

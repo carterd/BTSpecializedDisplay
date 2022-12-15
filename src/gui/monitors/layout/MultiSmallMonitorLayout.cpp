@@ -30,10 +30,12 @@ lv_obj_t* MultiSmallMonitorLayout::createLvObj(lv_obj_t* parent) {
 	lv_obj_t* small_obj;
 	
 	for (int i = 0; i < MAX_MULTI_SMALL_MONITOR_OBJECTS; i++) {
-		small_obj = lv_obj_create(this->this_obj);
-		lv_obj_set_size(small_obj, lv_obj_get_width(parent), SMALL_MONITOR_LV_OBJECT_HEIGHT);
-		lv_obj_align(small_obj, LV_ALIGN_TOP_MID, 0, i * SMALL_MONITOR_LV_OBJECT_HEIGHT);
-		this->smallMonitorLvObjects[i]->createLvObj(small_obj);
+		if (smallMonitorLvObjects[i]) {
+			small_obj = lv_obj_create(this->this_obj);
+			lv_obj_set_size(small_obj, lv_obj_get_width(parent), SMALL_MONITOR_LV_OBJECT_HEIGHT);
+			lv_obj_align(small_obj, LV_ALIGN_TOP_MID, 0, i * SMALL_MONITOR_LV_OBJECT_HEIGHT);
+			this->smallMonitorLvObjects[i]->createLvObj(small_obj);
+		}
 	}
 
 	return this->this_obj;
@@ -44,22 +46,39 @@ void MultiSmallMonitorLayout::statusUpdate()
 	if (this->bluetoothBikeController && this->bluetoothBikeController->getConnected()) {
 		// This bleDevice should always be true as we've already idenfied scanned device available
 		for (int i = 0; i < MAX_MULTI_SMALL_MONITOR_OBJECTS; i++) {
-			if (smallMonitorLvObjects[i] != NULL) {
+			if (smallMonitorLvObjects[i]) {
 				smallMonitorLvObjects[i]->statusUpdate();
 			}
 		}
-	}
-	else 
-	{
-		// Nolonger connected Requred to scan again for connection
 	}
 }
 
 void MultiSmallMonitorLayout::initBluetoothStats()
 {
 	for (int i = 0; i < MAX_MULTI_SMALL_MONITOR_OBJECTS; i++) {
-		if (smallMonitorLvObjects[i] != NULL) {
+		if (smallMonitorLvObjects[i]) {
 			smallMonitorLvObjects[i]->initBluetoothStats();
+		}
+	}
+}
+
+void MultiSmallMonitorLayout::focusLvObj(BaseLvObject* defocusLvObj)
+{
+	// Ensure this item's state is in focus at this point
+	MonitorLvObject::focusLvObj(defocusLvObj);
+	for (int i = 0; i < MAX_MULTI_SMALL_MONITOR_OBJECTS; i++) {
+		if (smallMonitorLvObjects[i]) {
+			smallMonitorLvObjects[i]->focusLvObj();
+		}
+	}
+}
+
+void MultiSmallMonitorLayout::defocusLvObj() {
+	// Ensure this item's state is in defocus at this point hence no contained monitors are drawn on updates
+	MonitorLvObject::defocusLvObj();
+	for (int i = 0; i < MAX_MULTI_SMALL_MONITOR_OBJECTS; i++) {
+		if (smallMonitorLvObjects[i]) {
+			smallMonitorLvObjects[i]->defocusLvObj();
 		}
 	}
 }

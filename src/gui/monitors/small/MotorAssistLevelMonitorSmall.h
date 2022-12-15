@@ -1,21 +1,21 @@
-#ifndef _MOTOR_ASSIST_LEVEL_SMALL_H
-#define _MOTOR_ASSIST_LEVEL_SMALL_H
+#ifndef _MOTOR_ASSIST_LEVEL_MONITOR_SMALL_H
+#define _MOTOR_ASSIST_LEVEL_MONITOR_SMALL_H
 
-#include "BaseNumericSmall.h"
+#include "BaseNumericMonitorSmall.h"
 
-#define ASSIST_LEVEL_TEXT_0 "-"
+#define ASSIST_LEVEL_TEXT_0 "Off"
 #define ASSIST_LEVEL_TEXT_1 "Eco"
 #define ASSIST_LEVEL_TEXT_2 "Trail"
 #define ASSIST_LEVEL_TEXT_3 "Turbo"
 
-class MotorAssistLevelSmall : public BaseNumericSmall
+class MotorAssistLevelMonitorSmall : public BaseNumericMonitorSmall
 {
 public:
-	MotorAssistLevelSmall(const char* title = "Asst:") : BaseNumericSmall(BikeStateAttributeIndex::MOTOR_ASSIST_LEVEL, MonitorAttributeType::EVERY_MINUTE, title) {}
+	MotorAssistLevelMonitorSmall(const char* title = " " LV_SYMBOL_POWER) : BaseNumericMonitorSmall(BikeStateAttributeIndex::MOTOR_ASSIST_LEVEL, MonitorAttributeType::EVERY_MINUTE, title) {}
 
 	virtual void initBluetoothStats()
 	{
-		BaseNumericSmall::initBluetoothStats();
+		BaseNumericMonitorSmall::initBluetoothStats();
 		this->bluetoothBikeController->getConnectedBluetoothBike().readBikeStateAttribute(BikeStateAttributeIndex::BIKE_ON_OFF_STATE, MonitorAttributeType::EVERY_TEN_SECONDS);
 	}
 

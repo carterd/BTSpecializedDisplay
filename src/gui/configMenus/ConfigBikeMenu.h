@@ -14,7 +14,7 @@ class ConfigBikeMenu {
 private:
 	NavigationMenu bikeNavigationMenu;
     BikeBeeperMenu bikeBeeperMenu;
-	//BikeWheelCircumferenceMenu bikeWheelCircumferenceMenu;
+	BikeWheelCircumferenceMenu bikeWheelCircumferenceMenu;
 	BikeAssistMenu bikeAssistMenu;
 public:
 	ScrollMenuItem configBikeMenuItem;
@@ -23,13 +23,13 @@ public:
 		bikeNavigationMenu("Bike", "Back", indev, buttonLabel),
 		configBikeMenuItem("Bike"),
         bikeBeeperMenu(configStore, indev, buttonLabel),
-		//bikeWheelCircumferenceMenu(configStore, indev, buttonLabel),
+		bikeWheelCircumferenceMenu(configStore, indev, buttonLabel),
 		bikeAssistMenu(configStore, indev, buttonLabel)
 	{
         // Bike Menus
         this->bikeNavigationMenu.addMenuItem(&bikeBeeperMenu.menuItem);    
 		this->bikeNavigationMenu.addMenuItem(&bikeAssistMenu.menuItem);
-		//this->bikeNavigationMenu.addMenuItem(&bikeWheelCircumferenceMenu.menuItem);		
+		this->bikeNavigationMenu.addMenuItem(&bikeWheelCircumferenceMenu.menuItem);		
 
 		// configure the menu item
         this->configBikeMenuItem.setPopupItem(&bikeNavigationMenu);

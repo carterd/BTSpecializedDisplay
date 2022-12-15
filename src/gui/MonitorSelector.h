@@ -52,7 +52,27 @@ private:
 protected:
     virtual void updateButtonLabelBar();
 
+    /// <summary>
+    /// Ensure this given monitor object is selected
+    /// </summary>
+    /// <param name="monitorLvObject"></param>
+    void selectMonitor();
+
+    /// <summary>
+    /// Ensure this given monitor object is selected
+    /// </summary>
+    /// <param name="monitorLvObject"></param>
     void selectMonitor(MonitorLvObject* monitorLvObject);
+
+    /// <summary>
+    /// Ensure that currently selected monitor is deselected
+    /// </summary>
+    void deselectMonitor();
+
+    /// <summary>
+    /// Ensure that the given monitor is defocused hence no unwanted updates to gui
+    /// </summary>
+    void deselectMonitor(MonitorLvObject* monitorLvObject);
 
 public:
     /// <summary>
@@ -114,6 +134,12 @@ public:
     void tileButtonDefocusCB(lv_event_t* event);
 
     /// <summary>
+    /// Callback when a tile item button is given focus
+    /// </summary>
+    /// <param name="event"></param>
+    void tileButtonFocusCB(lv_event_t* event);
+
+    /// <summary>
     /// Callback when the scroll menu has moved onto a new item
     /// </summary>
     /// <param name="event"></param>
@@ -129,6 +155,7 @@ public:
     static void value_changed_cb(lv_event_t* event);
     static void tile_btn_cb(lv_event_t* event);
     static void tile_btn_defocus_cb(lv_event_t* event);
+    static void tile_btn_focus_cb(lv_event_t* event);
     static void exit_btn_cb(lv_event_t* event);
 };
 

@@ -1,9 +1,9 @@
-#ifndef _BATTERY_MONITOR_MAIN_H
-#define _BATTERY_MONITOR_MAIN_H
+#ifndef _BATTERY_CAPACITY_MONITOR_MAIN_H
+#define _BATTERY_CAPACITY_MONITOR_MAIN_H
 
 #include "..\..\MonitorLvObject.h"
 
-class BatteryCapacityMain : public MonitorLvObject
+class BatteryCapacityMonitorMain : public MonitorLvObject
 {
 private:
 
@@ -17,10 +17,10 @@ private:
 
     uint8_t displayedPercent;
 private:
-    void update();
+    void update_obj();
 
 public:
-    BatteryCapacityMain();
+    BatteryCapacityMonitorMain();
 
     /// <summary>
     /// Returns the LV object instance to represent this class instance
@@ -38,6 +38,11 @@ public:
     /// This will ensure the stats are initialised and the correct interest for the monitor is assigned to the controller
     /// </summary>
     virtual void initBluetoothStats();
+
+    /// <summary>
+    /// For the layout we don't have any actual lv_objects to update
+    /// </summary>
+    virtual void updateLvObj();
 };
 
 #endif

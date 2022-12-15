@@ -27,7 +27,7 @@ class std::hash<String> {
 };
 #endif
 
-enum class DisplayConfigAttributeIndex { Contrast = 1, MonitorType = 2, ConnectBatteryOnly = 3, ConnectOnBoot = 4 };
+enum class DisplayConfigAttributeIndex { Contrast = 1, MonitorType = 2, ConnectBatteryOnly = 3, ConnectOnBoot = 4, UnitsMetricImperial = 5 };
 enum class BikeConfigAttributeIndex { Beeper = 1, FakeChannel = 2, WheelCircumference = 3, SupportAssistEco = 4, SupportAssistTrail = 5, SupportAssistTurbo = 6, PeakPowerAssistEco = 7, PeakPowerAssistTrail = 8, PeakPowerAssistTurbo = 9, SupportAssistLevelsManaged = 10, PeakPowerAssistLevelsManaged = 11 };
 
 struct DisplayConfig {
@@ -36,15 +36,18 @@ public:
     uint16_t monitorType;            // Enumeration of preset monitor settings
     bool connectBatteryOnly;        // This is more of a debug feature as you normally wont want to connect to battery only
     bool connectOnBoot;             // This is more likely to want to default to true
-    DisplayConfig(int8_t contrast, int16_t monitorType, bool connectBatteryOnly, bool connectOnBoot) {
+    bool unitsMetric;
+
+    DisplayConfig(int8_t contrast, int16_t monitorType, bool connectBatteryOnly, bool connectOnBoot, bool unitsMetric) {
         this->contrast = contrast;
         this->monitorType = monitorType;
         this->connectBatteryOnly = connectBatteryOnly;
         this->connectOnBoot = connectOnBoot;
+        this->unitsMetric = unitsMetric;
     };
     DisplayConfig() {};
     friend bool operator==(const DisplayConfig& lhs, const DisplayConfig& rhs) {
-        return (lhs.contrast == rhs.contrast && lhs.monitorType == rhs.monitorType && lhs.connectBatteryOnly == rhs.connectBatteryOnly && lhs.connectOnBoot == rhs.connectOnBoot);
+        return (lhs.contrast == rhs.contrast && lhs.monitorType == rhs.monitorType && lhs.connectBatteryOnly == rhs.connectBatteryOnly && lhs.connectOnBoot == rhs.connectOnBoot && lhs.unitsMetric == rhs.unitsMetric);
     }
     void setIntValue(DisplayConfigAttributeIndex displayConfigAttributeIndex, int newValue) {
         switch (displayConfigAttributeIndex) {
@@ -59,7 +62,10 @@ public:
             break;
             case DisplayConfigAttributeIndex::ConnectOnBoot:
             this->connectOnBoot = newValue;
-            break;            
+            break;
+            case DisplayConfigAttributeIndex::UnitsMetricImperial:
+            this->unitsMetric = newValue;
+            break;
         }
     };
     int getIntValue(DisplayConfigAttributeIndex displayConfigAttributeIndex) {
@@ -76,6 +82,9 @@ public:
             break;
             case DisplayConfigAttributeIndex::ConnectOnBoot:
             initValue = this->connectOnBoot;
+            break;
+            case DisplayConfigAttributeIndex::UnitsMetricImperial:
+            initValue = this->unitsMetric;
             break;
         }
         return initValue;

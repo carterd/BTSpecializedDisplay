@@ -40,8 +40,21 @@ void MainSmallMonitorLayout::statusUpdate()
 		this->smallMonitorLvObject->statusUpdate();
         this->mainMonitorLvObject->statusUpdate();
 	}
-	else 
-	{
-		// Nolonger connected Requred to scan again for connection
-	}
+}
+
+void MainSmallMonitorLayout::focusLvObj(BaseLvObject* defocusLvObj)
+{
+	// Ensure this item's state is in focus at this point
+	MonitorLvObject::focusLvObj(defocusLvObj);
+
+	this->smallMonitorLvObject->focusLvObj();
+	this->mainMonitorLvObject->focusLvObj();
+}
+
+void MainSmallMonitorLayout::defocusLvObj() {
+	// Ensure this item's state is in defocus at this point hence no contained monitors are drawn on updates
+	MonitorLvObject::defocusLvObj();
+
+	this->smallMonitorLvObject->defocusLvObj();
+	this->mainMonitorLvObject->defocusLvObj();
 }

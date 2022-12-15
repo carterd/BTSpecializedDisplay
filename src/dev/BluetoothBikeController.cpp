@@ -199,8 +199,8 @@ void BluetoothBikeController::checkForConnectionChange() {
     // If there is a listener and we've got some udpate information for the gui then perform callback
     if (this->listener_obj && this->getConnectedBikeStateUpdated()) {
       lv_event_send(this->listener_obj, LV_EVENT_REFRESH, this);
-      this->connectedBikeStatusLastUpdateTime = this->connectedBluetoothBike.getBikeStatusLastUpdateTime();
     }
+    this->connectedBikeStatusLastUpdateTime = this->connectedBluetoothBike.getBikeStatusLastUpdateTime();
   }
 }
 

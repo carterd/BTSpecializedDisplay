@@ -1,4 +1,4 @@
-#include "BatteryCapacityMain.h"
+#include "BatteryCapacityMonitorMain.h"
 #include <LvglThemes/lv_theme_binary.h>
 
 //static void refresh_cb(lv_event_t* event) {
@@ -15,16 +15,12 @@ static lv_style_t style_line(lv_coord_t width) {
 	return style_line;
 }
 
-BatteryCapacityMain::BatteryCapacityMain() {
+BatteryCapacityMonitorMain::BatteryCapacityMonitorMain() {
 	this->battery_line_style = style_line(3);
 	this->charge_line_style = style_line(8);
-	lv_obj_t* levels[10];
-	lv_point_t line_points[10][2];
-	lv_style_t battery_line_style;
-	lv_style_t charge_line_style;
 }
 
-const lv_point_t BatteryCapacityMain::battery_line_points[] = {
+const lv_point_t BatteryCapacityMonitorMain::battery_line_points[] = {
 	{32,110},							// Bottom
 	{54, 110}, {55, 109},				// Bottom Right
 	{55, 6}, {54, 5},					// Top Right
@@ -33,7 +29,7 @@ const lv_point_t BatteryCapacityMain::battery_line_points[] = {
 	{8, 109}, {9, 110},					// Bottom Left
 	{32, 110} };						// Bottom
 
-lv_obj_t* BatteryCapacityMain::createLvObj(lv_obj_t* parent) {
+lv_obj_t* BatteryCapacityMonitorMain::createLvObj(lv_obj_t* parent) {
 	// get the style we'll need for the bar
 	theme_binary_styles_t* binary_styles = (theme_binary_styles_t*)lv_disp_get_theme(lv_obj_get_disp(parent))->user_data;
 	lv_style_t* no_scrollbar = &(binary_styles->no_scrollbar);
@@ -61,12 +57,13 @@ lv_obj_t* BatteryCapacityMain::createLvObj(lv_obj_t* parent) {
 	return this->this_obj;
 }
 
-void BatteryCapacityMain::statusUpdate()
+void BatteryCapacityMonitorMain::statusUpdate()
 {
 	if (this->bluetoothBikeController && this->bluetoothBikeController->getConnected()) {
 		// This bleDevice should always be true as we've already idenfied scanned device available		
 		if (this->bluetoothBikeController->getBikeState().getStateAttribute(BikeStateAttributeIndex::BATTERY_CHARGE_PERCENT).bikeStateAttributeValue.valueUint8 != this->displayedPercent) {
-			this->update();
+			this->displayedPercent = this->bluetoothBikeController->getBikeState().getStateAttribute(BikeStateAttributeIndex::BATTERY_CHARGE_PERCENT).bikeStateAttributeValue.valueUint8;
+			MonitorLvObject::statusUpdate();
 		}
 		// We should use a counter to keep battery upto date ... as probaby needs explicit read from time to time
 	}
@@ -76,14 +73,12 @@ void BatteryCapacityMain::statusUpdate()
 	}
 }
 
-void BatteryCapacityMain::initBluetoothStats()
+void BatteryCapacityMonitorMain::initBluetoothStats()
 {
 	this->bluetoothBikeController->getConnectedBluetoothBike().readBikeStateAttribute(BikeStateAttributeIndex::BATTERY_CHARGE_PERCENT, MonitorAttributeType::EVERY_MINUTE);
 }
 
-
-void BatteryCapacityMain::update() {
-	this->displayedPercent = this->bluetoothBikeController->getBikeState().getStateAttribute(BikeStateAttributeIndex::BATTERY_CHARGE_PERCENT).bikeStateAttributeValue.valueUint8;
+void BatteryCapacityMonitorMain::updateLvObj() {
 	for (int i = 0; i < 10; i++) {
 		lv_obj_t* level = this->levels[i];
 		if (this->displayedPercent <= i * 10 ) {
@@ -103,3 +98,4 @@ void BatteryCapacityMain::update() {
 		}
 	}
 }
+

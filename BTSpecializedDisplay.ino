@@ -58,22 +58,10 @@ void setup() {
   // Allow time for display to wake up
   delay(250);
   pinMode(LED_BUILTIN, OUTPUT);
-  /*
-  for (int i = 0; i < 10; i++ ) {
-    adafruitDisplay.begin(0x3C, true);
-    adafruitDisplay.clearDisplay();
-    adafruitDisplay.display();
-    //display.dispaly();
-    digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
-    delay(10);                       // wait for a second
-    digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
-    delay(10);                       // wait for a second
-  }
-  */
 
   // Remote if no serial monitor
-  //Serial.begin(9600);
-  //while (!Serial);
+  Serial.begin(9600);
+  while (!Serial);
 
   // Initialise display
   bool displayWorking = false;
@@ -105,7 +93,7 @@ void setup() {
   
   // initalise the font required for the given display
   adafruitToLvGLFont(&PixelOperator8pt7b, &myAdaFont, &lv_font_symbols_8);
-
+  
   // initialise the binary theme
   lv_theme_t* binary_theme = lv_theme_binary_init(displayGlue.getLvDisplay(), true, &myAdaFont);
   lv_disp_set_rotation(NULL, LV_DISP_ROT_180);

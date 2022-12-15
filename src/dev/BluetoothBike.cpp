@@ -474,9 +474,6 @@ void BluetoothBike::readBufferToCscMeasurement()
     };
     bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::CRANK_ROTATIONS, crankSpeedCadenceReading, time);
 
-    LV_LOG_USER("CADENCE = %d %d ", lastCrankSpeedCadenceReading.rotationCount, crankSpeedCadenceReading.rotationCount);
-    LV_LOG_USER("TIMES = %d %d ", lastCrankSpeedCadenceReading.eventTime, crankSpeedCadenceReading.eventTime);
-
     if ((crankSpeedCadenceReading.eventTime != 0 || crankSpeedCadenceReading.rotationCount != 0) &&
       lastCrankSpeedCadenceReading.eventTime != crankSpeedCadenceReading.eventTime &&
       lastCrankSpeedCadenceReading.rotationCount <= crankSpeedCadenceReading.rotationCount) {
@@ -487,8 +484,6 @@ void BluetoothBike::readBufferToCscMeasurement()
       int32_t crankRotationsDelta = crankSpeedCadenceReading.rotationCount - lastCrankSpeedCadenceReading.rotationCount;
       float crankRatationsPerSecond = 60000.0 * crankRotationsDelta / eventTimeDelta;
       bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::CRANK_ROTATIONS_PER_MIN, crankRatationsPerSecond, time);
-
-      LV_LOG_USER("sums are 60000 * %ld / %ld -> %d", crankRotationsDelta, eventTimeDelta, (int) (crankRatationsPerSecond));
     }
   }
   // If we identify a bike status attribute has been changed then update the time stamp in bikeStatuslastUpdateTime
@@ -567,17 +562,22 @@ bool BluetoothBike::writeBikeStateAttribute(BikeStateAttributeIndex bikeStateAtt
 void BluetoothBike::calculatedStateAttribute(BikeStateAttributeIndex bikeStateAttributeIndex) {
   switch (bikeStateAttributeIndex) {
     case BikeStateAttributeIndex::WHEEL_ROTATIONS_PER_MIN:
+    case BikeStateAttributeIndex::WHEEL_ROTATIONS:
     {
       uint32_t time = millis();
-      if (this->bikeState.getStateAttribute(BikeStateAttributeIndex::WHEEL_ROTATIONS).lastFetchTimeTicks - time > WHEEL_ROTATIONS_STOPPED_TIMEOUT_MS)
+      if (time - this->bikeState.getStateAttribute(BikeStateAttributeIndex::WHEEL_ROTATIONS).lastFetchTimeTicks > WHEEL_ROTATIONS_STOPPED_TIMEOUT_MS) {
           this->bikeState.setStateAttribute(BikeStateAttributeIndex::WHEEL_ROTATIONS_PER_MIN, 0.0f, time);
+          this->bikeState.setStateAttribute(BikeStateAttributeIndex::WHEEL_ROTATIONS, time);
+      }
     }
     break;
     case BikeStateAttributeIndex::CRANK_ROTATIONS_PER_MIN:
+    case BikeStateAttributeIndex::CRANK_ROTATIONS:
     {
           uint32_t time = millis();
           if (this->bikeState.getStateAttribute(BikeStateAttributeIndex::CRANK_ROTATIONS).lastFetchTimeTicks - time > CRANK_ROTATIONS_STOPPED_TIMEOUT_MS)
           this->bikeState.setStateAttribute(BikeStateAttributeIndex::CRANK_ROTATIONS_PER_MIN, 0.0f, time);
+          this->bikeState.setStateAttribute(BikeStateAttributeIndex::CRANK_ROTATIONS, time);
     }
     break;
   }

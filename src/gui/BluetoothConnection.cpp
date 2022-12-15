@@ -129,13 +129,18 @@ void BluetoothConnection::focusLvObj(BaseLvObject* defocusLvObj)
         this->monitorSelectorActive = false;
         this->exiting = false;
         this->defocusLvObj = defocusLvObj;
-
-	    this->hideButtonLabels();
         this->startBTConnection();
         
     } else {
-        // If we are already connecting and we get focus only from the label bar
-        
+        // If we are already connecting and we get focus
+        // Ensure the connection view is shown if jumping to the connection
+        lv_obj_set_tile_id(this->tileview_obj, 0, 0, LV_ANIM_OFF);
+        // Capture movement from here on in
+        lv_indev_set_group(this->indev, this->group);
+        lv_group_focus_obj(this->button_obj);
+
+        this->monitorSelectorActive = false;
+        this->startBTConnection();
     }
 }
 
@@ -172,13 +177,16 @@ void BluetoothConnection::stopBTConnection()
 }
 
 void BluetoothConnection::restartBTConnection() {
-    this->startBTConnection();
+    //this->startBTConnection();
+    this->focusLvObj();
 }
 
 
 void BluetoothConnection::updateButtonLabelBar() {
     if (this->buttonLabelBar) {
         this->buttonLabelBar->setButtonLabels("", LV_SYMBOL_CLOSE, "");
+        this->buttonLabelBar->setAutoHide(true);
+        this->hideButtonLabels();
     }
 }
 
@@ -307,7 +315,6 @@ void BluetoothConnection::exitButtonCB(lv_event_t* event)
 
 void BluetoothConnection::tileChangedCB(lv_event_t* event)
 {
-    // Update the monitorLvObjActive to be the state we've moved to
     this->monitorSelectorActive = lv_tileview_get_tile_act(this->tileview_obj) != this->connection_tile_obj;
     if (this->exiting) this->exitButtonCB(event);
 }

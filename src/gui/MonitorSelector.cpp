@@ -17,6 +17,11 @@ void MonitorSelector::tile_btn_defocus_cb(lv_event_t* event) {
     monitorSelector->tileButtonDefocusCB(event);
 }
 
+void MonitorSelector::tile_btn_focus_cb(lv_event_t* event) {
+    MonitorSelector* monitorSelector = (MonitorSelector*)event->user_data;
+    monitorSelector->tileButtonFocusCB(event);
+}
+
 void MonitorSelector::exit_btn_cb(lv_event_t* event)
 {
     MonitorSelector* monitorSelector = (MonitorSelector*)event->user_data;
@@ -60,8 +65,7 @@ lv_obj_t* MonitorSelector::createLvObj(lv_obj_t* parent)
     
     // add two activity button object to identify if encoder is being used
     //this->activity_btn_obj = lv_btn_create(this->this_obj);
-    //lv_obj_add_style(this->activity_btn_obj, button_no_highlight_style, LV_PART_MAIN);
-    //lv_obj_add_event_cb(this->activity_btn_obj, MonitorSelector::lv_event_encorder_cb, LV_EVENT_FOCUSED, this);
+    //lv_obj_add_style(this->activity_btn_obj, button_no_highlight_style, LV_PART_MAIN);    
     //lv_obj_add_event_cb(this->activity_btn_obj, MonitorSelector::exit_btn_cb, LV_EVENT_LONG_PRESSED, this);
     //lv_group_add_obj(this->group, this->activity_btn_obj);
     
@@ -79,6 +83,7 @@ lv_obj_t* MonitorSelector::createLvObj(lv_obj_t* parent)
     {
         // Create the lv_tile to the list of current tiles
         lv_obj_t* tile_obj = lv_tileview_add_tile(this->options_tileview_obj, tile_pos, 0, LV_DIR_ALL);
+        lv_obj_set_user_data(tile_obj, (*it));
         lv_obj_t* btn_obj = lv_btn_create(tile_obj);
         lv_obj_add_style(btn_obj, button_no_highlight_style, LV_PART_MAIN);
         lv_obj_set_size(btn_obj, lv_obj_get_width(parent), lv_obj_get_height(parent));
@@ -89,6 +94,7 @@ lv_obj_t* MonitorSelector::createLvObj(lv_obj_t* parent)
         lv_obj_add_event_cb(btn_obj, MonitorSelector::exit_btn_cb, LV_EVENT_LONG_PRESSED, this);
         lv_obj_add_event_cb(btn_obj, MonitorSelector::tile_btn_cb, LV_EVENT_SHORT_CLICKED, this);
         lv_obj_add_event_cb(btn_obj, MonitorSelector::tile_btn_defocus_cb, LV_EVENT_DEFOCUSED, this);
+        lv_obj_add_event_cb(btn_obj, MonitorSelector::tile_btn_focus_cb, LV_EVENT_FOCUSED, this);
         lv_group_add_obj(this->group, btn_obj);
 
         tile_pos++;
@@ -111,6 +117,8 @@ void MonitorSelector::focusLvObj(BaseLvObject* defocusLvObj)
     this->updateButtonLabelBar();
     this->buttonLabelBar->setAutoHide(true);
     this->initBluetoothStats();
+    // Ensures the monitor is selected
+    this->selectMonitor();
     
     // Ensure there is some children in the tileview
     if (lv_obj_get_child_cnt(this->options_tileview_obj)) {
@@ -118,14 +126,6 @@ void MonitorSelector::focusLvObj(BaseLvObject* defocusLvObj)
         lv_obj_set_tile_id(this->options_tileview_obj, this->selectedItem, 0, LV_ANIM_OFF);
         lv_obj_t* active_obj = lv_tileview_get_tile_act(this->options_tileview_obj);
         lv_obj_t* btn_obj = lv_obj_get_child(active_obj, 0);
-        // Strange behaviour if there is only one button ... long press doesn't work hence secret button
-//        if (lv_obj_get_child_cnt(this->options_tileview_obj) == 1) {
-//            lv_group_add_obj(this->group, this->activity_btn_obj);
-//        }
-//        else {
-//            lv_group_remove_obj(this->activity_btn_obj);
-//        }
-
         lv_indev_set_group(this->indev, this->group);
         lv_group_focus_obj(btn_obj);
     }
@@ -165,15 +165,34 @@ void MonitorSelector::statusUpdate() {
     }
 }
 
+void MonitorSelector::deselectMonitor() {
+    // Get the current tile that user has navigated to
+    lv_obj_t* selected_obj = lv_obj_get_child(this->options_tileview_obj, this->selectedItem);
+    // Identify the monitor object specifically
+    MonitorLvObject* monitorLvObject = (MonitorLvObject*)lv_obj_get_user_data(selected_obj);
+    this->deselectMonitor(monitorLvObject);
+}
+
+void MonitorSelector::deselectMonitor(MonitorLvObject* monitorLvObject) {
+    std::vector<MonitorLvObject*>::iterator it = std::find(std::begin(this->monitorLvObjects), std::end(this->monitorLvObjects), monitorLvObject);
+
+    if (it != std::end(this->monitorLvObjects)) monitorLvObject->defocusLvObj();
+}
+
+void MonitorSelector::selectMonitor() {
+    // Get the current tile that user has navigated to
+    lv_obj_t* selected_obj = lv_obj_get_child(this->options_tileview_obj, this->selectedItem);
+    // Identify the monitor object specifically
+    MonitorLvObject* monitorLvObject = (MonitorLvObject*)lv_obj_get_user_data(selected_obj);
+    this->selectMonitor(monitorLvObject);
+}
 
 void MonitorSelector::selectMonitor(MonitorLvObject* monitorLvObject) {
-    // Get the current tile that user has navigated to
-    lv_obj_t* obj = lv_tileview_get_tile_act(this->options_tileview_obj);
-
     std::vector<MonitorLvObject*>::iterator it = std::find(std::begin(this->monitorLvObjects), std::end(this->monitorLvObjects), monitorLvObject);
 
     if (it != std::end(this->monitorLvObjects)) {
         int tilePos = it - std::begin(this->monitorLvObjects);
+        this->deselectMonitor();
         this->selectedItem = tilePos;
         monitorLvObject->focusLvObj(this);
     }
@@ -187,25 +206,29 @@ void MonitorSelector::tileButtonCB(lv_event_t* e) {
 
     // Get the current tile that user has navigated to
     lv_obj_t* selected_obj = lv_tileview_get_tile_act(this->options_tileview_obj);
+    // Identify the monitor object specifically
+    MonitorLvObject* monitorLvObject = (MonitorLvObject *) lv_obj_get_user_data(selected_obj);
 
-    for (std::vector<MonitorLvObject*>::iterator it = std::begin(this->monitorLvObjects); it != std::end(this->monitorLvObjects); ++it)
-    {
-        MonitorLvObject* monitorLvObject = *it;
-        
-        lv_obj_t* obj_cmp = lv_obj_get_parent(monitorLvObject->getLvObj());
-
-        // If the scroll menu item's parent object, i.e. the tile holding the item equals the selected_object then this is the scrollMenuItem to select
-        if (obj_cmp == selected_obj) {
-            this->selectMonitor(monitorLvObject);
-            return;
-        }
+    if (monitorLvObject) {
+        this->selectMonitor(monitorLvObject);
     }
 }
 
 void MonitorSelector::tileButtonDefocusCB(lv_event_t* e) {
     // For the moment lets disable showing the menu bar while in connected mode
-    //this->buttonLabelBar->show();
-    this->selectAnimation = true;
+}
+
+void MonitorSelector::tileButtonFocusCB(lv_event_t* e) {
+
+    // For the moment lets disable showing the menu bar while in connected mode
+    lv_obj_t* tile_obj = lv_obj_get_parent(lv_group_get_focused(this->group));
+    if (lv_obj_check_type(tile_obj, &lv_tileview_tile_class) && lv_obj_get_user_data(tile_obj)) {
+        // Set the tile as being focused instantly ... no scroll        
+        lv_obj_set_tile(this->options_tileview_obj, tile_obj, LV_ANIM_OFF);
+        // Identify the tile number
+        MonitorLvObject* monitorLvObject = (MonitorLvObject*)lv_obj_get_user_data(tile_obj);
+        this->selectMonitor(monitorLvObject);
+    }
 }
 
 void MonitorSelector::valueChangedCB(lv_event_t* event) {

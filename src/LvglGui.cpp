@@ -19,18 +19,22 @@
 #include "gui/BluetoothScanList.h"
 #include "gui/BluetoothConnection.h"
 #include "gui/MonitorSelector.h"
-#include "gui/monitors/main/BatteryCapacityMain.h"
+#include "gui/monitors/main/BatteryCapacityMonitorMain.h"
+#include "gui/monitors/main/RiderPowerGraphMonitorMain.h"
 #include "gui/monitors/layout/MainSmallMonitorLayout.h"
 #include "gui/monitors/layout/MultiSmallMonitorLayout.h"
-#include "gui/monitors/small/MotorAssistLevelDotsSmall.h"
-#include "gui/monitors/small/MotorAssistLevelSmall.h"
+#include "gui/monitors/small/MotorAssistLevelDotsMonitorSmall.h"
+#include "gui/monitors/small/MotorAssistLevelMonitorSmall.h"
 #include "gui/monitors/small/TimeticksMonitorSmall.h"
-#include "gui/monitors/small/CrankRotationsPerMinMonitorSmall.h"
-#include "gui/monitors/small/WheelRotationsPerMinMonitorSmall.h"
-#include "gui/monitors/small/BatteryCapacitySmall.h"
-#include "gui/monitors/small/RiderPowerSmall.h"
-#include "gui/monitors/small/MotorPowerSmall.h"
-#include "gui/monitors/small/BlankSmall.h"
+#include "gui/monitors/small/CadenceMonitorSmall.h"
+#include "gui/monitors/small/SpeedMonitorSmall.h"
+#include "gui/monitors/small/BatteryCapacityMonitorSmall.h"
+#include "gui/monitors/small/RiderPowerMonitorSmall.h"
+#include "gui/monitors/small/MotorPowerMonitorSmall.h"
+#include "gui/monitors/small/BlankMonitorSmall.h"
+#include "gui/monitors/small/BatteryVoltageMonitorSmall.h"
+#include "gui/monitors/small/BatteryCurrentMonitorSmall.h"
+#include "gui/monitors/small/MemoryMonitorSmall.h"
 
 #include "gui/configMenus/DisplayBrightnessMenu.h"
 #include "gui/configMenus/DisplayConnectOnBootMenu.h"
@@ -45,6 +49,8 @@
 
 #include "dev/Display.h"
 #include "dev/BluetoothBikeController.h"
+
+#include "stats/PowerMeterLogger.h"
 
 #include <Arduino.h>
 
@@ -93,24 +99,35 @@ void lvgl_setup(ConfigStore *configStore, BluetoothBikeController *bluetoothBike
     //
     static BluetoothConnection bluetoothConnection(bluetoothBikeController, configStore, &pressbutton, indev, buttonLabelBar);
 
-    static CrankRotationsPerMinMonitorSmall crankRotationsPerMinMonitorSmall;
-    static WheelRotationsPerMinMonitorSmall wheelRotationsPerMinMonitorSmall;
+    static CadenceMonitorSmall cadenceMonitorSmall;
+    static SpeedMonitorSmall speedMonitorSmall(configStore);
     static TimeticksMonitorSmall timeticksMonitor;
-    static BatteryCapacitySmall batteryCapacitySmall;
-    static RiderPowerSmall riderPowerSmall;
-    static MotorPowerSmall motorPowerSmall;
+    static BatteryCapacityMonitorSmall batteryCapacitySmall;
+    static RiderPowerMonitorSmall riderPowerSmall;
+    static MotorPowerMonitorSmall motorPowerSmall;
+    static BatteryVoltageMonitorSmall batteryVoltageSmall;
+    static BatteryCurrentMonitorSmall batteryCurrentSmall;
+    static MemoryMonitorSmall memoryMonitorSmall;
 
-    static BatteryCapacityMain batteryMonitor;
+    static BatteryCapacityMonitorMain batteryMonitor;
+    static PowerMeterLogger powerMeterLogger;
+    static RiderPowerGraphMonitorMain riderPowerGraphMain(&powerMeterLogger);
+    riderPowerGraphMain.setAverageMode();
+    static RiderPowerMonitorSmall riderPowerSmallTop;
+    static MainSmallMonitorLayout mainPower(&riderPowerGraphMain, &riderPowerSmallTop);
 
-    static MotorAssistLevelDotSmall motorAssistLevelDotSmall;
-    static MotorAssistLevelSmall motorAssistLevelSmall;
-    static BlankSmall blankSmall;
+    static MotorAssistLevelDotMonitorSmall motorAssistLevelDotSmall;
+    static MotorAssistLevelMonitorSmall motorAssistLevelSmall;
+    static BlankMonitorSmall blankSmall;
+
     static MainSmallMonitorLayout mainSmallMonitorLayout(&batteryMonitor, &motorAssistLevelDotSmall);
-    static MultiSmallMonitorLayout multiSmallMonitorLayout(&wheelRotationsPerMinMonitorSmall, &crankRotationsPerMinMonitorSmall, &batteryCapacitySmall, &timeticksMonitor, &motorAssistLevelSmall, &riderPowerSmall, &motorPowerSmall, &blankSmall);
+    //static MultiSmallMonitorLayout multiSmallMonitorLayout(&wheelRotationsPerMinMonitorSmall, &crankRotationsPerMinMonitorSmall, &batteryCapacitySmall, &timeticksMonitor, &motorAssistLevelSmall, &riderPowerSmall, &motorPowerSmall, &blankSmall);
+    static MultiSmallMonitorLayout multiSmallMonitorLayout(&timeticksMonitor, &memoryMonitorSmall, &batteryCapacitySmall, &riderPowerSmall, &batteryCurrentSmall, &batteryVoltageSmall, &cadenceMonitorSmall, &speedMonitorSmall);
 
     static MonitorSelector monitorSelector(indev, buttonLabelBar);
     monitorSelector.addMonitorLvObject(&mainSmallMonitorLayout);
     monitorSelector.addMonitorLvObject(&multiSmallMonitorLayout);
+    monitorSelector.addMonitorLvObject(&mainPower);
 
     // Create the connection
     bluetoothConnection.setMonitorSelector(&monitorSelector);

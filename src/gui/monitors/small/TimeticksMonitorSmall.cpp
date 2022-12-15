@@ -3,7 +3,8 @@
 #include <LvglThemes/lv_theme_binary.h>
 
 
-TimeticksMonitorSmall::TimeticksMonitorSmall() {
+TimeticksMonitorSmall::TimeticksMonitorSmall(const char* attributeTitle) {
+	this->attributeTitle = attributeTitle;
 }
 
 lv_obj_t* TimeticksMonitorSmall::createLvObj(lv_obj_t* parent) {    
@@ -19,16 +20,16 @@ lv_obj_t* TimeticksMonitorSmall::createLvObj(lv_obj_t* parent) {
 
 	lv_obj_t* label_obj = lv_label_create(this->this_obj);
 	lv_obj_set_align(label_obj, LV_ALIGN_LEFT_MID);
-	lv_label_set_text(label_obj, "Clk:");
+	lv_label_set_text(label_obj, this->attributeTitle ? this->attributeTitle : "");
 
 	this->value_obj = lv_label_create(this->this_obj);
 	lv_obj_set_style_bg_color(this->value_obj, lv_color_black(), LV_PART_MAIN);
 	lv_obj_set_style_bg_opa(this->value_obj, LV_OPA_COVER, LV_PART_MAIN);
-	lv_obj_set_align(this->value_obj, LV_ALIGN_RIGHT_MID);
+	lv_obj_set_align(this->value_obj, this->attributeTitle ? LV_ALIGN_RIGHT_MID : LV_ALIGN_CENTER);
 	return this->this_obj;
 }
 
-void TimeticksMonitorSmall::statusUpdate()
+void TimeticksMonitorSmall::updateLvObj()
 {
 	char ticksString[32];
 	long totalSeconds = millis() / 1000.0;
