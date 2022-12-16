@@ -38,7 +38,7 @@ public:
     /// The callback on the list required to be updated, i.e. a bluetooth device detected
     /// </summary>
     /// <param name="event">The lv event that identifies pressing the device entry</param>
-    virtual void updateLvOb() {
+    virtual void updateLvObj() {
         char valueString[32];
         float kmph = this->bluetoothBikeController->getBikeState().getStateAttribute(BikeStateAttributeIndex::WHEEL_ROTATIONS_PER_MIN).bikeStateAttributeValue.valueFloat * this->wheelCircumferenceMm * 60.0f / 1000000.0f;
         float mph = kmph * 0.621371;
@@ -54,8 +54,8 @@ public:
         this->bluetoothBikeController->getConnectedBluetoothBike().readBikeStateAttribute(BikeStateAttributeIndex::WHEEL_CIRCUMFERENCE, MonitorAttributeType::ONCE);
         BikeConfig bikeConfig = this->configStore->getBikeConfig();
         DisplayConfig displayConfig = this->configStore->getDisplayConfig();
-        if (bikeConfig.wheelCircumference.managed)
-            this->wheelCircumferenceMm = (bikeConfig.wheelCircumference.managed) ? bikeConfig.wheelCircumference.value : this->bluetoothBikeController->getBikeState().getStateAttribute(BikeStateAttributeIndex::WHEEL_CIRCUMFERENCE).bikeStateAttributeValue.valueUint16;
+
+        this->wheelCircumferenceMm = (bikeConfig.wheelCircumference.managed) ? bikeConfig.wheelCircumference.value : this->bluetoothBikeController->getBikeState().getStateAttribute(BikeStateAttributeIndex::WHEEL_CIRCUMFERENCE).bikeStateAttributeValue.valueUint16;
         this->bluetoothBikeController->getConnectedBluetoothBike().readBikeStateAttribute(BikeStateAttributeIndex::WHEEL_ROTATIONS, MonitorAttributeType::EVERY_TEN_SECONDS);
         
         this->displayMetric = displayConfig.unitsMetric;

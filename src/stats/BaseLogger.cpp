@@ -1,7 +1,6 @@
 #include "BaseLogger.h"
 
-template <typename T>
-BaseLogger<T>::BaseLogger(uint32_t startTimeTicks, uint32_t periodLengthTimeTicks, int maxPeriodReadings)
+template <typename T> BaseLogger<T>::BaseLogger(uint32_t startTimeTicks, uint32_t periodLengthTimeTicks, int maxPeriodReadings)
 {
 	this->periodStartTimeTicks = startTimeTicks;
 	this->periodLengthTimeTicks = periodLengthTimeTicks;
@@ -17,6 +16,7 @@ void BaseLogger<T>::addReading(T reading, uint32_t lastFetchTimeTicks)
 	if (lastFetchTimeTicks > this->periodStartTimeTicks + this->periodLengthTimeTicks) {
 		this->processPeriodRead();
 		this->meterReadings.clear();
+		// Reset the period start time ticks to the nearest divisable periodLengthTimeTicks allowing reading to be missed
         this->periodStartTimeTicks = lastFetchTimeTicks - (lastFetchTimeTicks % this->periodLengthTimeTicks);
 	}
     // Record a new meter reading
@@ -46,7 +46,7 @@ void BaseLogger<T>::processPeriodRead()
 		float average = 0;
 		uint32_t previousFetchTimeTicks = this->periodStartTimeTicks;
 		for (int i = 0; i < meterReadingsSize; i++) {
-			uint16_t value = this->meterReadings[i].value;
+			T value = this->meterReadings[i].value;
 			uint32_t fetchTimeTicks = this->meterReadings[i].lastFetchTimeTicks;
 			if (value > periodReading.max) periodReading.max = value;
 			else if (value < periodReading.min) periodReading.min = value;
@@ -117,3 +117,5 @@ T BaseLogger<T>::getMinPeriodReading(uint32_t windowStart, uint32_t windowEnd)
 {
 	return this->getLimitPeriodReading(windowStart, windowEnd, false);
 }
+
+template class BaseLogger<uint16_t>;

@@ -21,6 +21,7 @@
 #include "gui/MonitorSelector.h"
 #include "gui/monitors/main/BatteryCapacityMonitorMain.h"
 #include "gui/monitors/main/RiderPowerGraphMonitorMain.h"
+#include "gui/monitors/main/SpeedGraphMonitorMain.h"
 #include "gui/monitors/layout/MainSmallMonitorLayout.h"
 #include "gui/monitors/layout/MultiSmallMonitorLayout.h"
 #include "gui/monitors/small/MotorAssistLevelDotsMonitorSmall.h"
@@ -51,6 +52,7 @@
 #include "dev/BluetoothBikeController.h"
 
 #include "stats/PowerMeterLogger.h"
+#include "stats/SpeedMeterLogger.h"
 
 #include <Arduino.h>
 
@@ -85,60 +87,72 @@ ScrollMenuItem DisplayBrightnessMenu(ConfigStore* configStore, lv_indev_t* indev
  */
 void lvgl_setup(ConfigStore *configStore, BluetoothBikeController *bluetoothBikeController, Adafruit_LvGL_Glue& displayGlue, lv_indev_t* indev) {
 
+    //
     // Configure the Display
+    //
     lv_disp_t* lv_display = displayGlue.getLvDisplay();
     static Display display(displayGlue.display);
     display.setContrast(configStore->getDisplayConfig().contrast);
 
-    
-    static MainView mainView(indev);
-    ButtonLabelBar* buttonLabelBar = mainView.getButtonLabelBar();
-
-    // 
-    // Connect Menu Item
     //
-    static BluetoothConnection bluetoothConnection(bluetoothBikeController, configStore, &pressbutton, indev, buttonLabelBar);
+    // Monitor Configurations
+    //
+    static MainView mainView(indev);
+    ButtonLabelBar* buttonLabelBar = mainView.getButtonLabelBar();    
 
-    static CadenceMonitorSmall cadenceMonitorSmall;
-    static SpeedMonitorSmall speedMonitorSmall(configStore);
-    static TimeticksMonitorSmall timeticksMonitor;
-    static BatteryCapacityMonitorSmall batteryCapacitySmall;
-    static RiderPowerMonitorSmall riderPowerSmall;
-    static MotorPowerMonitorSmall motorPowerSmall;
-    static BatteryVoltageMonitorSmall batteryVoltageSmall;
-    static BatteryCurrentMonitorSmall batteryCurrentSmall;
-    static MemoryMonitorSmall memoryMonitorSmall;
-
+    // Monitor Screen 1 (Battery and Assist)
+    static MotorAssistLevelDotMonitorSmall motorAssistLevelDotSmall;
     static BatteryCapacityMonitorMain batteryMonitor;
+    static MainSmallMonitorLayout mainSmallMonitorLayout(&batteryMonitor, &motorAssistLevelDotSmall);
+
+    // Monitor Screen 2 (Power Average/Min Max)
+    bool minMaxPower = false;
     static PowerMeterLogger powerMeterLogger;
-    static RiderPowerGraphMonitorMain riderPowerGraphMain(&powerMeterLogger);
-    riderPowerGraphMain.setAverageMode();
     static RiderPowerMonitorSmall riderPowerSmallTop;
+    static RiderPowerGraphMonitorMain riderPowerGraphMain(&powerMeterLogger, minMaxPower);
     static MainSmallMonitorLayout mainPower(&riderPowerGraphMain, &riderPowerSmallTop);
 
-    static MotorAssistLevelDotMonitorSmall motorAssistLevelDotSmall;
-    static MotorAssistLevelMonitorSmall motorAssistLevelSmall;
-    static BlankMonitorSmall blankSmall;
+    // Monitor Screen 3 (Speed Average/Min Max)
+    bool minMaxSpeed = true;
+    static SpeedMeterLogger speedMeterLogger;
+    static SpeedMonitorSmall speedSmallTop(configStore);
+    static SpeedGraphMonitorMain speedGraphMonitorMain(configStore, &speedMeterLogger, minMaxSpeed);
+    static MainSmallMonitorLayout mainSpeed(&speedGraphMonitorMain, &speedSmallTop);
 
-    static MainSmallMonitorLayout mainSmallMonitorLayout(&batteryMonitor, &motorAssistLevelDotSmall);
-    //static MultiSmallMonitorLayout multiSmallMonitorLayout(&wheelRotationsPerMinMonitorSmall, &crankRotationsPerMinMonitorSmall, &batteryCapacitySmall, &timeticksMonitor, &motorAssistLevelSmall, &riderPowerSmall, &motorPowerSmall, &blankSmall);
-    static MultiSmallMonitorLayout multiSmallMonitorLayout(&timeticksMonitor, &memoryMonitorSmall, &batteryCapacitySmall, &riderPowerSmall, &batteryCurrentSmall, &batteryVoltageSmall, &cadenceMonitorSmall, &speedMonitorSmall);
+    // Monitor Screen 4 (All the odds and ends
+    static TimeticksMonitorSmall timeticksMonitorSmall(NULL);        
+    static CadenceMonitorSmall cadenceMonitorSmall;
+    static SpeedMonitorSmall speedMonitorSmall(configStore);
+    static MotorPowerMonitorSmall motorPowerMonitorSmall;
+    static BatteryVoltageMonitorSmall batteryVoltageMonitorSmall;
+    static BatteryCurrentMonitorSmall batteryCurrentMonitorSmall;    
+    static MotorAssistLevelMonitorSmall motorAssistLevelMonitorSmall;
+    static BlankMonitorSmall blankSmall;
+    //static RiderPowerMonitorSmall riderPowerMonitorSmall;    
+    //static SpeedMonitorSmall speedMonitorSmall(configStore);
+    //static BatteryCapacityMonitorSmall batteryCapacityMonitorSmall;
+    //static MemoryMonitorSmall memoryMonitorSmall;
+
+    static MultiSmallMonitorLayout multiSmallMonitorLayout(&timeticksMonitorSmall, &blankSmall, &cadenceMonitorSmall, &speedMonitorSmall, &motorPowerMonitorSmall, &batteryVoltageMonitorSmall, &batteryCurrentMonitorSmall, &motorAssistLevelMonitorSmall);
+
+    //
+    // Connection Menu Item
+    //
 
     static MonitorSelector monitorSelector(indev, buttonLabelBar);
     monitorSelector.addMonitorLvObject(&mainSmallMonitorLayout);
-    monitorSelector.addMonitorLvObject(&multiSmallMonitorLayout);
     monitorSelector.addMonitorLvObject(&mainPower);
+    monitorSelector.addMonitorLvObject(&mainSpeed);
+    monitorSelector.addMonitorLvObject(&multiSmallMonitorLayout);
 
-    // Create the connection
+    static BluetoothConnection bluetoothConnection(bluetoothBikeController, configStore, &pressbutton, indev, buttonLabelBar);
     bluetoothConnection.setMonitorSelector(&monitorSelector);
-    // Create the menu item popup being the connection
     static ScrollMenuItem connectMenuItem(&pressbutton, false);
     connectMenuItem.setPopupItem(&bluetoothConnection);
 
     //
     // Settings Menu Item
     //
-    //static ConfigMainMenu configMainMenu(*configStore, display, indev, NULL);
     static ConfigMainMenu configMainMenu(*configStore, display, indev, buttonLabelBar);
     
     //
@@ -149,7 +163,7 @@ void lvgl_setup(ConfigStore *configStore, BluetoothBikeController *bluetoothBike
     bluetoothMenuItem.setPopupItem(&bluetoothScanList);
 
     //
-    // Main Menu
+    // Main Menu Creations
     //
     
     lv_obj_t* screen_obj = lv_scr_act();
@@ -158,16 +172,14 @@ void lvgl_setup(ConfigStore *configStore, BluetoothBikeController *bluetoothBike
     mainScrollMenu.addMenuItem(&configMainMenu.configMainMenuItem);
     mainScrollMenu.addMenuItem(&bluetoothMenuItem);
 
+    //
+    // Complete configuration of mainView
+    //
+
     mainView.setBaseLvObject(&mainScrollMenu);
-//    mainView.setBaseLvObject(&monitorSelector);
     mainView.createLvObj(screen_obj);
     mainView.focusLvObj();
 
-//    monitorSelector.createLvObj(screen_obj);
-//    monitorSelector.focusLvObj();
-
-    //mainScrollMenu.createLvObj(screen_obj);
-    //mainScrollMenu.focusLvObj();
 
     //
     // If connect on boot and there is at least one address to connect to

@@ -29,11 +29,12 @@ public:
         displayConnectOnBootMenu(configStore, display, indev, buttonLabel),
         displayConnectBatteryOnlyMenu(configStore, display, indev, buttonLabel),
         displayUnitsMetricImperialMenu(configStore, display, indev, buttonLabel)
-	{        
-        bikeNavigationMenu.addMenuItem(&displayConnectOnBootMenu.menuItem);
+	{
         bikeNavigationMenu.addMenuItem(&displayBrightnessMenu.menuItem);
-        bikeNavigationMenu.addMenuItem(&displayConnectBatteryOnlyMenu.menuItem);
         bikeNavigationMenu.addMenuItem(&displayUnitsMetricImperialMenu.menuItem);
+        bikeNavigationMenu.addMenuItem(&displayConnectOnBootMenu.menuItem);
+        bikeNavigationMenu.addMenuItem(&displayConnectBatteryOnlyMenu.menuItem);
+        
 
         // Configure the menu item
         configDisplayMenuItem.setPopupItem(&bikeNavigationMenu);

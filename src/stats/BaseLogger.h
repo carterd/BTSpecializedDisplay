@@ -15,18 +15,22 @@ public:
         float average;
     };
 private:
-    /// <summary>
-    /// This attribute will limit the number of reading held by the logger
-    /// </summary>
-    int maxPeriodReadings;
-
-    uint32_t periodStartTimeTicks;
-    uint32_t periodLengthTimeTicks;
-
     struct MeterReading {
         T value;
         uint32_t lastFetchTimeTicks;
     };
+    /// <summary>
+    /// This attribute will limit the number of reading held by the logger
+    /// </summary>
+    int maxPeriodReadings;
+    /// <summary>
+    /// This is effectively the time stamp for the current values being recorded in meterReadings
+    /// </summary>
+    uint32_t periodStartTimeTicks;
+    /// <summary>
+    /// This is the period length for colleting reading in meter readings
+    /// </summary>
+    uint32_t periodLengthTimeTicks;
 
     std::vector<MeterReading> meterReadings;
 
@@ -67,9 +71,9 @@ public:
 
     T getMinPeriodReading(uint32_t windowStart, uint32_t windowEnd);
 
-    T getPeriodStartTimeTicks() { return this->periodStartTimeTicks; }
+    uint32_t getPeriodStartTimeTicks() { return this->periodStartTimeTicks; }
 
-    T getPeriodLengthTimeTicks() { return this->periodLengthTimeTicks; }
+    uint32_t getPeriodLengthTimeTicks() { return this->periodLengthTimeTicks; }
 
     std::deque<PeriodReading>* getPeriodReadings() { return &this->periodReadings; }
 };

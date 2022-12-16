@@ -39,6 +39,8 @@ lv_obj_t* MainView::createLvObj(lv_obj_t* parent)
 
 void MainView::focusLvObj(BaseLvObject* defocusLvObj)
 {
+    this->buttonLabelBar->setAutoHide(false);
+    this->buttonLabelBar->setShown();
     this->buttonLabelledLvObject->focusLvObj();
 }
 

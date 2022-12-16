@@ -19,7 +19,7 @@ public:
 		this->bluetoothBikeController->getConnectedBluetoothBike().readBikeStateAttribute(BikeStateAttributeIndex::BIKE_ON_OFF_STATE, MonitorAttributeType::EVERY_TEN_SECONDS);
 	}
 
-	virtual void statusUpdate() {
+	virtual void updateLvObj() {
 		const char* valueString;
 		BikeStateAttribute& bikeStateAttribute = this->bluetoothBikeController->getBikeState().getStateAttribute(this->bikeStateAttributeIndex);
 

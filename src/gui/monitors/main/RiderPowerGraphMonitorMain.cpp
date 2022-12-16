@@ -82,7 +82,7 @@ lv_obj_t* RiderPowerGraphMonitorMain::createLvObj(lv_obj_t* parent) {
 void RiderPowerGraphMonitorMain::statusUpdate()
 {
     // Update the powerMeterLogger
-    this->powerMeterLogger->addMeterReading(this->bluetoothBikeController->getBikeState().getStateAttribute(BikeStateAttributeIndex::RIDER_POWER).bikeStateAttributeValue.valueUint16, this->bluetoothBikeController->getBikeState().getStateAttribute(BikeStateAttributeIndex::RIDER_POWER).lastFetchTimeTicks);
+    this->powerMeterLogger->addReading(this->bluetoothBikeController->getBikeState().getStateAttribute(BikeStateAttributeIndex::RIDER_POWER).bikeStateAttributeValue.valueUint16, this->bluetoothBikeController->getBikeState().getStateAttribute(BikeStateAttributeIndex::RIDER_POWER).lastFetchTimeTicks);
     // Update the screen
     MonitorLvObject::statusUpdate();
 }
@@ -176,10 +176,12 @@ void RiderPowerGraphMonitorMain::updateGraph() {
     uint32_t periodGraphLengthTimeTicks = this->powerMeterLogger->getPeriodLengthTimeTicks();
     auto it = periodReadings->crbegin();
     lv_coord_t prevAvCoord = (it != periodReadings->crend()) ? (*it).average * this->graphDisplayMultiplier : 0;
+    lv_coord_t max;
+    lv_coord_t min;
     for (int i = GRAPH_WIDTH - 1; i >= 0; i--) {        
+        // Effectively off the chart and not seen
+        max = min = GRAPH_HEIGHT;
         lv_obj_t* graph_line_obj = lv_obj_get_child(this->graphLinesParent, i);
-        lv_coord_t max = 0;
-        lv_coord_t min = 0;
         if (it != periodReadings->crend()) {
             // Keep calculating graph positions
             int readingStartTimeTicks = (*it).periodStartTimeTicks;
@@ -202,6 +204,7 @@ void RiderPowerGraphMonitorMain::updateGraph() {
                 ++it;
             }
         }
+
         this->graph_bar_line_points[i][0] = { (lv_coord_t)(i), (lv_coord_t) (GRAPH_BOTTOM - max)};
         this->graph_bar_line_points[i][1] = { (lv_coord_t)(i), (lv_coord_t) (GRAPH_BOTTOM + 1 - min)};
         lv_line_set_points(graph_line_obj, this->graph_bar_line_points[i], 2);
