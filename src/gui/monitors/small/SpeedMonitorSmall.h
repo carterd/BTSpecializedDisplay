@@ -2,7 +2,7 @@
 #define _SPEED_MONITOR_SMALL_H
 
 #include "BaseNumericMonitorSmall.h"
-#include "../../../dev\ConfigStore.h"
+#include "../../../dev/ConfigStore.h"
 
 
 class SpeedMonitorSmall : public BaseNumericMonitorSmall
