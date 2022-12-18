@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 
-#include "..\dev\BluetoothBikeState.h"
+#include "../dev/BluetoothBikeState.h"
 
 enum class BikeConfigAttributeIndex { Beeper = 1, FakeChannel = 2, WheelCircumference = 3, SupportAssistEco = 4, SupportAssistTrail = 5, SupportAssistTurbo = 6, PeakPowerAssistEco = 7, PeakPowerAssistTrail = 8, PeakPowerAssistTurbo = 9, SupportAssistLevelsManaged = 10, PeakPowerAssistLevelsManaged = 11 };
 

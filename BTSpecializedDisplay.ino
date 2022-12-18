@@ -17,9 +17,9 @@
 #include "src/dev/BluetoothBikeController.h"
 
 #define MIN_RESET_BUTTON_PRESS_TIME_MS 10 * 1000
-
 #define ADAFRUIT_SH1107_RESET_D_PIN 20
 
+#define _SERIAL_DEBUG 0
 
 static ButtonEncoder encoder(16, 14, 15);
 static Adafruit_SH1107 adafruitDisplay(64, 128, &Wire, ADAFRUIT_SH1107_RESET_D_PIN);
@@ -59,9 +59,11 @@ void setup() {
   delay(250);
   pinMode(LED_BUILTIN, OUTPUT);
 
+#if _SERIAL_DEBUG == 1
   // Remote if no serial monitor
   Serial.begin(9600);
   while (!Serial);
+#endif
 
   // Initialise display
   bool displayWorking = false;

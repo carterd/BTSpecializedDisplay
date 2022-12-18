@@ -1,7 +1,7 @@
 #ifndef _BLANK_MONITOR_SMALL_H
 #define _BLANK_MONITOR_SMALL_H
 
-#include "..\..\MonitorLvObject.h"
+#include "../../MonitorLvObject.h"
 
 class BlankMonitorSmall : public MonitorLvObject
 {

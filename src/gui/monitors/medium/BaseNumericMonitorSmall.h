@@ -1,7 +1,7 @@
 #ifndef _BASE_NUMERIC_MONITOR_MEDIUM_H
 #define _BASE_NUMERIC_MONITOR_MEDIUM_H
 
-#include "..\..\MonitorLvObject.h"
+#include "../../MonitorLvObject.h"
 
 class BaseNumericMonitorMedium : public MonitorLvObject
 {
