@@ -1,8 +1,8 @@
 #ifndef _RIDER_POWER_GRAPH_MONITOR_MAIN_H
 #define _RIDER_POWER_GRAPH_MONITOR_MAIN_H
 
-#include "..\..\MonitorLvObject.h"
-#include "..\..\..\stats\PowerMeterLogger.h"
+#include "../../MonitorLvObject.h"
+#include "../../../stats/PowerMeterLogger.h"
 
 #define GRAPH_TICKS_SMALL 50
 #define GRAPH_TICKS_LARGE 100

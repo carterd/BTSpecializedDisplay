@@ -1,7 +1,7 @@
 #ifndef _MOTOR_ASSIST_LEVEL_DOTS_MONITOR_SMALL_H
 #define _MOTOR_ASSIST_LEVEL_DOTS_MONITOR_SMALL_H
 
-#include "..\..\MonitorLvObject.h"
+#include "../../MonitorLvObject.h"
 
 
 #define DOT_SIZE 3

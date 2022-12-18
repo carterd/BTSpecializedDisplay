@@ -5,8 +5,8 @@
 
 #include "ButtonLabelledLvObject.h"
 #include "ButtonLabelBar.h"
-#include "..\dev\BluetoothBikeController.h"
-#include "..\dev\ConfigStore.h"
+#include "../dev/BluetoothBikeController.h"
+#include "../dev/ConfigStore.h"
 
 #include <unordered_map>
 

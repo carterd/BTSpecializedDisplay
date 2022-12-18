@@ -1,7 +1,7 @@
 #ifndef _MULTI_SMALL_MONITOR_LAYOUT_H
 #define _MULTI_SMALL_MONITOR_LAYOUT_H
 
-#include "..\..\MonitorLvObject.h"
+#include "../../MonitorLvObject.h"
 
 #define MAX_MULTI_SMALL_MONITOR_OBJECTS 8
 #define SMALL_MONITOR_LV_OBJECT_HEIGHT 16

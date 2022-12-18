@@ -1,9 +1,9 @@
 #ifndef _SPEED_GRAPH_MONITOR_MAIN_H
 #define _SPEED_GRAPH_MONITOR_MAIN_H
 
-#include "..\..\MonitorLvObject.h"
-#include "..\..\..\stats\SpeedMeterLogger.h"
-#include "..\..\..\dev\ConfigStore.h"
+#include "../../MonitorLvObject.h"
+#include "../../../stats/SpeedMeterLogger.h"
+#include "../../../dev/ConfigStore.h"
 
 #define GRAPH_MAX_NO_AXIS_TICKS 12
 #define GRAPH_WIDTH 60

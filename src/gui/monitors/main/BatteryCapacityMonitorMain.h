@@ -1,7 +1,7 @@
 #ifndef _BATTERY_CAPACITY_MONITOR_MAIN_H
 #define _BATTERY_CAPACITY_MONITOR_MAIN_H
 
-#include "..\..\MonitorLvObject.h"
+#include "../../MonitorLvObject.h"
 
 class BatteryCapacityMonitorMain : public MonitorLvObject
 {

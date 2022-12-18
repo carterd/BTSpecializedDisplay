@@ -2,8 +2,8 @@
 #define _BIKE_CONFIG_INTEGER_SELECT_MENU_H
 
 #include "IntegerSelectMenu.h"
-#include "..\dev\ConfigStore.h"
-#include "..\dev\Display.h"
+#include "../dev/ConfigStore.h"
+#include "../dev/Display.h"
 
 class BikeConfigIntegerSelectMenu : public IntegerSelectMenu {    
 private:

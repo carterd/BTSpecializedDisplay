@@ -1,7 +1,7 @@
 #ifndef _MAIN_SMALL_MONITOR_LAYOUT_H
 #define _MAIN_SMALL_MONITOR_LAYOUT_H
 
-#include "..\..\MonitorLvObject.h"
+#include "../../MonitorLvObject.h"
 
 class MainSmallMonitorLayout : public MonitorLvObject
 {

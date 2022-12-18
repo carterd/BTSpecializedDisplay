@@ -6,8 +6,8 @@
 #include "ButtonLabelledLvObject.h"
 #include "MonitorLvObject.h"
 #include "ButtonLabelBar.h"
-#include "..\dev\BluetoothBikeController.h"
-#include "..\dev\ConfigStore.h"
+#include "../dev/BluetoothBikeController.h"
+#include "../dev/ConfigStore.h"
 
 #define CONNECT_ONLY_WHEN_BATTERY_CONNECTED 0
 #define SEARCHING_STRING "Searching"

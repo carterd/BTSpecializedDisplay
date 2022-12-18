@@ -5,7 +5,7 @@
 
 #include "ButtonLabelledLvObject.h"
 #include "ButtonLabelBar.h"
-#include "..\dev\ConfigStore.h"
+#include "../dev/ConfigStore.h"
 
 #define SAVING_STRING "Saving"
 

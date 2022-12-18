@@ -23,10 +23,10 @@ class std::hash<String> {
 };
 #endif
 
-#include "..\config\DisplayConfig.h"
-#include "..\config\BikeConfig.h"
-#include "..\config\BTAddressConfig.h"
-#include "..\config\SavesNames.h"
+#include "../config/DisplayConfig.h"
+#include "../config/BikeConfig.h"
+#include "../config/BTAddressConfig.h"
+#include "../config/SavesNames.h"
 
 
 class LittleFS_MBED;
