@@ -560,27 +560,27 @@ bool BluetoothBike::writeBikeStateAttribute(BikeStateAttributeIndex bikeStateAtt
 }
 
 void BluetoothBike::calculatedStateAttribute(BikeStateAttributeIndex bikeStateAttributeIndex) {
-  switch (bikeStateAttributeIndex) {
+    uint32_t time = millis();
+    switch (bikeStateAttributeIndex) {
     case BikeStateAttributeIndex::WHEEL_ROTATIONS_PER_MIN:
-    case BikeStateAttributeIndex::WHEEL_ROTATIONS:
-    {
-      uint32_t time = millis();
-      if (time - this->bikeState.getStateAttribute(BikeStateAttributeIndex::WHEEL_ROTATIONS).lastFetchTimeTicks > WHEEL_ROTATIONS_STOPPED_TIMEOUT_MS) {
-          this->bikeState.setStateAttribute(BikeStateAttributeIndex::WHEEL_ROTATIONS_PER_MIN, 0.0f, time);
-          this->bikeState.setStateAttribute(BikeStateAttributeIndex::WHEEL_ROTATIONS, time);
-      }
+    case BikeStateAttributeIndex::WHEEL_ROTATIONS: {
+        
+        if (time - this->bikeState.getStateAttribute(BikeStateAttributeIndex::WHEEL_ROTATIONS).lastFetchTimeTicks - time > WHEEL_ROTATIONS_STOPPED_TIMEOUT_MS) {
+            this->bikeState.setStateAttribute(BikeStateAttributeIndex::WHEEL_ROTATIONS_PER_MIN, 0.0f, time);
+        }
     }
     break;
     case BikeStateAttributeIndex::CRANK_ROTATIONS_PER_MIN:
     case BikeStateAttributeIndex::CRANK_ROTATIONS:
     {
-          uint32_t time = millis();
-          if (this->bikeState.getStateAttribute(BikeStateAttributeIndex::CRANK_ROTATIONS).lastFetchTimeTicks - time > CRANK_ROTATIONS_STOPPED_TIMEOUT_MS)
-          this->bikeState.setStateAttribute(BikeStateAttributeIndex::CRANK_ROTATIONS_PER_MIN, 0.0f, time);
-          this->bikeState.setStateAttribute(BikeStateAttributeIndex::CRANK_ROTATIONS, time);
+        if (this->bikeState.getStateAttribute(BikeStateAttributeIndex::CRANK_ROTATIONS).lastFetchTimeTicks - time > CRANK_ROTATIONS_STOPPED_TIMEOUT_MS) {
+            this->bikeState.setStateAttribute(BikeStateAttributeIndex::CRANK_ROTATIONS_PER_MIN, 0.0f, time);
+        }
     }
     break;
-  }
+    }
+    // Ensure the attribute has been signed as read ... even if it's going to simply update the time stamp with no new information
+    this->bikeState.setStateAttribute(bikeStateAttributeIndex, time);
 }
 
 //

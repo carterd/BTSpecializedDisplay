@@ -8,11 +8,6 @@
 #define LV_ATTRIBUTE_IMG_PRESSBUTTON
 #endif
 
-
-
-
-
-
 const LV_ATTRIBUTE_MEM_ALIGN LV_ATTRIBUTE_LARGE_CONST LV_ATTRIBUTE_IMG_PRESSBUTTON uint8_t pressbutton_map[] = {
   0xff, 0xff, 0xff, 0xff, 	/*Color of index 0*/
   0x00, 0x00, 0x00, 0xff, 	/*Color of index 1*/
@@ -147,7 +142,7 @@ const LV_ATTRIBUTE_MEM_ALIGN LV_ATTRIBUTE_LARGE_CONST LV_ATTRIBUTE_IMG_PRESSBUTT
   0xff, 0xff, 0xff, 0xf7, 0x57, 0x77, 0x77, 0x77,
 };
 
-    lv_img_dsc_t pressbutton = {
+    lv_img_dsc_t pressbutton_img_dsc = {
             {LV_IMG_CF_INDEXED_1BIT,
               0,
               0,

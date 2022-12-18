@@ -19,12 +19,17 @@ public:
 		this->bluetoothBikeController->getConnectedBluetoothBike().readBikeStateAttribute(BikeStateAttributeIndex::BIKE_ON_OFF_STATE, MonitorAttributeType::EVERY_TEN_SECONDS);
 	}
 
-	virtual void updateLvObj() {
+	virtual void updateLvObj() {		
 		const char* valueString;
 		BikeStateAttribute& bikeStateAttribute = this->bluetoothBikeController->getBikeState().getStateAttribute(this->bikeStateAttributeIndex);
 
+		uint16_t assistLevel = bikeStateAttribute.bikeStateAttributeValue.valueUint16;
+		// No need to update GUI if value hasn't changed
+		char* previousLabel = lv_label_get_text(this->value_obj);
+		if (*previousLabel != 0 && this->previousBikeStateAttribute.valueUint16 == assistLevel) return;
+
 		// Convert the value into a string
-		switch (bikeStateAttribute.bikeStateAttributeValue.valueUint8) {
+		switch (assistLevel) {
 		case 1:
 			valueString = ASSIST_LEVEL_TEXT_1;
 			break;
@@ -37,6 +42,8 @@ public:
 		default:
 			valueString = ASSIST_LEVEL_TEXT_0;
 		}
+		this->previousBikeStateAttribute.valueUint16 = assistLevel;
+
 		lv_label_set_text(this->value_obj, valueString);
 	}
 };

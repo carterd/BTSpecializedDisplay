@@ -3,6 +3,6 @@
 
 #include <lvgl.h>
 
-extern lv_img_dsc_t pressbutton;
+extern lv_img_dsc_t pressbutton_img_dsc;
 
 #endif

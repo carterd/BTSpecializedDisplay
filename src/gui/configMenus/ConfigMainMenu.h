@@ -17,7 +17,7 @@ public:
 public:
 	ConfigMainMenu(ConfigStore& configStore, Display& display, lv_indev_t* indev, ButtonLabelBar* buttonLabel = NULL) :
         mainNavigationMenu("Config", "Exit", indev, buttonLabel),
-        configMainMenuItem(&spanner),
+        configMainMenuItem(&spanner_img_dsc),
         configBikeMenu(configStore, indev, buttonLabel),
         configDisplayMenu(configStore, display, indev, buttonLabel)
 

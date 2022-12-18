@@ -142,7 +142,7 @@ const LV_ATTRIBUTE_MEM_ALIGN LV_ATTRIBUTE_LARGE_CONST LV_ATTRIBUTE_IMG_BLUETOOTH
   0xff, 0xff, 0xff, 0xfe, 0xd7, 0x7d, 0xff, 0xef, 
 };
 
-lv_img_dsc_t bluetooth = {
+lv_img_dsc_t bluetooth_img_dsc = {
     {LV_IMG_CF_INDEXED_1BIT,
     0,
     0,

@@ -1,9 +1,9 @@
-#ifndef _BASE_NUMERIC_MONITOR_SMALL_H
-#define _BASE_NUMERIC_MONITOR_SMALL_H
+#ifndef _BASE_NUMERIC_MONITOR_MEDIUM_H
+#define _BASE_NUMERIC_MONITOR_MEDIUM_H
 
 #include "..\..\MonitorLvObject.h"
 
-class BaseNumericMonitorSmall : public MonitorLvObject
+class BaseNumericMonitorMedium : public MonitorLvObject
 {
 protected:
     union NumericAttributeValue {
@@ -44,7 +44,7 @@ protected:
     NumericAttributeValue previousBikeStateAttribute;
 
 public:
-    BaseNumericMonitorSmall(BikeStateAttributeIndex bikeStateAttributeIndex, MonitorAttributeType monitorAttributeType, const char* attributeTitle, const char* attributeUnits = NULL, const char* printFormat = NULL);
+    BaseNumericMonitorMedium(BikeStateAttributeIndex bikeStateAttributeIndex, MonitorAttributeType monitorAttributeType, const char* attributeTitle, const char* attributeUnits = NULL, const char* printFormat = NULL);
 
     /// <summary>
     /// Returns the LV object instance to represent this class instance

@@ -15,6 +15,7 @@
 #include "gui/ValueSelectMenu.h"
 #include "gui/ValueSelectMenuItem.h"
 #include "gui/ButtonLabelBar.h"
+#include "gui/SavesAppender.h"
 
 #include "gui/BluetoothScanList.h"
 #include "gui/BluetoothConnection.h"
@@ -36,6 +37,8 @@
 #include "gui/monitors/small/BatteryVoltageMonitorSmall.h"
 #include "gui/monitors/small/BatteryCurrentMonitorSmall.h"
 #include "gui/monitors/small/MemoryMonitorSmall.h"
+#include "gui/monitors/small/MotorOdometerMonitorSmall.h"
+#include "gui/monitors/small/BatteryCapacityImageMonitorSmall.h"
 
 #include "gui/configMenus/DisplayBrightnessMenu.h"
 #include "gui/configMenus/DisplayConnectOnBootMenu.h"
@@ -47,6 +50,7 @@
 #include "img/PressButton.h"
 #include "img/Spanner.h"
 #include "img/Bluetooth.h"
+#include "img/Phone.h"
 
 #include "dev/Display.h"
 #include "dev/BluetoothBikeController.h"
@@ -128,12 +132,14 @@ void lvgl_setup(ConfigStore *configStore, BluetoothBikeController *bluetoothBike
     static BatteryCurrentMonitorSmall batteryCurrentMonitorSmall;    
     static MotorAssistLevelMonitorSmall motorAssistLevelMonitorSmall;
     static BlankMonitorSmall blankSmall;
+    static MotorOdometerMonitorSmall motorOdometerMonitorSmall(configStore);
+    static BatteryCapacityImageMonitorSmall batteryCapacityImageMonitorSmall;
     //static RiderPowerMonitorSmall riderPowerMonitorSmall;    
     //static SpeedMonitorSmall speedMonitorSmall(configStore);
     //static BatteryCapacityMonitorSmall batteryCapacityMonitorSmall;
     //static MemoryMonitorSmall memoryMonitorSmall;
 
-    static MultiSmallMonitorLayout multiSmallMonitorLayout(&timeticksMonitorSmall, &blankSmall, &cadenceMonitorSmall, &speedMonitorSmall, &motorPowerMonitorSmall, &batteryVoltageMonitorSmall, &batteryCurrentMonitorSmall, &motorAssistLevelMonitorSmall);
+    static MultiSmallMonitorLayout multiSmallMonitorLayout(&timeticksMonitorSmall, &blankSmall, &cadenceMonitorSmall, &speedMonitorSmall, &motorPowerMonitorSmall, &batteryVoltageMonitorSmall, &batteryCurrentMonitorSmall, &motorOdometerMonitorSmall);
 
     //
     // Connection Menu Item
@@ -145,9 +151,9 @@ void lvgl_setup(ConfigStore *configStore, BluetoothBikeController *bluetoothBike
     monitorSelector.addMonitorLvObject(&mainSpeed);
     monitorSelector.addMonitorLvObject(&multiSmallMonitorLayout);
 
-    static BluetoothConnection bluetoothConnection(bluetoothBikeController, configStore, &pressbutton, indev, buttonLabelBar);
+    static BluetoothConnection bluetoothConnection(bluetoothBikeController, configStore, &pressbutton_img_dsc, indev, buttonLabelBar);
     bluetoothConnection.setMonitorSelector(&monitorSelector);
-    static ScrollMenuItem connectMenuItem(&pressbutton, false);
+    static ScrollMenuItem connectMenuItem(&pressbutton_img_dsc, false);
     connectMenuItem.setPopupItem(&bluetoothConnection);
 
     //
@@ -159,9 +165,16 @@ void lvgl_setup(ConfigStore *configStore, BluetoothBikeController *bluetoothBike
     // Bluetooth Menu Item
     //
     static BluetoothScanList bluetoothScanList(bluetoothBikeController, configStore, indev, buttonLabelBar);
-    static ScrollMenuItem bluetoothMenuItem(&bluetooth);    
+    //static ScrollMenuItem bluetoothMenuItem(&phone);    
+    static ScrollMenuItem bluetoothMenuItem(&bluetooth_img_dsc);
     bluetoothMenuItem.setPopupItem(&bluetoothScanList);
 
+    //
+    // Saves Appender
+    //
+    static SavesAppender savesAppender(configStore, &phone_img_dsc, indev, buttonLabelBar);
+    static ScrollMenuItem savesAppenderMenuItem(&phone_img_dsc);
+    savesAppenderMenuItem.setPopupItem(&savesAppender);
     //
     // Main Menu Creations
     //
@@ -171,6 +184,7 @@ void lvgl_setup(ConfigStore *configStore, BluetoothBikeController *bluetoothBike
     mainScrollMenu.addMenuItem(&connectMenuItem);
     mainScrollMenu.addMenuItem(&configMainMenu.configMainMenuItem);
     mainScrollMenu.addMenuItem(&bluetoothMenuItem);
+    //mainScrollMenu.addMenuItem(&savesAppenderMenuItem);
 
     //
     // Complete configuration of mainView

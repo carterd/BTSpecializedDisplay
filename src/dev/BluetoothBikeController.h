@@ -107,7 +107,12 @@ private:
 	/// any notification and therefore requires an explicit read.
 	/// </summary>
 	void checkForStaleBikeStateAttribute(MonitorAttributeType monitorAttributeType, uint32_t maximumTime);
-
+	/// <summary>
+	/// Helper function that checks for a stale attributes of a given monitorAttributeType and may not have been updated by
+	/// any notification and therefore requires an explicit read, but attempts to distribute these reads.
+	/// Really clumbsy way of distribution of requests so they're not clumped together
+	/// </summary>
+	void checkForStaleBikeStateAttributeSelfDistribution(MonitorAttributeType monitorAttributeType, uint32_t maximumTime, uint32_t* prevFetchTimeTicks, uint32_t* avrgGapTimeTicks, uint32_t adjustmentTicks);
 protected:
 	/// <summary>
 	/// This is the lv object which has to be infromed of updates to say scanning

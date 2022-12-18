@@ -31,14 +31,15 @@ void MemoryMonitorSmall::updateLvObj()
 	mbed_stats_heap_get(&heap_stats);
 	valueUint32 = heap_stats.reserved_size - heap_stats.current_size;
 #endif
-   	//printf("Start; Current heap: %lu\n", heap_stats.current_size);
-    //printf("Start; Max heap size: %lu\n", heap_stats.max_size);
+   	// No need to update GUI if value hasn't changed
+	char* previousLabel = lv_label_get_text(this->value_obj);
+	if (*previousLabel != 0 && this->previousBikeStateAttribute.valueUint32 == valueUint32) return;
 
 	char valueString[32];
 	
-
 	// Convert the value into a string
 	sprintf(valueString, "%ld%s", valueUint32, attributeUnits);
+	this->previousBikeStateAttribute.valueUint32 = valueUint32;
 
 	lv_label_set_text(this->value_obj, valueString);
 }

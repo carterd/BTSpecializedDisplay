@@ -94,7 +94,7 @@ void BatteryCapacityMonitorMain::updateLvObj() {
 				this->charge_line_points[i][0].x = 16;
 				this->charge_line_points[i][1].x = 48;
 			}
-
+			lv_line_set_points(this->levels[i], this->charge_line_points[i], 2);
 		}
 	}
 }

@@ -20,7 +20,8 @@
 ConfigStore::ConfigStore() : 
     knownDevicesFilename(FS_FILE_PREFIX FS_SEPARATOR "knownDevices.bin"),
     bikeConfigFilename(FS_FILE_PREFIX FS_SEPARATOR "bikeConfig.bin"),
-    displayConfigFilename(FS_FILE_PREFIX FS_SEPARATOR "displayConfig.bin")
+    displayConfigFilename(FS_FILE_PREFIX FS_SEPARATOR "displayConfig.bin"),
+    savesDirectoryName(FS_FILE_PREFIX FS_SEPARATOR "saves")
 {
 }
 
@@ -31,8 +32,8 @@ void ConfigStore::init() {
     {
         return;
     }
-#endif
-    if (this->readBTAddressMap() && this->readBikeConfig() && this->readDisplayConfig()) {
+#endif    
+    if (this->readBTAddressMap() && this->readBikeConfig() && this->readDisplayConfig() && this->savesConfig()) {
     } else {
         LV_LOG_ERROR("Error reading config files, initialise default config.");
         this->defaults();
@@ -124,6 +125,39 @@ bool ConfigStore::writeDisplayConfig() {
         return true;
     }
     return false;
+}
+
+bool ConfigStore::savesConfig()
+{
+    DIR* dir = opendir(savesDirectoryName);
+
+    if (dir != NULL) {
+        LV_LOG_USER("DIR FOUND");
+        closedir(dir);
+        return true;
+    }
+    LV_LOG_USER("NO DIR FOUND");
+    mkdir(savesDirectoryName, S_IRWXU | S_IRWXG | S_IRWXO);
+
+    return true;
+}
+
+bool ConfigStore::ReadSavesNames()
+{
+    this->savesNames.names.clear();
+
+    DIR* dir = opendir(savesDirectoryName);
+    if (dir == NULL) return false;
+
+    struct dirent* pDirent;
+    while ((pDirent = readdir(dir)) != NULL) {
+        LV_LOG_USER("Found file [%s]\n", pDirent->d_name);
+        this->savesNames.names.push_back(String(pDirent->d_name));
+    }
+    
+    closedir(dir);
+
+    return true;
 }
 
 bool ConfigStore::readBikeConfig() {    

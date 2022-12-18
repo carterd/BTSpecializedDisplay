@@ -3,6 +3,6 @@
 
 #include <lvgl.h>
 
-extern lv_img_dsc_t spanner;
+extern lv_img_dsc_t spanner_img_dsc;
 
 #endif

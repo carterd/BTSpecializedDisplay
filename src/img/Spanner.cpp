@@ -142,7 +142,7 @@ const LV_ATTRIBUTE_MEM_ALIGN LV_ATTRIBUTE_LARGE_CONST LV_ATTRIBUTE_IMG_SPANNER u
   0xa1, 0x54, 0xa8, 0x45, 0x12, 0x80, 0x2a, 0xa9, 
 };
 
-lv_img_dsc_t spanner = {
+lv_img_dsc_t spanner_img_dsc = {
     {LV_IMG_CF_INDEXED_1BIT,
     0,
     0,
