@@ -1,11 +1,11 @@
-#ifndef _SPEED_MONITOR_SMALL_H
-#define _SPEED_MONITOR_SMALL_H
+#ifndef _SPEED_MONITOR_MEDIUM_H
+#define _SPEED_MONITOR_MEDIUM_H
 
-#include "BaseNumericMonitorSmall.h"
+#include "BaseNumericMonitorMedium.h"
 #include "../../../dev/ConfigStore.h"
 
 
-class SpeedMonitorSmall : public BaseNumericMonitorSmall
+class SpeedMonitorMedium : public BaseNumericMonitorMedium
 {
 private:
     uint16_t wheelCircumferenceMm;
@@ -30,7 +30,7 @@ private:
     bool displayMetric = true;
 
 public:
-    SpeedMonitorSmall(ConfigStore* configStore, const char* title = " " LV_SYMBOL_PLAY , const char* unitsMetric = " kph", const char* unitsImperial = " mph") : BaseNumericMonitorSmall(BikeStateAttributeIndex::WHEEL_ROTATIONS_PER_MIN, MonitorAttributeType::EVERY_SECOND, title, "") {
+    SpeedMonitorMedium(ConfigStore* configStore, const char* title = " " LV_SYMBOL_PLAY , const char* unitsMetric = "kph", const char* unitsImperial = "mph") : BaseNumericMonitorMedium(BikeStateAttributeIndex::WHEEL_ROTATIONS_PER_MIN, MonitorAttributeType::EVERY_SECOND, title, "") {
         this->configStore = configStore;
         this->attributeUnitsMetric = unitsMetric;
         this->attributeUnitsImperial = unitsImperial;
@@ -48,16 +48,18 @@ public:
         char* previousLabel = lv_label_get_text(this->value_obj);
 	    if (*previousLabel != 0 && (this->previousBikeStateAttribute.valueFloat == this->displayMetric ? kmph : mph)) return;
 
-        sprintf(valueString, "%.1f%s", (this->displayMetric ? kmph : mph), this->attributeUnits);
+        sprintf(valueString, "%.1f", (this->displayMetric ? kmph : mph));
         this->previousBikeStateAttribute.valueFloat = this->displayMetric ? kmph : mph;
+
         lv_label_set_text(this->value_obj, valueString);
+        lv_label_set_text(this->label_obj, (this->displayMetric ? this->attributeUnitsMetric : this->attributeUnitsImperial));
     }
 
     /// <summary>
     /// This will ensure the stats are initialised and the correct interest for the monitor is assigned to the controller
     /// </summary>
     virtual void initBluetoothStats() {
-        BaseNumericMonitorSmall::initBluetoothStats();
+        BaseNumericMonitorMedium::initBluetoothStats();
         this->bluetoothBikeController->getConnectedBluetoothBike().readBikeStateAttribute(BikeStateAttributeIndex::WHEEL_CIRCUMFERENCE, MonitorAttributeType::ONCE);
         BikeConfig bikeConfig = this->configStore->getBikeConfig();
         DisplayConfig displayConfig = this->configStore->getDisplayConfig();
@@ -68,7 +70,6 @@ public:
         this->displayMetric = displayConfig.unitsMetric;
         this->attributeUnits = (this->displayMetric ? this->attributeUnitsMetric : this->attributeUnitsImperial);
     }
-
 };
 
 #endif

@@ -42,6 +42,7 @@ public:
 
         char* previousLabel = lv_label_get_text(this->value_obj);
         
+        // If the label has been set and the previously displayed value is the current value then no need to process any more
 	    if ((*previousLabel != 0) && (this->previousBikeStateAttribute.valueFloat == this->displayMetric ? km : miles)) return;
 
         sprintf(valueString, "%.0f%s", (this->displayMetric ? km : miles), this->attributeUnits);

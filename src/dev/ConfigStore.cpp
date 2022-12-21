@@ -132,11 +132,9 @@ bool ConfigStore::savesConfig()
     DIR* dir = opendir(savesDirectoryName);
 
     if (dir != NULL) {
-        LV_LOG_USER("DIR FOUND");
         closedir(dir);
         return true;
     }
-    LV_LOG_USER("NO DIR FOUND");
     mkdir(savesDirectoryName, S_IRWXU | S_IRWXG | S_IRWXO);
 
     return true;
@@ -151,7 +149,6 @@ bool ConfigStore::ReadSavesNames()
 
     struct dirent* pDirent;
     while ((pDirent = readdir(dir)) != NULL) {
-        LV_LOG_USER("Found file [%s]\n", pDirent->d_name);
         this->savesNames.names.push_back(String(pDirent->d_name));
     }
     

@@ -581,6 +581,7 @@ void BluetoothBike::calculatedStateAttribute(BikeStateAttributeIndex bikeStateAt
     }
     // Ensure the attribute has been signed as read ... even if it's going to simply update the time stamp with no new information
     this->bikeState.setStateAttribute(bikeStateAttributeIndex, time);
+    this->bikeStatusLastUpdateTime = time;
 }
 
 //

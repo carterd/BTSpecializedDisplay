@@ -24,9 +24,14 @@ protected:
     MonitorAttributeType monitorAttributeType;
 
     /// <summary>
-    /// This is the value label object require to be updated to show different values
+    /// This is the value object require to be updated to show different values
     /// </summary>
     lv_obj_t* value_obj;
+    /// <summary>
+    /// This is the label object 
+    /// </summary>
+    lv_obj_t* label_obj;
+
     /// <summary>
     /// This is the title displayed for the value
     /// </summary>

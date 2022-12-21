@@ -38,7 +38,7 @@ public:
     /// <summary>
     /// Defocus a monitor and hence no more updated on the display
     /// </summary>
-    virtual void defocusLvObj() { this->infocus = true; }
+    virtual void defocusLvObj() { this->infocus = false; }
 
     /// <summary>
     /// Setter for the bluetoothController
