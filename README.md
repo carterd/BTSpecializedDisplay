@@ -18,7 +18,11 @@ Ebike display for Specialized Turbo bikes, these include Kenevo/Levo/Creo.
  * [LittlevGL](https://github.com/littlevgl/lvgl)
 
     As of writting the code, the application has been written against version 8.3 of LVGL. Hence, I'd advise using the
-    latest version 8.x of LVGL. Note, to copy the "lv_conf.h" out of Adafruit_LvGL_Glue above.
+    latest version 8.3.4 of LVGL (as of writting). Note, to copy the "lv_conf.h" out of Adafruit_LvGL_Glue above.
+    
+    You can use the latest lvgl source from github, but there has been a change to the debug API and hence this will 
+    require you to patch my Adafruit LvGL Glue Library. Hence, if your not confident in coding skills then use LVGL version
+    8.3.4.
 
  * [Adafruit GFX Library](https://github.com/adafruit/Adafruit-GFX-Library)
 
