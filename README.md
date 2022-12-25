@@ -2,6 +2,16 @@
 
 Ebike display for Specialized Turbo bikes, these include Kenevo/Levo/Creo.
 
+# Configuration
+
+If your using the Arduino IDE to compile the software you'll need to place each of the dependencies into the 'Arduino/library'
+folder, and install the BTSpecializedDisplay project files into 'Arduino/BTSpecializedDisplay'. In addition you will need to 
+copy the file "lv_conf.h" from of the location 'Arduino/library/BTSpecializedDisplay/lv_conf.h' to the location 
+'Arduino/library/lv_conf.h'. This will ensure the lvgl library is configured correctly for RP2040 and Adafruit libraries.
+
+Take special note of the version of LVGL your using ... if your decide to use the latest from the GIT repository you'll need
+to make specific changes to the file 'Arduino/library/Adafruit_LvGL_Glue/src/Adafruit_LvGL_Glue.h', lines 4-5. 
+
 # Dependencies
  
  * [ArduinoBLE (carterd version)](https://github.com/carterd/ArduinoBLE)
@@ -11,9 +21,9 @@ Ebike display for Specialized Turbo bikes, these include Kenevo/Levo/Creo.
 
  * [Adafruit LvGL Glue Library (carterd version)](https://github.com/carterd/Adafruit_LvGL_Glue) 
 
-    This is my own version of the Adafruit LvGL Glue, and hence you'll need to clone the branch to Arduino/library path
-    in addition you will need to copy the file "lv_conf.h" out of the Arduino/library/Adafruit_LvGL_Glue and into 
-    Arduino/library path. This will ensure the lvgl library is configured correctly for RP2040 and Adafruit libraries.
+    This is my own version of the Adafruit LvGL Glue, and hence you'll need to clone the branch to Arduino/library path.
+    The library provides driver implementation for using the Adafruit graphics displays with LVGL.
+    
 
  * [LittlevGL](https://github.com/littlevgl/lvgl)
 
