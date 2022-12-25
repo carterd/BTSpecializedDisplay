@@ -10,7 +10,7 @@
 
 
 
-MemoryMonitorSmall::MemoryMonitorSmall(const char* title, const char* attributeUnits)
+MemoryMonitorSmall::MemoryMonitorSmall(const char* attributeTitle, const char* attributeUnits)
 {
 	this->attributeTitle = attributeTitle;
 	this->attributeUnits = (attributeUnits != NULL ? attributeUnits : "");
