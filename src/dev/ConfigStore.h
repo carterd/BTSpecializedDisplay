@@ -106,6 +106,10 @@ public:
     /// </summary>
     void init();
     /// <summary>
+    /// This will ensure all the configuration settings are set to their defaults and all written to FS
+    /// </summary>    
+    void writeDefaults();
+    /// <summary>
     /// This will ensure all the configuration settings are set to their defaults
     /// </summary>
     void defaults();

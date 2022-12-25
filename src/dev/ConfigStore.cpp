@@ -36,11 +36,15 @@ void ConfigStore::init() {
     if (this->readBTAddressMap() && this->readBikeConfig() && this->readDisplayConfig() && this->savesConfig()) {
     } else {
         LV_LOG_ERROR("Error reading config files, initialise default config.");
-        this->defaults();
-        this->writeBTAddressMap();
-        this->writeBikeConfig();
-        this->writeDisplayConfig();
+        this->writeDefaults();
     }
+}
+
+void ConfigStore::writeDefaults() {
+    this->defaults();
+    this->writeBTAddressMap();
+    this->writeBikeConfig();
+    this->writeDisplayConfig();
 }
 
 void ConfigStore::defaults() {
