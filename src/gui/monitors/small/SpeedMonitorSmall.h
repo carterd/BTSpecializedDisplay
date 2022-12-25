@@ -45,9 +45,6 @@ public:
         float kmph = this->bluetoothBikeController->getBikeState().getStateAttribute(BikeStateAttributeIndex::WHEEL_ROTATIONS_PER_MIN).bikeStateAttributeValue.valueFloat * this->wheelCircumferenceMm * 60.0f / 1000000.0f;
         float mph = kmph * 0.621371;
 
-        char* previousLabel = lv_label_get_text(this->value_obj);
-	    if (*previousLabel != 0 && (this->previousBikeStateAttribute.valueFloat == this->displayMetric ? kmph : mph)) return;
-
         sprintf(valueString, "%.1f%s", (this->displayMetric ? kmph : mph), this->attributeUnits);
         this->previousBikeStateAttribute.valueFloat = this->displayMetric ? kmph : mph;
         lv_label_set_text(this->value_obj, valueString);

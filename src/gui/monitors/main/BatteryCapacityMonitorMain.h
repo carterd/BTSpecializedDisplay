@@ -16,8 +16,6 @@ private:
     lv_style_t charge_line_style;
 
     uint8_t displayedPercent;
-private:
-    void update_obj();
 
 public:
     BatteryCapacityMonitorMain();

@@ -53,6 +53,11 @@ public:
     virtual lv_obj_t* createLvObj(lv_obj_t* parent);
 
     /// <summary>
+    /// Called each time stats are updated, currently this could be stats on other monitors so a check is required to see if the monitor is really updated.
+    /// </summary>
+    virtual void statusUpdate();
+
+    /// <summary>
     /// The callback on the list required to be updated, i.e. a bluetooth device detected
     /// </summary>
     /// <param name="event">The lv event that identifies pressing the device entry</param>

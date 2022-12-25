@@ -37,9 +37,8 @@ lv_obj_t* BaseNumericMonitorSmall::createLvObj(lv_obj_t* parent) {
 	return this->this_obj;
 }
 
-void BaseNumericMonitorSmall::updateLvObj()
+void BaseNumericMonitorSmall::statusUpdate() 
 {
-	char valueString[32];
 	BikeStateAttribute& bikeStateAttribute = this->bluetoothBikeController->getBikeState().getStateAttribute(this->bikeStateAttributeIndex);
 
 	char* previousLabel = lv_label_get_text(this->value_obj);
@@ -59,6 +58,14 @@ void BaseNumericMonitorSmall::updateLvObj()
 			break;
 		}
 	}
+
+	MonitorLvObject::statusUpdate();
+}
+
+void BaseNumericMonitorSmall::updateLvObj()
+{
+	char valueString[32];
+	BikeStateAttribute& bikeStateAttribute = this->bluetoothBikeController->getBikeState().getStateAttribute(this->bikeStateAttributeIndex);
 	
 	// If not defined initalise the print formatting for this attribute
 	if (this->printFormat == NULL) {

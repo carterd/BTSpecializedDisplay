@@ -52,8 +52,9 @@ public:
     virtual void statusUpdate() { if (this->infocus) this->updateLvObj(); }
 
     /// <summary>
-    /// This will ensure all the lv objects for this monitor are updated
+    /// 
     /// </summary>
+    /// <param name="forceUpdate">If true this will force the update instead of inspecting to identify if changes are required</param>
     virtual void updateLvObj() = 0;
 
     /// <summary>

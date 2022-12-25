@@ -67,7 +67,7 @@ void BatteryCapacityMonitorMain::statusUpdate()
 		}
 		// We should use a counter to keep battery upto date ... as probaby needs explicit read from time to time
 	}
-	else 
+	else
 	{
 		// Nolonger connected Requred to scan again for connection
 	}
