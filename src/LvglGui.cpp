@@ -1,6 +1,5 @@
 #include <lvgl.h>
 #include <Arduino.h>
-#include <Adafruit_LvGL_Glue.h>
 
 #include "LvglGui.h"
 
@@ -67,7 +66,7 @@
  * @brief Set up the components of the LVGL display
  * 
  */
-void lvgl_setup(ConfigStore *configStore, BluetoothBikeController *bluetoothBikeController, Adafruit_LvGL_Glue& displayGlue, lv_indev_t* indev) {
+void lvgl_setup(ConfigStore *configStore, BluetoothBikeController *bluetoothBikeController, Arduino_LvGL_Glue& displayGlue, lv_indev_t* indev) {
 
     //
     // Configure the Display
@@ -137,8 +136,8 @@ void lvgl_setup(ConfigStore *configStore, BluetoothBikeController *bluetoothBike
     //static RiderPowerMonitorSmall riderPowerMonitorSmall;    
     //static SpeedMonitorSmall speedMonitorSmall(configStore);
     //static BatteryCapacityMonitorSmall batteryCapacityMonitorSmall;
-    //static MemoryMonitorSmall memoryMonitorSmall;
-    static MultiSmallMonitorLayout multiSmallMonitorLayout_Screen6(&timeticksMonitorSmall_Screen6, &blankSmall_Screen6, &cadenceMonitorSmall_Screen6, &speedMonitorSmall_Screen6, &motorPowerMonitorSmall_Screen6, &batteryVoltageMonitorSmall_Screen6, &batteryCurrentMonitorSmall_Screen6, &motorOdometerMonitorSmall_Screen6);
+    static MemoryMonitorSmall memoryMonitorSmall("mem");
+    static MultiSmallMonitorLayout multiSmallMonitorLayout_Screen6(&timeticksMonitorSmall_Screen6, &memoryMonitorSmall, &cadenceMonitorSmall_Screen6, &speedMonitorSmall_Screen6, &motorPowerMonitorSmall_Screen6, &batteryVoltageMonitorSmall_Screen6, &batteryCurrentMonitorSmall_Screen6, &motorOdometerMonitorSmall_Screen6);
     monitorSelector.addMonitorLvObject(&multiSmallMonitorLayout_Screen6);
 
     //

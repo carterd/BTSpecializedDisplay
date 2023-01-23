@@ -3,10 +3,12 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SH110X.h>
 #include <ButtonEncoder.h>
-#include <Adafruit_LvGL_Glue.h>
-#include <Adafruit_LvGL_Tick_Inc.h>
-#include <DisplayCallbacks/DisplayCallback_SH110X.h>
-#include <InputCallbacks/InputCallback_ButtonEncoder.h>
+
+#include <Arduino_LvGL_Glue.h>
+#include <LvglDisplays/Adafruit_SH110X_LvGL_Display.h>
+#include <LvglInputs/Arduino_ButtonEncoder_LvGL_Input.h>
+//#include <DisplayCallbacks/DisplayCallback_SH110X.h>
+//#include <InputCallbacks/InputCallback_ButtonEncoder.h>
 #include <Fonts/PixelOperator8pt7b.h>
 #include <LvglThemes/lv_theme_binary.h>
 #include <LvglFonts/lv_font_symbols_8.h>
@@ -27,7 +29,7 @@ static Adafruit_SH1107 adafruitDisplay(64, 128, &Wire, ADAFRUIT_SH1107_RESET_D_P
 /**
  * @brief Adafruit displayGlue static
  */
-static Adafruit_LvGL_Glue displayGlue;
+static Arduino_LvGL_Glue displayGlue;
 /**
  * @brief lv_font generated from an Adafruit font static
  */
@@ -75,7 +77,10 @@ void setup() {
     adafruitDisplay.display();
 
     // Initialise display glue
-    LvGLStatus result = displayGlue.begin(&adafruitDisplay, displayCallback_SH110X, (INPUT_TYPE *) &encoder, inputCallback_ButtonEncoder, LV_INDEV_TYPE_ENCODER, true);
+
+    Adafruit_SH110X_LvGL_Display lvglDisplay(&adafruitDisplay);
+    Arduino_ButtonEncoder_LvGL_Input lvglInput(&encoder);
+    LvGLStatus result = displayGlue.begin(&lvglDisplay, &lvglInput, true);
     if (result != LVGL_OK) {    
         led_error(result);
     }

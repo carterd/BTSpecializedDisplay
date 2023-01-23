@@ -19,12 +19,11 @@ to make specific changes to the file 'Arduino/library/Adafruit_LvGL_Glue/src/Ada
     As of writting this readme, ArduinoBLE 1.3.2 has a bug and needs patching hence clone the above branch into your
     Arduino/library path.
 
- * [Adafruit LvGL Glue Library (carterd version)](https://github.com/carterd/Adafruit_LvGL_Glue) 
+ * [Arduino LvGL Glue Library](https://github.com/carterd/Arduino_LvGL_Glue) 
 
     This is my own version of the Adafruit LvGL Glue, and hence you'll need to clone the branch to Arduino/library path.
-    The library provides driver implementation for using the Adafruit graphics displays with LVGL.
+    The library provides driver implementation for various graphics displays with LVGL.
     
-
  * [LittlevGL](https://github.com/littlevgl/lvgl)
 
     As of writting the code, the application has been written against version 8.3 of LVGL. Hence, I'd advise using the
