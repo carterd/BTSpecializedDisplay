@@ -2,11 +2,12 @@
 
 #include <LvglThemes/lv_theme_binary.h>
 
-#ifndef ARDUINO_WIN_EMULATION
+#ifdef ARDUINO_ARCH_MBED
 #include <mbed.h>
 #include <mbed_stats.h>
 #include <mbed_mem_trace.h>
 #endif
+
 
 
 
@@ -47,7 +48,7 @@ lv_obj_t* MemoryMonitorSmall::createLvObj(lv_obj_t* parent)
 void MemoryMonitorSmall::updateLvObj()
 {
 	uint32_t valueUint32 = 0;
-#ifndef ARDUINO_WIN_EMULATION
+#ifdef ARDUINO_ARCH_MBED
 	// Grab the heap statistics
 	mbed_stats_heap_t heap_stats;
 	mbed_stats_heap_get(&heap_stats);

@@ -4,11 +4,13 @@
             "name": "Arduino",
             "includePath": [
                 "${workspaceFolder}/**",
+
                 "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/hardware/mbed_nano/3.1.1/cores/arduino/mbed/targets/TARGET_RASPBERRYPI/TARGET_RP2040/**",
                 "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/hardware/mbed_nano/3.1.1/cores/arduino/mbed/targets/TARGET_RASPBERRYPI/**",
                 "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/hardware/mbed_nano/3.1.1/variants/NANO_RP2040_CONNECT/**",
                 "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/hardware/mbed_nano/3.1.1/libraries/**",
-                "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/hardware/mbed_nano/3.1.1/cores/arduino/*",                
+                "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/hardware/mbed_nano/3.1.1/cores/arduino/*",
+
                 "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/hardware/mbed_nano/3.1.1/cores/arduino/mbed/cmsis/CMSIS_5/CMSIS/TARGET_CORTEX_M/Include/**",
                 "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/hardware/mbed_nano/3.1.1/cores/arduino/mbed/cmsis/CMSIS_5/CMSIS/RTOS2/**",                
                 "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/hardware/mbed_nano/3.1.1/cores/arduino/mbed/platform/include/**",
@@ -32,6 +34,12 @@
                 "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/hardware/mbed_nano/3.1.1/cores/arduino/mbed/events/include/**",                                
                 "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/arm-none-eabi/include/**",
                 "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/hardware/mbed_nano/3.1.1/cores/arduino/api/deprecated/**",
+/*
+                "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/esp32/hardware/esp32/2.0.6/cores/**",
+                "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/esp32/hardware/esp32/2.0.6/libraries/Ticker/src/**",
+                "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/esp32/hardware/esp32/2.0.6/libraries/FS/src/**",
+                "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/esp32/hardware/esp32/2.0.6/libraries/LittleFS/src/**",
+*/
                 "${workspaceFolder}/../libraries/Adafruit_SH110X/**",
                 "${workspaceFolder}/../libraries/LittleFS_Mbed_RP2040/src/**",
                 "${workspaceFolder}/../libraries/**"
@@ -40,12 +48,13 @@
                 "_DEBUG",
                 "UNICODE",
                 "_UNICODE",
-                "ARDUINO=10607",                
-                "ARDUINO_NANO_RP2040_CONNECT",
-                "ARDUINO_ARCH_RP2040",
-                "USE_ARDUINO_PINOUT",
-                "ARDUINO_ARCH_MBED_NANO",
-                "ARDUINO_ARCH_MBED",
+                "ARDUINO=10607",
+                //"ARDUINO_NANO_RP2040_CONNECT",
+                //"ARDUINO_ARCH_RP2040",
+                //"ARDUINO_ARCH_MBED",
+                //"ARDUINO_ARCH_MBED_NANO",
+                "ESP32",
+                "USE_ARDUINO_PINOUT",                
                 "_DEFAULT_SOURCE"                
             ],
             "windowsSdkVersion": "10.0.19041.0",

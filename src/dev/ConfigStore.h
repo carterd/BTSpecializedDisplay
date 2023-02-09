@@ -28,8 +28,23 @@ class std::hash<String> {
 #include "../config/BTAddressConfig.h"
 #include "../config/SavesNames.h"
 
-
-class LittleFS_MBED;
+class FileSystem 
+{
+private:
+    void* fileSystem;
+    void* dir;
+    void* file;
+public:
+    bool init();
+    bool openDir(const char* dirPath);    
+    bool mkDir(const char* dirPath);
+    bool closeDir();
+    bool readDir(char** fileName);
+    bool openFile(const char* filePath, const char* mode);
+    bool readFile(void* buffer, size_t size, size_t n);
+    bool writeFile(const void* buffer, size_t size, size_t n);
+    bool closeFile();
+};
 
 /// <summary>
 /// The config store is a file system store used to store the display's configuration.
@@ -38,7 +53,7 @@ class LittleFS_MBED;
 class ConfigStore 
 {
 private: 
-    LittleFS_MBED* littleFS;
+    FileSystem* fileSystem;
     const char* knownDevicesFilename;
     const char* bikeConfigFilename;
     const char* displayConfigFilename;
@@ -49,16 +64,16 @@ private:
     BikeConfig bikeConfig;
     SavesNames savesNames;
 
-    bool readUInt16(FILE* file, uint16_t* value);
-    bool readUInt8(FILE* file, uint8_t* value);
-    bool readBool(FILE* file, bool* value);
+    bool readUInt16(uint16_t* value);
+    bool readUInt8(uint8_t* value);
+    bool readBool(bool* value);
 
-    bool writeUInt16(FILE* file, uint16_t* integer);
-    bool writeUInt8(FILE* file, uint8_t* integer);
-    bool writeBool(FILE* file, bool* value);
+    bool writeUInt16(uint16_t* integer);
+    bool writeUInt8(uint8_t* integer);
+    bool writeBool(bool* value);
 
-    bool readString(FILE* file, String* string);
-    bool writeString(FILE* file, String* string);
+    bool readString(String* string);
+    bool writeString(String* string);
     /// <summary>
     /// Read the Bluetooth addresses that are accepted for connections to the fs
     /// </summary>
@@ -100,11 +115,11 @@ public:
     /// <summary>
     /// Constructor of the config store for the device
     /// </summary>
-    ConfigStore();
+    ConfigStore(const char* knownDevicesFilename, const char* bikeConfigFilename, const char* displayConfigFilename, const char* savesDirectoryName);
     /// <summary>
     /// Initialise the File System
     /// </summary>
-    void init();
+    void init(FileSystem* fileSystem);
     /// <summary>
     /// This will ensure all the configuration settings are set to their defaults and all written to FS
     /// </summary>    

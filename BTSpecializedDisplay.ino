@@ -1,14 +1,12 @@
 #include <Arduino.h>
 #include <Wire.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SH110X.h>
-#include <ButtonEncoder.h>
 
 #include <Arduino_LvGL_Glue.h>
-#include <LvglDisplays/Adafruit_SH110X_LvGL_Display.h>
+#include "Hardware.h"
+#include <ButtonEncoder.h>
+
 #include <LvglInputs/Arduino_ButtonEncoder_LvGL_Input.h>
-//#include <DisplayCallbacks/DisplayCallback_SH110X.h>
-//#include <InputCallbacks/InputCallback_ButtonEncoder.h>
+
 #include <Fonts/PixelOperator8pt7b.h>
 #include <LvglThemes/lv_theme_binary.h>
 #include <LvglFonts/lv_font_symbols_8.h>
@@ -19,15 +17,12 @@
 #include "src/dev/BluetoothBikeController.h"
 
 #define MIN_RESET_BUTTON_PRESS_TIME_MS 10 * 1000
-#define ADAFRUIT_SH1107_RESET_D_PIN 20
-
-#define _SERIAL_DEBUG 0
+#define _SERIAL_DEBUG 1
 
 static ButtonEncoder encoder(16, 14, 15);
-static Adafruit_SH1107 adafruitDisplay(64, 128, &Wire, ADAFRUIT_SH1107_RESET_D_PIN);
 
 /**
- * @brief Adafruit displayGlue static
+ * @brief Arduino displayGlue static
  */
 static Arduino_LvGL_Glue displayGlue;
 /**
@@ -44,11 +39,10 @@ ConfigStore* configStore;
 bool resetButtonTest() {
     unsigned long startTime = millis();
     do {
-        unsigned long i =  (millis() - startTime) / (MIN_RESET_BUTTON_PRESS_TIME_MS / adafruitDisplay.width());
+        unsigned long radius =  (millis() - startTime) / (MIN_RESET_BUTTON_PRESS_TIME_MS / DISPLAY_WIDTH);
         encoder.update();
-        if ((encoder.keyPressed() && encoder.lastKeyPressed() == Encoder::EncoderKey::ENCODER_ENTER)) { 
-            adafruitDisplay.fillCircle(adafruitDisplay.width() / 2, adafruitDisplay.height() / 2, i, SH110X_WHITE);
-            adafruitDisplay.display();
+        if ((encoder.keyPressed() && encoder.lastKeyPressed() == Encoder::EncoderKey::ENCODER_ENTER)) {
+            displayfillCircle(radius);      
         }
     } while (encoder.keyPressed() && encoder.lastKeyPressed() == Encoder::EncoderKey::ENCODER_ENTER);
     if (millis() - startTime > MIN_RESET_BUTTON_PRESS_TIME_MS) return true;
@@ -67,28 +61,22 @@ void setup() {
 #endif
 
     // Initialise display
-    bool displayWorking = false;
-    while (!displayWorking) {
-        displayWorking = adafruitDisplay.begin(0x3C, true); // Address 0x3C default
-        digitalWrite(LED_BUILTIN, HIGH);            // turn the LED on (HIGH is the voltage level)
-        if (!displayWorking) delay(2000);           // wait for a second
-    };
-    adafruitDisplay.clearDisplay();
-    adafruitDisplay.display();
+    LvGL_DisplayBase* lvglDisplay = displayInit();
 
     // Initialise display glue
-
-    Adafruit_SH110X_LvGL_Display lvglDisplay(&adafruitDisplay);
     Arduino_ButtonEncoder_LvGL_Input lvglInput(&encoder);
-    LvGLStatus result = displayGlue.begin(&lvglDisplay, &lvglInput, true);
+    LvGLStatus result = displayGlue.begin(lvglDisplay, &lvglInput, true);
     if (result != LVGL_OK) {    
         led_error(result);
     }
 
     bluetoothBikeController = new BluetoothBikeController();
-    configStore = new ConfigStore();
+    configStore = new ConfigStore(FS_FILE_PREFIX FS_SEPARATOR "knownDevices.bin", FS_FILE_PREFIX FS_SEPARATOR "bikeConfig.bin", FS_FILE_PREFIX FS_SEPARATOR "displayConfig.bin", FS_FILE_PREFIX FS_SEPARATOR "saves");
+
     bluetoothBikeController->init();
-    configStore->init();
+
+    static FileSystem fileSystem;
+    configStore->init(&fileSystem);
 
     if (resetButtonTest()) {
         configStore->defaults();

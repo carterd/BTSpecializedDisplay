@@ -1,38 +1,20 @@
 #include "ConfigStore.h"
-
-
 #include <lvgl.h>
 
-#ifndef ARDUINO_WIN_EMULATION
-#define FORCE_REFOMAT false;
-#define RP2040_FS_SIZE_KB 64
-#define LFS_MBED_RP2040_DEBUG 1
-#define _LFS_LOGLEVEL_ 100
-#include <Arduino.h>
-#include <LittleFS_Mbed_RP2040.h>
-#define FS_FILE_PREFIX MBED_LITTLEFS_FILE_PREFIX
-#define FS_SEPARATOR "/"
-#else
-#define FS_FILE_PREFIX "C:\\tmp"
-#define FS_SEPARATOR "\\"
-#endif
-
-ConfigStore::ConfigStore() : 
-    knownDevicesFilename(FS_FILE_PREFIX FS_SEPARATOR "knownDevices.bin"),
-    bikeConfigFilename(FS_FILE_PREFIX FS_SEPARATOR "bikeConfig.bin"),
-    displayConfigFilename(FS_FILE_PREFIX FS_SEPARATOR "displayConfig.bin"),
-    savesDirectoryName(FS_FILE_PREFIX FS_SEPARATOR "saves")
+ConfigStore::ConfigStore(const char* knownDevicesFilename, const char* bikeConfigFilename, const char* displayConfigFilename, const char* savesDirectoryName) : 
+    knownDevicesFilename(knownDevicesFilename), // FS_FILE_PREFIX FS_SEPARATOR "knownDevices.bin"),
+    bikeConfigFilename(bikeConfigFilename), // FS_FILE_PREFIX FS_SEPARATOR "bikeConfig.bin"),
+    displayConfigFilename(displayConfigFilename), // FS_FILE_PREFIX FS_SEPARATOR "displayConfig.bin"),
+    savesDirectoryName(savesDirectoryName) // FS_FILE_PREFIX FS_SEPARATOR "saves")
 {
 }
 
-void ConfigStore::init() {    
-#ifndef ARDUINO_WIN_EMULATION
-    this->littleFS = new LittleFS_MBED();
-    if (!this->littleFS->init()) 
-    {
-        return;
+void ConfigStore::init(FileSystem* fileSystem) {    
+    this->fileSystem = fileSystem;
+    if (!this->fileSystem->init()) { 
+        LV_LOG_ERROR("Error FS unable to be initialised.");
+        return; 
     }
-#endif    
     if (this->readBTAddressMap() && this->readBikeConfig() && this->readDisplayConfig() && this->savesConfig()) {
     } else {
         LV_LOG_ERROR("Error reading config files, initialise default config.");
@@ -103,29 +85,27 @@ DisplayConfig& ConfigStore::getDisplayConfig() {
 }
 
 bool ConfigStore::readDisplayConfig() {
-    FILE *file = fopen(this->displayConfigFilename, "r");
-    if (file) {        
+    if (this->fileSystem->openFile(this->displayConfigFilename, "r")) {
         bool result = true;
-        result &= this->readUInt8(file, &(this->displayConfig.contrast));
-        result &= this->readUInt16(file, &(this->displayConfig.monitorType));
-        result &= this->readBool(file, &(this->displayConfig.connectBatteryOnly));
-        result &= this->readBool(file, &(this->displayConfig.connectOnBoot));
-        result &= this->readBool(file, &(this->displayConfig.unitsMetric));
-        fclose(file);
+        result &= this->readUInt8(&(this->displayConfig.contrast));
+        result &= this->readUInt16(&(this->displayConfig.monitorType));
+        result &= this->readBool(&(this->displayConfig.connectBatteryOnly));
+        result &= this->readBool(&(this->displayConfig.connectOnBoot));
+        result &= this->readBool(&(this->displayConfig.unitsMetric));
+        this->fileSystem->closeFile();
         return result;
     }
     return false;
 }
 
 bool ConfigStore::writeDisplayConfig() {
-    FILE *file = fopen(this->displayConfigFilename, "w");
-    if (file) {
-        this->writeUInt8(file, &(this->displayConfig.contrast));
-        this->writeUInt16(file, &(this->displayConfig.monitorType));
-        this->writeBool(file, &(this->displayConfig.connectBatteryOnly));
-        this->writeBool(file, &(this->displayConfig.connectOnBoot));
-        this->writeBool(file, &(this->displayConfig.unitsMetric));
-        fclose(file);
+    if (this->fileSystem->openFile(this->displayConfigFilename, "w")) {
+        this->writeUInt8(&(this->displayConfig.contrast));
+        this->writeUInt16(&(this->displayConfig.monitorType));
+        this->writeBool(&(this->displayConfig.connectBatteryOnly));
+        this->writeBool(&(this->displayConfig.connectOnBoot));
+        this->writeBool(&(this->displayConfig.unitsMetric));
+        this->fileSystem->closeFile();
         return true;
     }
     return false;
@@ -133,13 +113,11 @@ bool ConfigStore::writeDisplayConfig() {
 
 bool ConfigStore::savesConfig()
 {
-    DIR* dir = opendir(savesDirectoryName);
-
-    if (dir != NULL) {
-        closedir(dir);
+    if (this->fileSystem->openDir(savesDirectoryName)) {
+        this->fileSystem->closeDir();
         return true;
     }
-    mkdir(savesDirectoryName, S_IRWXU | S_IRWXG | S_IRWXO);
+    this->fileSystem->mkDir(savesDirectoryName);
 
     return true;
 }
@@ -147,62 +125,60 @@ bool ConfigStore::savesConfig()
 bool ConfigStore::ReadSavesNames()
 {
     this->savesNames.names.clear();
+    if (! this->fileSystem->openDir(savesDirectoryName)) {
+        return false;
+    }
 
-    DIR* dir = opendir(savesDirectoryName);
-    if (dir == NULL) return false;
-
-    struct dirent* pDirent;
-    while ((pDirent = readdir(dir)) != NULL) {
-        this->savesNames.names.push_back(String(pDirent->d_name));
+    char* dirName = NULL;
+    while (this->fileSystem->readDir(&dirName)) {
+        this->savesNames.names.push_back(String(dirName));
     }
     
-    closedir(dir);
+    this->fileSystem->closeDir();
 
     return true;
 }
 
-bool ConfigStore::readBikeConfig() {    
-    FILE *file = fopen(this->bikeConfigFilename, "r");
-    if (file) {
+bool ConfigStore::readBikeConfig() {
+    if (this->fileSystem->openFile(this->bikeConfigFilename, "r")) {
         bool result = true;
-        result &= this->readBool(file, &(this->bikeConfig.beeper.managed));
-        result &= this->readBool(file, &(this->bikeConfig.beeper.value));
-        result &= this->readBool(file, &(this->bikeConfig.fakeChannel.managed));
-        result &= this->readUInt8(file, &(this->bikeConfig.fakeChannel.value));
-        result &= this->readBool(file, &(this->bikeConfig.wheelCircumference.managed));
-        result &= this->readUInt16(file, &(this->bikeConfig.wheelCircumference.value));
-        result &= this->readBool(file, &(this->bikeConfig.supportAssistLevels.managed));
-        result &= this->readUInt8(file, &(this->bikeConfig.supportAssistLevels.value.eco));
-        result &= this->readUInt8(file, &(this->bikeConfig.supportAssistLevels.value.trail));
-        result &= this->readUInt8(file, &(this->bikeConfig.supportAssistLevels.value.turbo));
-        result &= this->readBool(file, &(this->bikeConfig.peakPowerAssistLevels.managed));
-        result &= this->readUInt8(file, &(this->bikeConfig.peakPowerAssistLevels.value.eco));
-        result &= this->readUInt8(file, &(this->bikeConfig.peakPowerAssistLevels.value.trail));
-        result &= this->readUInt8(file, &(this->bikeConfig.peakPowerAssistLevels.value.turbo));
-        fclose(file);
+        result &= this->readBool(&(this->bikeConfig.beeper.managed));
+        result &= this->readBool(&(this->bikeConfig.beeper.value));
+        result &= this->readBool(&(this->bikeConfig.fakeChannel.managed));
+        result &= this->readUInt8(&(this->bikeConfig.fakeChannel.value));
+        result &= this->readBool(&(this->bikeConfig.wheelCircumference.managed));
+        result &= this->readUInt16(&(this->bikeConfig.wheelCircumference.value));
+        result &= this->readBool(&(this->bikeConfig.supportAssistLevels.managed));
+        result &= this->readUInt8(&(this->bikeConfig.supportAssistLevels.value.eco));
+        result &= this->readUInt8(&(this->bikeConfig.supportAssistLevels.value.trail));
+        result &= this->readUInt8(&(this->bikeConfig.supportAssistLevels.value.turbo));
+        result &= this->readBool(&(this->bikeConfig.peakPowerAssistLevels.managed));
+        result &= this->readUInt8(&(this->bikeConfig.peakPowerAssistLevels.value.eco));
+        result &= this->readUInt8(&(this->bikeConfig.peakPowerAssistLevels.value.trail));
+        result &= this->readUInt8(&(this->bikeConfig.peakPowerAssistLevels.value.turbo));
+        this->fileSystem->closeFile();
         return result;
     }
     return false;
 }
 
 bool ConfigStore::writeBikeConfig() {
-    FILE *file = fopen(this->bikeConfigFilename, "w");
-    if (file) {
-        this->writeBool(file, &(this->bikeConfig.beeper.managed));
-        this->writeBool(file, &(this->bikeConfig.beeper.value));
-        this->writeBool(file, &(this->bikeConfig.fakeChannel.managed));
-        this->writeUInt8(file, &(this->bikeConfig.fakeChannel.value));
-        this->writeBool(file, &(this->bikeConfig.wheelCircumference.managed));
-        this->writeUInt16(file, &(this->bikeConfig.wheelCircumference.value));
-        this->writeBool(file, &(this->bikeConfig.supportAssistLevels.managed));
-        this->writeUInt8(file, &(this->bikeConfig.supportAssistLevels.value.eco));
-        this->writeUInt8(file, &(this->bikeConfig.supportAssistLevels.value.trail));
-        this->writeUInt8(file, &(this->bikeConfig.supportAssistLevels.value.turbo));
-        this->writeBool(file, &(this->bikeConfig.peakPowerAssistLevels.managed));
-        this->writeUInt8(file, &(this->bikeConfig.peakPowerAssistLevels.value.eco));
-        this->writeUInt8(file, &(this->bikeConfig.peakPowerAssistLevels.value.trail));
-        this->writeUInt8(file, &(this->bikeConfig.peakPowerAssistLevels.value.turbo));
-        fclose(file);
+    if (this->fileSystem->openFile(this->bikeConfigFilename, "w")) {
+        this->writeBool(&(this->bikeConfig.beeper.managed));
+        this->writeBool(&(this->bikeConfig.beeper.value));
+        this->writeBool(&(this->bikeConfig.fakeChannel.managed));
+        this->writeUInt8(&(this->bikeConfig.fakeChannel.value));
+        this->writeBool(&(this->bikeConfig.wheelCircumference.managed));
+        this->writeUInt16(&(this->bikeConfig.wheelCircumference.value));
+        this->writeBool(&(this->bikeConfig.supportAssistLevels.managed));
+        this->writeUInt8(&(this->bikeConfig.supportAssistLevels.value.eco));
+        this->writeUInt8(&(this->bikeConfig.supportAssistLevels.value.trail));
+        this->writeUInt8(&(this->bikeConfig.supportAssistLevels.value.turbo));
+        this->writeBool(&(this->bikeConfig.peakPowerAssistLevels.managed));
+        this->writeUInt8(&(this->bikeConfig.peakPowerAssistLevels.value.eco));
+        this->writeUInt8(&(this->bikeConfig.peakPowerAssistLevels.value.trail));
+        this->writeUInt8(&(this->bikeConfig.peakPowerAssistLevels.value.turbo));
+        this->fileSystem->closeFile();
         return true;
     }
     return false;
@@ -210,76 +186,74 @@ bool ConfigStore::writeBikeConfig() {
 
 bool ConfigStore::readBTAddressMap() {
     this->btAddressesConfig.clear();
-    FILE *file = fopen(this->knownDevicesFilename, "r");
-    if (file) {
+    if (this->fileSystem->openFile(this->knownDevicesFilename, "r")) {
         uint16_t addressesSize = 0;
-        if (!this->readUInt16(file, &addressesSize)) return false;
+        if (!this->readUInt16(&addressesSize)) return false;
         for (uint16_t i = 0; i < addressesSize; i++) {
             String addressString;
             String displayValueString;
-            if (!this->readString(file, &addressString)) return false;
-            if (!this->readString(file, &displayValueString)) return false;
+            if (!this->readString(&addressString)) return false;
+            if (!this->readString(&displayValueString)) return false;
             this->btAddressesConfig.addBTAddress(addressString ,displayValueString);
         }
-        fclose(file);
+        this->fileSystem->closeFile();
         return true;
     }
     return false;
 }
 
 bool ConfigStore::writeBTAddressMap() {
-    FILE *file = fopen(this->knownDevicesFilename, "w");
-    if (file) {
+    if (this->fileSystem->openFile(this->knownDevicesFilename, "w")) {
         uint16_t addressesSize = this->btAddressesConfig.countBTAddresses();
-        if (!this->writeUInt16(file, &addressesSize)) return false;
+        if (!this->writeUInt16(&addressesSize)) return false;
         for (std::unordered_map<String, String>::iterator it = this->btAddressesConfig.btAddressMap.begin() ; it != this->btAddressesConfig.btAddressMap.end(); it++) {
             String address = ((*it).first);
             String displayValue = ((*it).second);
-            if (!this->writeString(file, &address)) return false;
-            if (!this->writeString(file, &displayValue)) return false;
+            if (!this->writeString(&address)) return false;
+            if (!this->writeString(&displayValue)) return false;
         }
-        fclose(file);
+        this->fileSystem->closeFile();
         return true;
     }
     return false;
 }
 
 
-bool ConfigStore::readUInt16(FILE* file, uint16_t* value) {
-    return (fread(value, sizeof(uint16_t), 1, file) == 1);
+bool ConfigStore::readUInt16(uint16_t* value) {
+    return this->fileSystem->readFile(value, sizeof(uint16_t), 1);
 }
 
-bool ConfigStore::readUInt8(FILE* file, uint8_t* value) {
-    return (fread(value, sizeof(uint8_t), 1, file) == 1);
+bool ConfigStore::readUInt8(uint8_t* value) {
+    return this->fileSystem->readFile(value, sizeof(uint8_t), 1);
 }
 
-bool ConfigStore::readBool(FILE* file, bool* value) {
+bool ConfigStore::readBool(bool* value) {
     uint8_t int8Value;
-    if (this->readUInt8(file, &int8Value)) {
+    if (this->readUInt8(&int8Value)) {
         *value = int8Value;
         return true;
     }
     return false;
 }
 
-bool ConfigStore::writeUInt16(FILE* file, uint16_t* value) {
-    return (fwrite(value, sizeof(uint16_t), 1, file) == 1);
+bool ConfigStore::writeUInt16(uint16_t* value) {
+    return this->fileSystem->writeFile(value, sizeof(uint16_t), 1);
 }
 
-bool ConfigStore::writeUInt8(FILE* file, uint8_t* value) {
-    return (fwrite(value, sizeof(int8_t), 1, file) == 1);
+bool ConfigStore::writeUInt8(uint8_t* value) {
+    return this->fileSystem->writeFile(value, sizeof(int8_t), 1);
 }
 
-bool ConfigStore::writeBool(FILE* file, bool* value) {
+bool ConfigStore::writeBool(bool* value) {
     uint8_t int8Value = *value ? 0x01 : 0x00;
-    return this->writeUInt8(file, &int8Value);
+    return this->writeUInt8(&int8Value);
 }
 
-bool ConfigStore::readString(FILE* file, String* string) {
+bool ConfigStore::readString(String* string) {
     uint16_t stringSize;
-    if (!this->readUInt16(file, &stringSize)) return false;
+    if (!this->readUInt16(&stringSize)) return false;
     char* readBuffer = (char*) malloc(stringSize + 1);
-    if (fread(readBuffer, stringSize, 1, file) != 1)
+    if (!this->fileSystem->readFile(readBuffer, stringSize, 1))
     {
         free(readBuffer);
         return false;
@@ -290,8 +264,8 @@ bool ConfigStore::readString(FILE* file, String* string) {
     return true;
 }
 
-bool ConfigStore::writeString(FILE* file, String* string) {
+bool ConfigStore::writeString(String* string) {
     uint16_t stringSize = string->length();
-    if (!this->writeUInt16(file, &stringSize)) return false;
-    return (fwrite(string->c_str(), stringSize, 1, file) == 1);
+    if (!this->writeUInt16(&stringSize)) return false;
+    return this->fileSystem->writeFile(string->c_str(), stringSize, 1);
 }
