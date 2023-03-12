@@ -2,12 +2,31 @@
 #define _DISPLAY_DEVICE_H_
 
 #include <Arduino_LvGL_Glue.h>
+#include <LvglInputs/Arduino_ButtonEncoder_LvGL_Input.h>
 #include "src/dev/ConfigStore.h"
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
 // Config of the Display under the RP2040 which will be ADAFRUIT_SH110X
-//
+///////////////////////////////////////////////////////////////////////////////////////////////////
 #ifdef ARDUINO_ARCH_RP2040
 
+// Encoder
+//
+#include <ThreeButtonEncoder.h>
+#define ENCODER_LEFT_PIN 16
+#define ENCODER_RIGHT_PIN 14
+#define ENCODER_SELECT_PIN 15
+#define ENCODER_PRESSED_STATE LOW
+#define ENCODER_BUTTON_PIN_MODE INPUT_PULLUP
+static ThreeButtonEncoder encoder(ENCODER_LEFT_PIN, ENCODER_RIGHT_PIN, ENCODER_SELECT_PIN, ENCODER_PRESSED_STATE, ENCODER_BUTTON_PIN_MODE);
+
+Arduino_ButtonEncoder_LvGL_Input* encoderInit() {
+    static Arduino_ButtonEncoder_LvGL_Input lvglInput(&encoder);
+    return &lvglInput;
+}
+
+// Display Stuff
+//
 #include <Adafruit_GFX.h>
 #include <Adafruit_SH110X.h>
 #include <LvglDisplays/Adafruit_SH110X_LvGL_Display.h>
@@ -34,6 +53,13 @@ void displayfillCircle(unsigned long radius) {
     displayDevice.fillCircle(displayDevice.width() / 2, displayDevice.height() / 2, radius, SH110X_WHITE);
     displayDevice.display();
 }
+
+void displaySetContrast(void *display, int contrastLevel) {
+    ((Adafruit_SH1107*) display)->setContrast(contrastLevel);
+}
+
+// File System
+//
 
 #define FORCE_REFOMAT false;
 #define RP2040_FS_SIZE_KB 64
@@ -91,14 +117,29 @@ bool FileSystem::closeFile() {
     fclose((FILE*)this->file);
 }
 
-
 #endif
-//
-// End of Config for RP2040 and ADAFRUIT_SH110X
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
 // Config of the Display for T-DISPLAY
-//
+///////////////////////////////////////////////////////////////////////////////////////////////////
 #ifdef ESP32
+
+// Encoder
+//
+#include <TwoButtonEncoder.h>
+#define ENCODER_LEFT_PIN 0
+#define ENCODER_RIGHT_PIN 14
+#define ENCODER_PRESSED_STATE LOW
+#define ENCODER_BUTTON_PIN_MODE INPUT_PULLUP
+static TwoButtonEncoder encoder(ENCODER_LEFT_PIN, ENCODER_RIGHT_PIN, ENCODER_PRESSED_STATE, ENCODER_BUTTON_PIN_MODE);
+
+Arduino_ButtonEncoder_LvGL_Input* encoderInit() {
+    static Arduino_ButtonEncoder_LvGL_Input lvglInput(&encoder);
+    return &lvglInput;
+}
+
+// Display
+//
 #include "TFT_eSPI.h"
 #include <LvglDisplays/TFTESPI_LvGL_Display.h>
 #define DISPLAY_WIDTH 170
@@ -119,6 +160,8 @@ void displayfillCircle(unsigned long radius) {
     displayDevice.fillCircle(displayDevice.width() / 2, displayDevice.height() / 2, radius, TFT_WHITE);
 }
 
+// File System
+//
 #define FORMAT_LITTLEFS_IF_FAILED true
 #include <Arduino.h>
 #include "FS.h"
@@ -126,14 +169,68 @@ void displayfillCircle(unsigned long radius) {
 #define FS_FILE_PREFIX ""
 #define FS_SEPARATOR "/"
 
-void* fsInit() {
-    if(!LittleFS.begin(FORMAT_LITTLEFS_IF_FAILED)){
-        return NULL;
+bool FileSystem::init() {    
+    this->fileSystem = &LittleFS;
+    if (!((fs::LittleFSFS*)(this->fileSystem))->begin(FORMAT_LITTLEFS_IF_FAILED)) {
+        return false;
     }
-    return &LittleFS;
+    return true;
+}
+bool FileSystem::openDir(const char* dirPath) {    
+    static fs::File dirFile = ((fs::LittleFSFS*)(this->fileSystem))->open(dirPath);
+    if (dirFile && dirFile.isDirectory()) {
+        this->dir = &dirFile;
+        return true;
+    }
+    return false;
+}
+bool FileSystem::closeDir() {
+    if (this->dir) {
+        ((fs::File*)(this->dir))->close();
+        this->dir = NULL;
+        return true;
+    }
+    return false;
+}
+bool FileSystem::mkDir(const char* dirPath) {
+    if (((fs::LittleFSFS*)(this->fileSystem))->mkdir(dirPath)) return true;
+    return false;
 }
 
+bool FileSystem::readDir(char** fileName) {
+    if (this->dir) {
+        static fs::File nextFile = ((fs::File*) (this->dir))->openNextFile();
+        if (nextFile) {
+            *fileName = (char*) nextFile.path();
+            return true;
+        }
+        return false;
+    } else {
+        return false;
+    }
+}
+bool FileSystem::openFile(const char* filePath, const char* mode) {
+    static fs::File fileFile = ((fs::LittleFSFS*)(this->fileSystem))->open(filePath, mode);
+    if (!fileFile || fileFile.isDirectory()) {
+        this->file = NULL;
+        return false;
+    }
+    this->file = &fileFile;    
+    return true;
+}
+bool FileSystem::readFile(void* buffer, size_t size, size_t n) {    
+    return ((fs::File*)(this->file))->read((uint8_t*)buffer, size*n) == size*n;
+}
+bool FileSystem::writeFile(const void* buffer, size_t size, size_t n) {
+    return ((fs::File*)(this->file))->write((uint8_t*)buffer, size*n) == size*n;
+}
+bool FileSystem::closeFile() {
+    ((fs::File*)(this->file))->close();
+}
 
+void displaySetContrast(void *display, int contrastLevel) {
+    
+}
 
 #endif
 

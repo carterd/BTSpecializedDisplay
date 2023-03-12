@@ -3,6 +3,8 @@
 
 #include <Arduino_LvGL_Glue.h>
 
+void displaySetContrast(void *display, int contrastLevel);
+
 /// <summary>
 /// Simple abstraction of the display device so we can quickly move from SH110X displays by putting it only into this class
 /// </summary>

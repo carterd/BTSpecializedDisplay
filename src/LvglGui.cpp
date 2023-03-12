@@ -73,9 +73,9 @@ void lvgl_setup(ConfigStore *configStore, BluetoothBikeController *bluetoothBike
     // =====================
     //
     lv_disp_t* lv_display = displayGlue.getLvDisplay();
-    static Display display(displayGlue.display);
-    display.setContrast(configStore->getDisplayConfig().contrast);
-    
+    static Display display(displayGlue.display);    
+    display.setContrast(configStore->getDisplayConfig().contrast);    
+
     static MainView mainView(indev);
     ButtonLabelBar* buttonLabelBar = mainView.getButtonLabelBar();    
     static MonitorSelector monitorSelector(indev, buttonLabelBar);
@@ -198,4 +198,65 @@ void lvgl_setup(ConfigStore *configStore, BluetoothBikeController *bluetoothBike
     if (configStore->getDisplayConfig().connectOnBoot && configStore->getBTAddressesConfig().countBTAddresses() > 0) {
         mainScrollMenu.selectScrollMenuItem(&connectMenuItem);
     }
+  /*
+  lv_obj_t* screen_obj = lv_scr_act();
+
+  lv_obj_t* boxR = lv_obj_create(screen_obj);
+  lv_obj_set_height(boxR, 350);
+  lv_obj_set_width(boxR, 100);
+  lv_obj_set_pos(boxR, 0, 0);
+  lv_obj_set_style_bg_color(boxR, lv_color_make(255,0,0), LV_PART_MAIN);
+  lv_obj_set_style_bg_opa(boxR, LV_OPA_COVER, LV_PART_MAIN);
+
+
+  lv_obj_t* label = lv_label_create(screen_obj);
+  lv_obj_center(label);
+  lv_obj_set_style_bg_opa(label,LV_OPA_COVER, LV_PART_MAIN);
+  lv_label_set_text(label,"H");
+  lv_obj_set_style_text_color(label, lv_color_white(), LV_PART_MAIN);
+  lv_obj_set_style_bg_color(label, lv_color_black(), LV_PART_MAIN);
+  //lv_style_set_text_font()
+/*
+  lv_obj_t* boxR = lv_obj_create(screen_obj);
+  lv_obj_set_height(boxR, 50);
+  lv_obj_set_width(boxR, 50);
+  lv_obj_set_pos(boxR, 0, 0);
+  lv_obj_set_style_bg_color(boxR, lv_color_make(255,0,0), LV_PART_MAIN);
+  lv_obj_set_style_bg_opa(boxR, LV_OPA_COVER, LV_PART_MAIN);
+
+  lv_obj_t* boxG = lv_obj_create(screen_obj);
+  lv_obj_set_height(boxG, 50);
+  lv_obj_set_width(boxG, 50);
+  lv_obj_set_pos(boxG, 50, 0);
+  lv_obj_set_style_bg_color(boxG, lv_color_make(0,255,0), LV_PART_MAIN);
+  lv_obj_set_style_bg_opa(boxG, LV_OPA_COVER, LV_PART_MAIN);
+
+  lv_obj_t* boxB = lv_obj_create(screen_obj);
+  lv_obj_set_height(boxB, 50);
+  lv_obj_set_width(boxB, 50);
+  lv_obj_set_pos(boxB, 100, 0);
+  lv_obj_set_style_bg_color(boxB, lv_color_make(0,0,255), LV_PART_MAIN);
+  lv_obj_set_style_bg_opa(boxB, LV_OPA_COVER, LV_PART_MAIN);
+
+  lv_obj_t* boxRA = lv_obj_create(screen_obj);
+  lv_obj_set_height(boxRA, 50);
+  lv_obj_set_width(boxRA, 50);
+  lv_obj_set_pos(boxRA, 0, 50);
+  lv_obj_set_style_bg_color(boxRA, lv_color_make(128,0,0), LV_PART_MAIN);
+  lv_obj_set_style_bg_opa(boxRA, LV_OPA_COVER, LV_PART_MAIN);
+
+  lv_obj_t* boxGA = lv_obj_create(screen_obj);
+  lv_obj_set_height(boxGA, 50);
+  lv_obj_set_width(boxGA, 50);
+  lv_obj_set_pos(boxGA, 50, 50);
+  lv_obj_set_style_bg_color(boxGA, lv_color_make(0,128,0), LV_PART_MAIN);
+  lv_obj_set_style_bg_opa(boxGA, LV_OPA_COVER, LV_PART_MAIN);
+
+  lv_obj_t* boxBA = lv_obj_create(screen_obj);
+  lv_obj_set_height(boxBA, 50);
+  lv_obj_set_width(boxBA, 50);
+  lv_obj_set_pos(boxBA, 100, 50);
+  lv_obj_set_style_bg_color(boxBA, lv_color_make(0,0,128), LV_PART_MAIN);
+  lv_obj_set_style_bg_opa(boxBA, LV_OPA_COVER, LV_PART_MAIN);
+*/
 }
