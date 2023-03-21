@@ -1,9 +1,9 @@
 #ifndef _BASE_NUMERIC_MONITOR_MEDIUM_H
 #define _BASE_NUMERIC_MONITOR_MEDIUM_H
 
-#include "../../MonitorLvObject.h"
+#include "BaseMonitorMedium.h"
 
-class BaseNumericMonitorMedium : public MonitorLvObject
+class BaseNumericMonitorMedium : public BaseMonitorMedium
 {
 protected:
     union NumericAttributeValue {

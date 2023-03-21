@@ -1,7 +1,7 @@
 #ifndef _SPEED_GRAPH_MONITOR_MAIN_H
 #define _SPEED_GRAPH_MONITOR_MAIN_H
 
-#include "../../MonitorLvObject.h"
+#include "BaseMonitorMain.h"
 #include "../../../stats/SpeedMeterLogger.h"
 #include "../../../dev/ConfigStore.h"
 
@@ -10,7 +10,7 @@
 #define GRAPH_HEIGHT 100
 #define GRAPH_BOTTOM GRAPH_HEIGHT - 1
 
-class SpeedGraphMonitorMain : public MonitorLvObject
+class SpeedGraphMonitorMain : public BaseMonitorMain
 {
 private:
     /// <summary>

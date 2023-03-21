@@ -1,5 +1,5 @@
 #include "BatteryCapacityImageMonitorSmall.h"
-#include <LvglThemes/lv_theme_binary.h>
+#include "../../../themes/lv_theme.h"
 
 static lv_style_t style_line(lv_coord_t width, bool rounded = true) {
 	lv_style_t style_line;
@@ -25,16 +25,8 @@ BatteryCapacityImageMonitorSmall::BatteryCapacityImageMonitorSmall() {
 }
 
 lv_obj_t* BatteryCapacityImageMonitorSmall::createLvObj(lv_obj_t* parent) {
-	// get the style we'll need for the bar
-	theme_binary_styles_t* binary_styles = (theme_binary_styles_t*)lv_disp_get_theme(lv_obj_get_disp(parent))->user_data;
-	lv_style_t* no_scrollbar = &(binary_styles->no_scrollbar);
-	lv_style_t* card_style = &(binary_styles->card);
+	BaseMonitorSmall::createLvObj(parent);
 		
-	lv_obj_update_layout(parent);
-	this->this_obj = lv_obj_create(parent);
-	lv_obj_set_size(this->this_obj, lv_obj_get_width(parent), lv_obj_get_height(parent));
-	lv_obj_set_align(this->this_obj, LV_ALIGN_CENTER);
-	
 	//  Create a lineand apply the new style
 	lv_obj_t* battery_line = lv_line_create(this->this_obj);
 	lv_obj_add_style(battery_line, &this->battery_line_style, LV_PART_MAIN);

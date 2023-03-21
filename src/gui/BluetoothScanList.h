@@ -10,8 +10,6 @@
 
 #include <unordered_map>
 
-#define BLUETOOTH_SCAN_LIST_LABEL_HEIGHT 16
-
 /// <summary>
 /// This is the scanning list of possible bluetooth connections
 /// </summary>

@@ -1,7 +1,5 @@
 #include "MotorAssistLevelDotsMonitorSmall.h"
-
-#include <LvglThemes/lv_theme_binary.h>
-
+#include "../../../themes/lv_theme.h"
 
 MotorAssistLevelDotMonitorSmall::MotorAssistLevelDotMonitorSmall() {
 	lv_style_init(&this->assist_line_style);	
@@ -11,15 +9,7 @@ MotorAssistLevelDotMonitorSmall::MotorAssistLevelDotMonitorSmall() {
 }
 
 lv_obj_t* MotorAssistLevelDotMonitorSmall::createLvObj(lv_obj_t* parent) {
-	// get the style we'll need for the bar
-	theme_binary_styles_t* binary_styles = (theme_binary_styles_t*)lv_disp_get_theme(lv_obj_get_disp(parent))->user_data;
-	lv_style_t* no_scrollbar = &(binary_styles->no_scrollbar);
-	lv_style_t* card_style = &(binary_styles->card);
-		
-	lv_obj_update_layout(parent);
-	this->this_obj = lv_obj_create(parent);
-	lv_obj_set_size(this->this_obj, lv_obj_get_width(parent), lv_obj_get_height(parent));
-	lv_obj_set_align(this->this_obj, LV_ALIGN_CENTER);
+	BaseMonitorSmall::createLvObj(parent);
 	
 	for (int i = 0; i < 3; i++) {
 		this->assist_line_points[i][0] = { (lv_coord_t)(i * 22 + 5), 8 };

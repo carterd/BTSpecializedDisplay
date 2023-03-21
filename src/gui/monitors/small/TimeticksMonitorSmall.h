@@ -1,10 +1,10 @@
 #ifndef _TIMETICKS_MONITOR_SMALL_H
 #define _TIMETICKS_MONITOR_SMALL_H
 
-#include "../../MonitorLvObject.h"
+#include "BaseMonitorSmall.h"
 
 
-class TimeticksMonitorSmall : public MonitorLvObject
+class TimeticksMonitorSmall : public BaseMonitorSmall
 {
 private:
     lv_obj_t* value_obj;

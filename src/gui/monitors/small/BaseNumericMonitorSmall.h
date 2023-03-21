@@ -1,9 +1,9 @@
 #ifndef _BASE_NUMERIC_MONITOR_SMALL_H
 #define _BASE_NUMERIC_MONITOR_SMALL_H
 
-#include "../../MonitorLvObject.h"
+#include "BaseMonitorSmall.h"
 
-class BaseNumericMonitorSmall : public MonitorLvObject
+class BaseNumericMonitorSmall : public BaseMonitorSmall
 {
 protected:
     union NumericAttributeValue {

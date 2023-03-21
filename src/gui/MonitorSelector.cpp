@@ -1,11 +1,9 @@
-#include <LvglThemes/lv_theme_binary.h>
-
 #include <algorithm>
 
 #include "MonitorSelector.h"
 #include "BluetoothConnection.h"
-
 #include "../img/PressButton.h"
+#include "../themes/lv_theme.h"
 
 void MonitorSelector::tile_btn_cb(lv_event_t* event) {
     MonitorSelector* monitorSelector = (MonitorSelector*)event->user_data;
@@ -53,7 +51,7 @@ MonitorSelector::~MonitorSelector()
 lv_obj_t* MonitorSelector::createLvObj(lv_obj_t* parent)
 {
     // get the style we'll need for the bar
-    theme_binary_styles_t* binary_styles = (theme_binary_styles_t*)lv_disp_get_theme(lv_obj_get_disp(parent))->user_data;
+    display_theme_styles_t* binary_styles = (display_theme_styles_t*)lv_disp_get_theme(lv_obj_get_disp(parent))->user_data;
     lv_style_t* no_scrollbar = &(binary_styles->no_scrollbar);
     lv_style_t* button_no_highlight_style = &(binary_styles->button_no_highlight);
 

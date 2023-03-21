@@ -10,8 +10,6 @@
 #include <vector>
 #include <unordered_map>
 
-#define NAVIGATION_MENU_LABEL_HEIGHT 16
-
 /// <summary>
 /// This is the scanning list of possible bluetooth connections
 /// </summary>

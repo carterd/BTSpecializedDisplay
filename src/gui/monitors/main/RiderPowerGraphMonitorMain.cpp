@@ -1,5 +1,5 @@
 #include "RiderPowerGraphMonitorMain.h"
-#include <LvglThemes/lv_theme_binary.h>
+#include "../../../themes/lv_theme.h"
 
 static lv_style_t style_line(lv_coord_t width, bool white = true) {
 	lv_style_t style_line;
@@ -37,17 +37,8 @@ RiderPowerGraphMonitorMain::RiderPowerGraphMonitorMain(PowerMeterLogger* powerMe
 }
 
 lv_obj_t* RiderPowerGraphMonitorMain::createLvObj(lv_obj_t* parent) {
-    // get the style we'll need for the bar
-    theme_binary_styles_t* binary_styles = (theme_binary_styles_t*)lv_disp_get_theme(lv_obj_get_disp(parent))->user_data;
-    lv_style_t* no_scrollbar = &(binary_styles->no_scrollbar);
-    lv_style_t* card_style = &(binary_styles->card);
-
-    lv_obj_update_layout(parent);
-    this->this_obj = lv_obj_create(parent);
-    // Idenally for a main this is 32x112
-    lv_obj_set_size(this->this_obj, lv_obj_get_width(parent), lv_obj_get_height(parent));
-    lv_obj_set_align(this->this_obj, LV_ALIGN_CENTER);
-
+    BaseMonitorMain::createLvObj(parent);
+    
     this->leftAxisLabelsParent = lv_obj_create(this->this_obj);
     lv_obj_set_size(this->leftAxisLabelsParent, 4, GRAPH_HEIGHT);
     lv_obj_set_align(this->leftAxisLabelsParent, LV_ALIGN_RIGHT_MID);

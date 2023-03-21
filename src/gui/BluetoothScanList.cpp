@@ -1,6 +1,6 @@
 #include "BluetoothScanList.h"
 #include "ButtonLabelBar.h"
-#include <LvglThemes/lv_theme_binary.h>
+#include "../themes/lv_theme.h"
 
 void BluetoothScanList::exit_btn_cb(lv_event_t* event) {
 	((BluetoothScanList*) (event->user_data))->exitButtonCB(event);
@@ -41,8 +41,9 @@ BluetoothScanList::~BluetoothScanList()
 lv_obj_t* BluetoothScanList::createLvObj(lv_obj_t* parent)
 {
 	// get the style we'll need for the bar
-	theme_binary_styles_t* binary_styles = (theme_binary_styles_t*)lv_disp_get_theme(lv_obj_get_disp(parent))->user_data;
-	lv_style_t* inv_style = &(binary_styles->inv);
+	display_theme_styles_t* display_theme_styles = (display_theme_styles_t*)lv_disp_get_theme(lv_obj_get_disp(parent))->user_data;
+	lv_style_t* menu_label_bar_style = &(display_theme_styles->menu_label_bar);
+	lv_style_t* inv_style = &(display_theme_styles->inv);
 
 	this->group = lv_group_create();
 	lv_group_set_wrap(this->group, false);
@@ -54,8 +55,11 @@ lv_obj_t* BluetoothScanList::createLvObj(lv_obj_t* parent)
 
 	// add list top label bar
 	lv_obj_t* list_label = lv_obj_create(this->this_obj);
-	lv_obj_set_size(list_label, lv_obj_get_width(parent), BLUETOOTH_SCAN_LIST_LABEL_HEIGHT);
+	lv_obj_set_width(list_label, lv_obj_get_width(parent));
+	lv_obj_add_style(list_label, menu_label_bar_style, LV_PART_MAIN);
 	lv_obj_add_style(list_label, inv_style, LV_PART_MAIN);
+	lv_obj_update_layout(list_label);
+	int labelHeight = lv_obj_get_style_height(list_label, LV_PART_MAIN);
 
 	lv_obj_t* scan_label = lv_label_create(list_label);
 	lv_label_set_text(scan_label, "Scanning");
@@ -69,8 +73,8 @@ lv_obj_t* BluetoothScanList::createLvObj(lv_obj_t* parent)
 
 	// add list
 	this->list_obj = lv_list_create(this->this_obj);
-	lv_obj_set_size(this->list_obj, lv_obj_get_width(parent), lv_obj_get_height(parent) - BLUETOOTH_SCAN_LIST_LABEL_HEIGHT - BUTTON_LABEL_BAR_HEIGHT - 2);
-	lv_obj_align(this->list_obj, LV_ALIGN_TOP_MID, 0, BLUETOOTH_SCAN_LIST_LABEL_HEIGHT + 1);	
+	lv_obj_set_size(this->list_obj, lv_obj_get_width(parent), lv_obj_get_height(parent) - labelHeight - this->buttonLabelBar->getHeight() - 2);
+	lv_obj_align(this->list_obj, LV_ALIGN_TOP_MID, 0, labelHeight + 1);	
 	
 	//Add buttons to the list
 	lv_obj_t* btn_label;

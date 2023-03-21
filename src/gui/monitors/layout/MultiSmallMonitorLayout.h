@@ -9,11 +9,10 @@ class MultiSmallMonitorLayout : public BaseMonitorLayout
 {
 private:    
     MonitorLvObject* smallMonitorLvObjects[MAX_MULTI_SMALL_MONITOR_OBJECTS];
-    int smallMonitorHeights[MAX_MULTI_SMALL_MONITOR_OBJECTS];
 
 public:
     MultiSmallMonitorLayout(MonitorLvObject* smallMonitorLvObject1, MonitorLvObject* smallMonitorLvObject2, MonitorLvObject* smallMonitorLvObject3, MonitorLvObject* smallMonitorLvObject4, MonitorLvObject* smallMonitorLvObject5, MonitorLvObject* smallMonitorLvObject6, MonitorLvObject* smallMonitorLvObject7, MonitorLvObject* smallMonitorLvObject8)
-        : BaseMonitorLayout(this->smallMonitorLvObjects, this->smallMonitorHeights, MAX_MULTI_SMALL_MONITOR_OBJECTS)
+        : BaseMonitorLayout(this->smallMonitorLvObjects, MAX_MULTI_SMALL_MONITOR_OBJECTS)
     {
         this->smallMonitorLvObjects[0] = smallMonitorLvObject1;
         this->smallMonitorLvObjects[1] = smallMonitorLvObject2;
@@ -23,9 +22,6 @@ public:
         this->smallMonitorLvObjects[5] = smallMonitorLvObject6;
         this->smallMonitorLvObjects[6] = smallMonitorLvObject7;
         this->smallMonitorLvObjects[7] = smallMonitorLvObject8;
-        for (int i = 0; i < MAX_MULTI_SMALL_MONITOR_OBJECTS; i++) {
-            this->smallMonitorHeights[i] = SMALL_MONITOR_LV_OBJECT_HEIGHT;
-        }
     }
 };
 

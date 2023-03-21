@@ -8,6 +8,7 @@
 #include "../dev/BluetoothBikeController.h"
 #include "../dev/BluetoothBikeDefinitions.h"
 #include "../dev/BluetoothBikeState.h"
+#include "../themes/lv_theme.h"
 
 /// <summary>
 /// This is the base object for monitor objects
@@ -29,6 +30,12 @@ public:
     /// Default constructor
     /// </summary>
     MonitorLvObject();
+
+    /// <summary>
+    /// Returns the LV object instance to represent this class instance
+    /// </summary>
+    /// <returns>The LV object instance to represent this class instance</returns>
+    virtual lv_obj_t* createLvObj(lv_obj_t* parent);
 
     /// <summary>
     /// Only a monitor in focus should be required to update their gui
@@ -61,6 +68,16 @@ public:
     /// Init the stats that the monitor needs to be read and updated from the bike.
     /// </summary>
     virtual void initBluetoothStats() = 0;
+
+    /// <summary>
+    /// This should return the height of the monitor object
+    /// </summary>
+    virtual lv_style_t* getMonitorPanelStyle(display_theme_styles_t* display_theme_styles) = 0;
+
+    /// <summary>
+    /// This should return the height of the monitor object
+    /// </summary>
+    virtual lv_coord_t getHeight();
 };
 
 #endif

@@ -33,6 +33,7 @@ Arduino_ButtonEncoder_LvGL_Input* encoderInit() {
 #define ADAFRUIT_SH1107_RESET_D_PIN 20
 #define DISPLAY_WIDTH 64
 #define DISPLAY_HEIGHT 128
+
 static Adafruit_SH1107 displayDevice(DISPLAY_WIDTH, DISPLAY_HEIGHT, &Wire, ADAFRUIT_SH1107_RESET_D_PIN);
 
 LvGL_DisplayBase* displayInit() {
@@ -47,6 +48,17 @@ LvGL_DisplayBase* displayInit() {
 
     static Adafruit_SH110X_LvGL_Display lvglDisplay(&displayDevice);
     return &lvglDisplay;
+}
+
+#include <Fonts/PixelOperator8pt7b.h>
+#include "src/themes/lv_theme_SH1107.h"
+#include <LvglFonts/lv_font_symbols_8.h>
+#include <Utilities/Adafruit_To_LvGL_Font.h>
+
+lv_theme_t* themeInit(lv_disp_t *disp) {
+    static lv_font_t myAdaFont = {};
+    adafruitToLvGLFont(&PixelOperator8pt7b, &myAdaFont, &lv_font_symbols_8);
+    return lv_theme_sh1107_init(disp, true, &myAdaFont);
 }
 
 void displayfillCircle(unsigned long radius) {
@@ -154,6 +166,18 @@ LvGL_DisplayBase* displayInit() {
 
     static TFTESPI_LvGL_Display lvglDisplay(&displayDevice);
     return &lvglDisplay;
+}
+
+#include <Fonts/PixelOperator8pt7b.h>
+#include "src/themes/lv_theme_TDISPLAY_S3.h"
+#include <Utilities/Adafruit_To_LvGL_Font.h>
+#include <font/lv_font.h>
+
+//lv_theme_t* themeInit(lv_disp_t *disp) {
+//    return lv_theme_default_init(disp, lv_color_make(0xff,0xff,0xff), lv_color_make(0xff,0x80,0x80), true, &lv_font_montserrat_28);
+//}
+lv_theme_t* themeInit(lv_disp_t *disp) {
+    return lv_theme_tdisplay_s3_init(disp, true, &lv_font_montserrat_20);
 }
 
 void displayfillCircle(unsigned long radius) {

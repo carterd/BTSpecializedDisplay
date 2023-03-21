@@ -6,7 +6,6 @@
 #include "BaseLvObject.h"
 
 #define AUTO_HIDE_TIMER_MS 5000
-#define BUTTON_LABEL_BAR_HEIGHT 10
 
 /// <summary>
 /// This is the Button Label that identifies what buttons do
@@ -19,8 +18,10 @@ private:
     lv_timer_t* auto_hide_timer;
 
     bool hidden = false;
-
+    
     bool autoHide = false;
+
+    int barHeight = 0;
 private:
     /// <summary>
     /// Sets the AutoHide timer from the current time, and can be over wridden by more setAutoHideTimer events
@@ -91,6 +92,13 @@ public:
     /// </summary>
     /// <param name="timer"></param>
     void autoHideTimerCB(lv_timer_t* timer);
+
+    /// <summary>
+    /// Returns the height of the menubar
+    /// </summary>
+    int getHeight() { 
+        return this->barHeight; 
+    }
 
 public:
 

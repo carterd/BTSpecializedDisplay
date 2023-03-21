@@ -1,6 +1,6 @@
 #include "NavigationMenu.h"
 #include "ButtonLabelBar.h"
-#include <LvglThemes/lv_theme_binary.h>
+#include "../themes/lv_theme.h"
 
 void NavigationMenu::value_changed_cb(lv_event_t* event) {
 	NavigationMenu* navigationMenu = (NavigationMenu*)event->user_data;
@@ -44,8 +44,9 @@ NavigationMenu::~NavigationMenu()
 lv_obj_t* NavigationMenu::createLvObj(lv_obj_t* parent)
 {
 	// get the style we'll need for the bar
-	theme_binary_styles_t* binary_styles = (theme_binary_styles_t*)lv_disp_get_theme(lv_obj_get_disp(parent))->user_data;
-	lv_style_t* no_scrollbar = &(binary_styles->no_scrollbar);
+	display_theme_styles_t* binary_styles = (display_theme_styles_t*)lv_disp_get_theme(lv_obj_get_disp(parent))->user_data;
+	lv_style_t* menu_label_bar_style = &(display_theme_styles->menu_label_bar);
+	lv_style_t* no_scrollbar_style = &(binary_styles->no_scrollbar);
 	lv_style_t* inv_style = &(binary_styles->inv);
 
 	this->group = lv_group_create();
@@ -58,21 +59,24 @@ lv_obj_t* NavigationMenu::createLvObj(lv_obj_t* parent)
 
 	// put in the tile with no scroll bar
 	this->option_tileview_obj = lv_tileview_create(this->this_obj);
-	lv_obj_add_style(this->option_tileview_obj, no_scrollbar, LV_PART_SCROLLBAR);
+	lv_obj_add_style(this->option_tileview_obj, no_scrollbar_style, LV_PART_SCROLLBAR);
 	lv_obj_add_event_cb(this->option_tileview_obj, NavigationMenu::value_changed_cb, LV_EVENT_VALUE_CHANGED, this);
 
 	// Create the lv_tile to the list of current tiles
 	this->menu_tile_obj = lv_tileview_add_tile(this->option_tileview_obj, 0, 0, LV_DIR_ALL);
 	this->popup_tile_obj = lv_tileview_add_tile(this->option_tileview_obj, 1, 0, LV_DIR_ALL);
-	lv_obj_add_style(this->popup_tile_obj, no_scrollbar, LV_PART_SCROLLBAR);
+	lv_obj_add_style(this->popup_tile_obj, no_scrollbar_style, LV_PART_SCROLLBAR);
 	lv_obj_set_user_data(this->popup_tile_obj, this);
 	//lv_obj_set_size(this->menu_obj, lv_obj_get_width(parent), lv_obj_get_height(parent));
 	//lv_obj_center(this->menu_obj);
 
 	// add list top label bar
 	lv_obj_t* list_label = lv_obj_create(this->menu_tile_obj);
-	lv_obj_set_size(list_label, lv_obj_get_width(parent), NAVIGATION_MENU_LABEL_HEIGHT);
+	lv_obj_set_width(list_label, lv_obj_get_width(parent));
+	lv_obj_add_style(list_label, menu_label_bar_style, LV_PART_MAIN);
 	lv_obj_add_style(list_label, inv_style, LV_PART_MAIN);
+	lv_obj_update_layout(list_label);
+	int labelHeight = lv_obj_get_style_height(list_label, LV_PART_MAIN);
 
 	lv_obj_t* scan_label = lv_label_create(list_label);
 	lv_label_set_text(scan_label, this->titleText);
@@ -80,8 +84,8 @@ lv_obj_t* NavigationMenu::createLvObj(lv_obj_t* parent)
 
 	// add list
 	this->list_obj = lv_list_create(this->menu_tile_obj);
-	lv_obj_set_size(this->list_obj, lv_obj_get_width(parent), lv_obj_get_height(parent) - NAVIGATION_MENU_LABEL_HEIGHT - BUTTON_LABEL_BAR_HEIGHT - 2);
-	lv_obj_align(this->list_obj, LV_ALIGN_TOP_MID, 0, NAVIGATION_MENU_LABEL_HEIGHT + 1);	
+	lv_obj_set_size(this->list_obj, lv_obj_get_width(parent), lv_obj_get_height(parent) - labelHeight - this->buttonLabelBar->getHeight() - 2);
+	lv_obj_align(this->list_obj, LV_ALIGN_TOP_MID, 0, labelHeight + 1);	
 	
 	//Add buttons to the list
 	lv_obj_t* btn_label;

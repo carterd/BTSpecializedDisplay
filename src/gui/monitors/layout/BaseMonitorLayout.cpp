@@ -1,8 +1,7 @@
 #include "BaseMonitorLayout.h"
 
-BaseMonitorLayout::BaseMonitorLayout(MonitorLvObject** monitorLvObjects, int* monitorHeights, int numberOfMonitorObjects) {
+BaseMonitorLayout::BaseMonitorLayout(MonitorLvObject** monitorLvObjects, int numberOfMonitorObjects) {
     this->monitorLvObjects = monitorLvObjects;
-    this->monitorHeights = monitorHeights;
     this->numberOfMonitorObjects = numberOfMonitorObjects;
 }
 
@@ -19,7 +18,7 @@ lv_obj_t* BaseMonitorLayout::createLvObj(lv_obj_t* parent) {
 	
 	this->this_obj = lv_obj_create(parent);
 	lv_obj_set_size(this->this_obj, lv_obj_get_width(parent), lv_obj_get_height(parent));
-	lv_obj_set_align(this->this_obj, LV_ALIGN_CENTER);	
+	lv_obj_set_align(this->this_obj, LV_ALIGN_CENTER);
 	
 	lv_obj_update_layout(parent);
 	lv_obj_t* monitor_obj_parent;
@@ -28,11 +27,12 @@ lv_obj_t* BaseMonitorLayout::createLvObj(lv_obj_t* parent) {
 	for (int i = 0; i < this->numberOfMonitorObjects; i++) {
 		if (this->monitorLvObjects[i]) {
 			monitor_obj_parent = lv_obj_create(this->this_obj);
-			lv_obj_set_size(monitor_obj_parent, lv_obj_get_width(parent), this->monitorHeights[i]);
+			lv_obj_set_width(monitor_obj_parent, lv_obj_get_width(parent));
 			lv_obj_align(monitor_obj_parent, LV_ALIGN_TOP_MID, 0, posHeight);
-			this->monitorLvObjects[i]->createLvObj(monitor_obj_parent);            
+			this->monitorLvObjects[i]->createLvObj(monitor_obj_parent);
+			lv_obj_set_height(monitor_obj_parent, this->monitorLvObjects[i]->getHeight());
 		}
-        posHeight += this->monitorHeights[i];
+        posHeight += this->monitorLvObjects[i]->getHeight();
 	}
 
 	return this->this_obj;

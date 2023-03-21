@@ -13,11 +13,6 @@
 
 class MainView : public ButtonLabelledLvObject
 {
-private:
-    /// <summary>
-    /// This is the label bar to be used by any other button labelled objects
-    /// </summary>
-    ButtonLabelBar buttonLabelBarInstance;
 protected:
     /// <summary>
     /// This 
@@ -32,7 +27,7 @@ public:
     /// <summary>
     /// Constructor for the main view object
     /// </summary>
-    MainView(lv_indev_t* indev, BaseLvObject* baseLvObject = NULL);
+    MainView(lv_indev_t* indev, ButtonLabelBar* buttonLabelBar, BaseLvObject* baseLvObject = NULL);
 
     /// <summary>
     /// Destructor to ensure the root lv object is deleted

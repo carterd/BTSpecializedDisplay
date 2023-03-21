@@ -1,10 +1,10 @@
 #ifndef _MEMORY_MONITOR_SMALL_H
 #define _MEMORY_MONITOR_SMALL_H
 
-#include "BaseNumericMonitorSmall.h"
+#include "BaseMonitorSmall.h"
 
 
-class MemoryMonitorSmall : public MonitorLvObject
+class MemoryMonitorSmall : public BaseMonitorSmall
 {
 private:
     /// <summary>

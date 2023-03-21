@@ -1,5 +1,5 @@
-#include <LvglThemes/lv_theme_binary.h>
 #include "SavesAppender.h"
+#include "../themes/lv_theme.h"
 
 void SavesAppender::exit_btn_cb(lv_event_t* event) {
     ((SavesAppender*)(event->user_data))->exitButtonCB(event);
@@ -21,7 +21,7 @@ SavesAppender::~SavesAppender()
 lv_obj_t* SavesAppender::createLvObj(lv_obj_t* parent)
 {
     // get the style we'll need for the bar
-    theme_binary_styles_t* binary_styles = (theme_binary_styles_t*)lv_disp_get_theme(lv_obj_get_disp(parent))->user_data;
+    display_theme_styles_t* binary_styles = (display_theme_styles_t*)lv_disp_get_theme(lv_obj_get_disp(parent))->user_data;
     lv_style_t* no_scrollbar = &(binary_styles->no_scrollbar);
     lv_style_t* button_no_highlight_style = &(binary_styles->button_no_highlight);
     lv_style_t* button_style = &(binary_styles->button);

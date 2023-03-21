@@ -1,6 +1,5 @@
-#include <LvglThemes/lv_theme_binary.h>
-
 #include "ScrollMenuItem.h"
+#include "../themes/lv_theme.h"
 
 
 ScrollMenuItem::ScrollMenuItem(lv_img_dsc_t* image, bool animatedSelect) : BaseLvObject()
@@ -30,7 +29,7 @@ lv_obj_t* ScrollMenuItem::createLvObj(lv_obj_t* parent)
 {
     if (this->image) {
         // get the style we'll need for the bar
-        theme_binary_styles_t* binary_styles = (theme_binary_styles_t*)lv_disp_get_theme(lv_obj_get_disp(parent))->user_data;
+        display_theme_styles_t* binary_styles = (display_theme_styles_t*)lv_disp_get_theme(lv_obj_get_disp(parent))->user_data;
         lv_style_t* button_no_highlight_style = &(binary_styles->button_no_highlight);
 
         // Create a button

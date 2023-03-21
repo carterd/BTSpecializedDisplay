@@ -1,10 +1,10 @@
 #ifndef _BATTERY_CAPACITY_IMAGE_MONITOR_SMALL_H
 #define _BATTERY_CAPACITY_IMAGE_MONITOR_SMALL_H
 
-#include "BaseNumericMonitorSmall.h"
+#include "BaseMonitorSmall.h"
 
 
-class BatteryCapacityImageMonitorSmall : public MonitorLvObject
+class BatteryCapacityImageMonitorSmall : public BaseMonitorSmall
 {
     const static lv_point_t battery_line_points[];
     const static lv_coord_t battery_line_point_count = 14;

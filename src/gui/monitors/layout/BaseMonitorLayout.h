@@ -3,10 +3,6 @@
 
 #include "../../MonitorLvObject.h"
 
-#define SMALL_MONITOR_LV_OBJECT_HEIGHT 16
-#define MAIN_MONITOR_LV_OBJECT_HEIGHT 112
-#define MEDIUM_MONITOR_LV_OBJECT_HEIGHT 48
-
 class BaseMonitorLayout : public MonitorLvObject
 {
 protected:
@@ -15,12 +11,10 @@ protected:
     /// </summary>
     MonitorLvObject** monitorLvObjects;
 
-    int* monitorHeights;
-
     int numberOfMonitorObjects;
 
 public:
-    BaseMonitorLayout(MonitorLvObject** monitorLvObjects, int* monitorHeights, int numberOfMonitorObjects);
+    BaseMonitorLayout(MonitorLvObject** monitorLvObjects, int numberOfMonitorObjects);
 
     /// <summary>
     /// Set the bluetoothController which is required by all monitors
@@ -58,6 +52,13 @@ public:
     /// Defocus a monitor and hence no more updated on the display
     /// </summary>
     virtual void defocusLvObj();
+
+    /// <summary>
+    /// This should return the height of the monitor object
+    /// </summary>
+    virtual lv_style_t* getMonitorPanelStyle(display_theme_styles_t* display_theme_styles) {
+        return NULL;
+    }
 };
 
 #endif

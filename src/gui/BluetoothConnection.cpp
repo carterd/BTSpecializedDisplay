@@ -1,6 +1,6 @@
 #include "BluetoothConnection.h"
 #include "MonitorSelector.h"
-#include <LvglThemes/lv_theme_binary.h>
+#include "../themes/lv_theme.h"
 
 void BluetoothConnection::tile_changed_cb(lv_event_t* event) {
     ((BluetoothConnection*)(event->user_data))->tileChangedCB(event);
@@ -44,26 +44,26 @@ BluetoothConnection::~BluetoothConnection()
 lv_obj_t* BluetoothConnection::createLvObj(lv_obj_t* parent)
 {
     // get the style we'll need for the bar
-    theme_binary_styles_t* binary_styles = (theme_binary_styles_t*)lv_disp_get_theme(lv_obj_get_disp(parent))->user_data;
-    lv_style_t* no_scrollbar = &(binary_styles->no_scrollbar);
-    lv_style_t* button_no_highlight_style = &(binary_styles->button_no_highlight);
-    lv_style_t* button_style = &(binary_styles->button);
+    display_theme_styles_t* display_theme_styles = (display_theme_styles_t*)lv_disp_get_theme(lv_obj_get_disp(parent))->user_data;
+    lv_style_t* no_scrollbar_style = &(display_theme_styles->no_scrollbar);
+    lv_style_t* button_no_highlight_style = &(display_theme_styles->button_no_highlight);
+    lv_style_t* button_style = &(display_theme_styles->button);
 
     // create a group for the button for exit connection
     this->group = lv_group_create();
 
     lv_obj_update_layout(parent);    
     this->this_obj = lv_obj_create(parent);
-    lv_obj_add_style(this->this_obj, no_scrollbar, LV_PART_SCROLLBAR);
+    lv_obj_add_style(this->this_obj, no_scrollbar_style, LV_PART_SCROLLBAR);
     lv_obj_set_size(this->this_obj, lv_obj_get_width(parent), lv_obj_get_height(parent));
     lv_obj_set_align(this->this_obj, LV_ALIGN_CENTER);
 
     // The connection is created from a tileview
     this->tileview_obj = lv_tileview_create(this->this_obj);
     lv_obj_add_event_cb(this->tileview_obj, BluetoothConnection::tile_changed_cb, LV_EVENT_VALUE_CHANGED, this);
-    lv_obj_add_style(tileview_obj, no_scrollbar, LV_PART_SCROLLBAR);
+    lv_obj_add_style(tileview_obj, no_scrollbar_style, LV_PART_SCROLLBAR);
     this->connection_tile_obj = lv_tileview_add_tile(tileview_obj, 0, 0, LV_DIR_ALL);
-    lv_obj_add_style(this->connection_tile_obj, no_scrollbar, LV_PART_SCROLLBAR);
+    lv_obj_add_style(this->connection_tile_obj, no_scrollbar_style, LV_PART_SCROLLBAR);
 
     // Create a button
     this->button_obj = lv_btn_create(this->connection_tile_obj);
@@ -101,7 +101,7 @@ lv_obj_t* BluetoothConnection::createLvObj(lv_obj_t* parent)
     // create the optional monitor tile
     if (this->monitorSelector) {        
         lv_obj_t* tile_obj = lv_tileview_add_tile(this->tileview_obj, 0, 1, LV_DIR_ALL);
-        lv_obj_add_style(tile_obj, no_scrollbar, LV_PART_SCROLLBAR);
+        lv_obj_add_style(tile_obj, no_scrollbar_style, LV_PART_SCROLLBAR);
         this->monitorSelector->createLvObj(tile_obj);
     }
     

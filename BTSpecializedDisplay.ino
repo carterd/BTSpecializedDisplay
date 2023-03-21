@@ -5,11 +5,6 @@
 #include <ButtonEncoder.h>
 #include "Hardware.h"
 
-#include <Fonts/PixelOperator8pt7b.h>
-#include <LvglThemes/lv_theme_binary.h>
-#include <LvglFonts/lv_font_symbols_8.h>
-#include <Utilities/Adafruit_To_LvGL_Font.h>
-
 #include "LedError.h"
 #include "src/LvglGui.h"
 #include "src/dev/BluetoothBikeController.h"
@@ -21,10 +16,7 @@
  * @brief Arduino displayGlue static
  */
 static Arduino_LvGL_Glue displayGlue;
-/**
- * @brief lv_font generated from an Adafruit font static
- */
-lv_font_t myAdaFont = {};
+
 /**
  * @brief Statics kept around
  * 
@@ -83,21 +75,20 @@ void setup() {
     lv_disp_t *display = displayGlue.getLvDisplay();
     lv_indev_t *indev = displayGlue.getLvInputDevice();
 
-    // initalise the font required for the given display
-    adafruitToLvGLFont(&PixelOperator8pt7b, &myAdaFont, &lv_font_symbols_8);
-
     // initialise the binary theme
-    lv_theme_t* binary_theme = lv_theme_binary_init(displayGlue.getLvDisplay(), true, &myAdaFont);
+    lv_theme_t* theme = themeInit(displayGlue.getLvDisplay());
+    //lv_theme_t* binary_theme = lv_theme_binary_init(displayGlue.getLvDisplay(), true, &myAdaFont);
     //lv_theme_t* default_theme = lv_theme_default_init(displayGlue.getLvDisplay(), lv_color_make(0xff,0xff,0xff), lv_color_make(0xff,0x80,0x80), true, &lv_font_montserrat_28);
 
     lv_disp_set_rotation(NULL, LV_DISP_ROT_180);
-    lv_disp_set_theme(display, binary_theme);
+    lv_disp_set_theme(display, theme);
     //lv_disp_set_theme(display, default_theme);
 
     lvgl_setup(configStore, bluetoothBikeController, displayGlue, indev);
 }
 
 void loop() {
+
   // put your main code here, to run repeatedly:
   lv_task_handler(); // Call LittleVGL task handler periodically
   unsigned long start = millis();

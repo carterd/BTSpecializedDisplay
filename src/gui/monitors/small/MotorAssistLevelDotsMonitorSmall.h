@@ -1,13 +1,13 @@
 #ifndef _MOTOR_ASSIST_LEVEL_DOTS_MONITOR_SMALL_H
 #define _MOTOR_ASSIST_LEVEL_DOTS_MONITOR_SMALL_H
 
-#include "../../MonitorLvObject.h"
+#include "BaseMonitorSmall.h"
 
 
 #define DOT_SIZE 3
 #define DOT_ROUNDED true
 
-class MotorAssistLevelDotMonitorSmall : public MonitorLvObject
+class MotorAssistLevelDotMonitorSmall : public BaseMonitorSmall
 {
 private:
     lv_style_t assist_line_style;

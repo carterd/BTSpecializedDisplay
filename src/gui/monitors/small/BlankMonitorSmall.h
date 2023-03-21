@@ -1,9 +1,9 @@
 #ifndef _BLANK_MONITOR_SMALL_H
 #define _BLANK_MONITOR_SMALL_H
 
-#include "../../MonitorLvObject.h"
+#include "BaseMonitorSmall.h"
 
-class BlankMonitorSmall : public MonitorLvObject
+class BlankMonitorSmall : public BaseMonitorSmall
 {
 private:
 

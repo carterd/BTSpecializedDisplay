@@ -1,7 +1,7 @@
 #ifndef _RIDER_POWER_GRAPH_MONITOR_MAIN_H
 #define _RIDER_POWER_GRAPH_MONITOR_MAIN_H
 
-#include "../../MonitorLvObject.h"
+#include "BaseMonitorMain.h"
 #include "../../../stats/PowerMeterLogger.h"
 
 #define GRAPH_TICKS_SMALL 50
@@ -12,7 +12,7 @@
 #define GRAPH_HEIGHT 100
 #define GRAPH_BOTTOM GRAPH_HEIGHT - 1
 
-class RiderPowerGraphMonitorMain : public MonitorLvObject
+class RiderPowerGraphMonitorMain : public BaseMonitorMain
 {
 private:
     /// <summary>
