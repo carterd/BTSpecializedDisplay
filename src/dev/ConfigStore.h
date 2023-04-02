@@ -39,7 +39,7 @@ public:
     bool openDir(const char* dirPath);    
     bool mkDir(const char* dirPath);
     bool closeDir();
-    bool readDir(char** fileName);
+    bool readDir(char* fileName, int maxFileName);
     bool openFile(const char* filePath, const char* mode);
     bool readFile(void* buffer, size_t size, size_t n);
     bool writeFile(const void* buffer, size_t size, size_t n);
@@ -74,6 +74,8 @@ private:
 
     bool readString(String* string);
     bool writeString(String* string);
+
+public:
     /// <summary>
     /// Read the Bluetooth addresses that are accepted for connections to the fs
     /// </summary>
@@ -109,9 +111,10 @@ private:
     /// </summary>
     /// <returns>will always return true not much you can do if the saves directory can't be created</returns>
     bool savesConfig();
-    
-    bool ReadSavesNames();
-public:
+    /// <summary>
+    /// Not used
+    /// </summary>
+    bool readSavesNames();
     /// <summary>
     /// Constructor of the config store for the device
     /// </summary>

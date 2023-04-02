@@ -17,9 +17,9 @@ public:
 		menuItem("Brightness") 
 	{
 		
-	    this->integerSelectMenu.addMenuItem("Low", 0x01);
-	    this->integerSelectMenu.addMenuItem("Med", 0x14);
-    	this->integerSelectMenu.addMenuItem("High", 0x2F);
+	    this->integerSelectMenu.addMenuItem("Low", 0x00);
+	    this->integerSelectMenu.addMenuItem("Med", 0x01);
+    	this->integerSelectMenu.addMenuItem("High", 0x02);
 	    this->menuItem.setPopupItem(&this->integerSelectMenu);
 	}
 };

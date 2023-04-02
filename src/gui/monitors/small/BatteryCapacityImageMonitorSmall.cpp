@@ -1,16 +1,7 @@
 #include "BatteryCapacityImageMonitorSmall.h"
 #include "../../../themes/lv_theme.h"
 
-static lv_style_t style_line(lv_coord_t width, bool rounded = true) {
-	lv_style_t style_line;
-	lv_style_init(&style_line);
-	lv_style_set_line_width(&style_line, width);
-	lv_style_set_line_color(&style_line, lv_color_white());
-	lv_style_set_line_rounded(&style_line, rounded);
-	return style_line;
-}
-
-const lv_point_t BatteryCapacityImageMonitorSmall::battery_line_points[] = {
+const lv_point_t BatteryCapacityImageMonitorSmall::battery_line_points_sh1107[] = {
 	{1, 8},                             // Bottom
 	{1, 13},{2, 14},                     // Bottom Right
 	{59, 14}, {60, 13},                 // Top Right
@@ -19,25 +10,47 @@ const lv_point_t BatteryCapacityImageMonitorSmall::battery_line_points[] = {
     {2, 1}, {1, 2},         			// Bottom Left
 	{1, 8} };						    // Bottom
 
+const lv_point_t BatteryCapacityImageMonitorSmall::battery_line_points_tdisplay_s3[] = {
+	{2, 20},                             	// Bottom
+	{2, 35},{4, 37},                     	// Bottom Right
+	{160, 37}, {163, 35},                 	// Top Right
+    {163, 26},{167, 24},{167, 16},{163, 14},   // Top Detail
+    {163, 4}, {160, 2},                   	// Top Left
+    {4, 2}, {2, 4},         				// Bottom Left
+	{2, 20} };						    	// Bottom
+
+const charge_coords_hor_t BatteryCapacityImageMonitorSmall::charge_coords_sh1107 = {4, 58, 8};
+const charge_coords_hor_t BatteryCapacityImageMonitorSmall::charge_coords_tdisplay_s3 = {7, 155, 20};
+
 BatteryCapacityImageMonitorSmall::BatteryCapacityImageMonitorSmall() {
-	this->battery_line_style = style_line(1);
-	this->charge_line_style = style_line(8, false);
 }
 
 lv_obj_t* BatteryCapacityImageMonitorSmall::createLvObj(lv_obj_t* parent) {
 	BaseMonitorSmall::createLvObj(parent);
-		
+
+	display_theme_styles_t* display_theme_styles = (display_theme_styles_t*)lv_disp_get_theme(lv_obj_get_disp(parent))->user_data;
+	lv_style_t* battery_outline_style = &(display_theme_styles->small_battery_outline);
+	lv_style_t* battery_charge_good_style = &(display_theme_styles->small_battery_charge_good);
+	lv_style_t* battery_charge_moderate_style = &(display_theme_styles->small_battery_charge_moderate);
+	lv_style_t* battery_charge_bad_style = &(display_theme_styles->small_battery_charge_bad);
+	const lv_point_t* battery_line_points = display_theme_styles->small_battery_line_points;
+	this->charge_coords = display_theme_styles->small_battery_coords;
+
 	//  Create a lineand apply the new style
 	lv_obj_t* battery_line = lv_line_create(this->this_obj);
-	lv_obj_add_style(battery_line, &this->battery_line_style, LV_PART_MAIN);
+	lv_obj_add_style(battery_line, battery_outline_style, LV_PART_MAIN);
 	lv_line_set_points(battery_line, battery_line_points, battery_line_point_count);
-	
-	this->charge_line_points[0] = { 4 , 8 };
-	this->charge_line_points[1] = { 58 , 8 };
-	this->level = lv_line_create(this->this_obj);
-	lv_obj_add_style(this->level, &this->charge_line_style, LV_PART_MAIN);
-	lv_line_set_points(this->level, this->charge_line_points, 2);
 
+	for (int i = 0 ; i < 3 ; i++) {
+		this->charge_line_points[i][0] = { this->charge_coords->xMin , this->charge_coords->yPos };
+		this->charge_line_points[i][1] = { this->calculateXPos(100, this->max_values[i]) , this->charge_coords->yPos };
+		this->level[i] = lv_line_create(this->this_obj);
+		if (i == 0) { lv_obj_add_style(this->level[i], battery_charge_good_style, LV_PART_MAIN); }
+		else if (i == 1) { lv_obj_add_style(this->level[i], battery_charge_moderate_style, LV_PART_MAIN); }
+		else { lv_obj_add_style(this->level[i], battery_charge_bad_style, LV_PART_MAIN); }
+		lv_line_set_points(this->level[i], this->charge_line_points[i], 2);
+	}
+	
 	return this->this_obj;
 }
 
@@ -63,6 +76,13 @@ void BatteryCapacityImageMonitorSmall::initBluetoothStats()
 }
 
 void BatteryCapacityImageMonitorSmall::updateLvObj() {
-	this->charge_line_points[1].x = 58 * this->displayedPercent / 100;
-	lv_line_set_points(this->level, this->charge_line_points, 2);
+	for (int i = 0 ; i < 3 ; i++) {
+		this->charge_line_points[i][1].x = this->calculateXPos( this->displayedPercent, this->max_values[i] );
+		lv_line_set_points(this->level[i], this->charge_line_points[i], 2);
+	}
+}
+
+lv_coord_t BatteryCapacityImageMonitorSmall::calculateXPos(int percentage, int percentageMax) {
+	if (percentage > percentageMax) { percentage = percentageMax; }
+	return this->charge_coords->xMin + (this->charge_coords->xMax - this->charge_coords->xMin) * percentage / 100;
 }

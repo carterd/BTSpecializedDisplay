@@ -16,8 +16,6 @@ ButtonLabelBar::~ButtonLabelBar() {
 
 lv_obj_t* ButtonLabelBar::createLvObj(lv_obj_t* parent) {
 
-    Serial.println("ButtonLabelBar::createLvObj");
-
     // get the style we'll need for the bar
     display_theme_styles_t* display_theme_styles = (display_theme_styles_t*)lv_disp_get_theme(lv_obj_get_disp(parent))->user_data;
     lv_style_t* inv_style = &(display_theme_styles->inv);
@@ -29,7 +27,6 @@ lv_obj_t* ButtonLabelBar::createLvObj(lv_obj_t* parent) {
     this->this_obj = lv_obj_create(parent);
     lv_obj_set_width(this->this_obj, lv_obj_get_width(parent));
     lv_obj_add_style(this->this_obj, button_label_bar, LV_PART_MAIN);
-    lv_obj_add_style(this->this_obj, inv_style, LV_PART_MAIN);
     lv_obj_add_style(this->this_obj, no_scrollbar, LV_PART_SCROLLBAR);
     lv_obj_align(this->this_obj, LV_ALIGN_BOTTOM_MID, 0, 0);
     lv_obj_update_layout(this->this_obj);

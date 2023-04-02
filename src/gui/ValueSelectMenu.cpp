@@ -58,7 +58,7 @@ lv_obj_t* ValueSelectMenu::createLvObj(lv_obj_t* parent)
 	lv_obj_t* list_label = lv_obj_create(this->this_obj);
 	lv_obj_set_width(list_label, lv_obj_get_width(parent));
 	lv_obj_add_style(list_label, menu_label_bar_style, LV_PART_MAIN);
-	lv_obj_add_style(list_label, inv_style, LV_PART_MAIN);
+	//lv_obj_add_style(list_label, inv_style, LV_PART_MAIN);
 	lv_obj_update_layout(list_label);
 	int labelHeight = lv_obj_get_style_height(list_label, LV_PART_MAIN);
 

@@ -34,6 +34,7 @@
                 "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/hardware/mbed_nano/3.1.1/cores/arduino/mbed/events/include/**",                                
                 "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/arm-none-eabi/include/**",
                 "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/arduino/hardware/mbed_nano/3.1.1/cores/arduino/api/deprecated/**",
+
 /*
                 "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/esp32/hardware/esp32/2.0.6/cores/**",
                 "C:/Users/derek.ELMSCLOSE/AppData/Local/Arduino15/packages/esp32/hardware/esp32/2.0.6/libraries/Ticker/src/**",
@@ -49,11 +50,11 @@
                 "UNICODE",
                 "_UNICODE",
                 "ARDUINO=10607",
-                //"ARDUINO_NANO_RP2040_CONNECT",
-                //"ARDUINO_ARCH_RP2040",
-                //"ARDUINO_ARCH_MBED",
-                //"ARDUINO_ARCH_MBED_NANO",
-                "ESP32",
+                "ARDUINO_NANO_RP2040_CONNECT",
+                "ARDUINO_ARCH_RP2040",
+                "ARDUINO_ARCH_MBED",
+                "ARDUINO_ARCH_MBED_NANO",
+                //"ESP32",
                 "USE_ARDUINO_PINOUT",                
                 "_DEFAULT_SOURCE"                
             ],

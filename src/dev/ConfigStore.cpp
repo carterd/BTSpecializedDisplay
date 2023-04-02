@@ -15,18 +15,14 @@ void ConfigStore::init(FileSystem* fileSystem) {
         LV_LOG_ERROR("Error FS unable to be initialised.");
         return; 
     }
-    if (this->readBTAddressMap() && this->readBikeConfig() && this->readDisplayConfig() && this->savesConfig()) {
-    } else {
-        LV_LOG_ERROR("Error reading config files, initialise default config.");
-        this->writeDefaults();
-    }
 }
 
 void ConfigStore::writeDefaults() {
     this->defaults();
-    this->writeBTAddressMap();
-    this->writeBikeConfig();
-    this->writeDisplayConfig();
+    if (this->writeBTAddressMap() && this->writeBikeConfig() && this->writeDisplayConfig()) {
+    } else {
+        LV_LOG_ERROR("Error writing config files.");
+    }
 }
 
 void ConfigStore::defaults() {
@@ -37,7 +33,7 @@ void ConfigStore::defaults() {
     this->bikeConfig.supportAssistLevels = BikeConfigAttr<AssistLevels>({10,40,100}, false); // assistLevelEco Should be something like 5,20,25,100 et-al
     this->bikeConfig.peakPowerAssistLevels = BikeConfigAttr<AssistLevels>({25,100,100}, false); // peakAssistEco Should be just 0-100
 
-    this->displayConfig.contrast = 0x2F;  // Between 0x2F and 0x00
+    this->displayConfig.contrast = 0x02;  // Between 0x00 and 0x02
     this->displayConfig.monitorType = 0x0000;
     this->displayConfig.connectBatteryOnly = false;
     this->displayConfig.connectOnBoot = false;
@@ -52,7 +48,10 @@ void ConfigStore::updateBTAddressesConfig(BTAddressesConfig& btAddressesConfig)
         return;
     }
     this->btAddressesConfig = btAddressesConfig;
-    this->writeBTAddressMap();
+    if (this->writeBTAddressMap()) {        
+    } else {
+        LV_LOG_ERROR("Error writing config files.");
+    }
 }
 
 BTAddressesConfig& ConfigStore::getBTAddressesConfig()
@@ -65,7 +64,10 @@ void ConfigStore::updateBikeConfig(BikeConfig& bikeConfig) {
         return;
     }
     this->bikeConfig = bikeConfig;
-    this->writeBikeConfig();
+    if (this->writeBikeConfig()) {
+    } else {
+        LV_LOG_ERROR("Error writing config files.");
+    }
 }
 
 BikeConfig& ConfigStore::getBikeConfig() {
@@ -77,7 +79,10 @@ void ConfigStore::updateDisplayConfig(DisplayConfig& displayConfig) {
         return;
     }
     this->displayConfig = displayConfig;
-    this->writeDisplayConfig();
+    if (this->writeDisplayConfig()) {
+    } else {
+        LV_LOG_ERROR("Error writing config files.");
+    }
 }
 
 DisplayConfig& ConfigStore::getDisplayConfig() {
@@ -122,15 +127,15 @@ bool ConfigStore::savesConfig()
     return true;
 }
 
-bool ConfigStore::ReadSavesNames()
+bool ConfigStore::readSavesNames()
 {
     this->savesNames.names.clear();
     if (! this->fileSystem->openDir(savesDirectoryName)) {
         return false;
     }
 
-    char* dirName = NULL;
-    while (this->fileSystem->readDir(&dirName)) {
+    char dirName[32];
+    while (this->fileSystem->readDir(dirName, 32)) {
         this->savesNames.names.push_back(String(dirName));
     }
     

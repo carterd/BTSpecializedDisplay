@@ -47,7 +47,7 @@ lv_obj_t* BluetoothConnection::createLvObj(lv_obj_t* parent)
     display_theme_styles_t* display_theme_styles = (display_theme_styles_t*)lv_disp_get_theme(lv_obj_get_disp(parent))->user_data;
     lv_style_t* no_scrollbar_style = &(display_theme_styles->no_scrollbar);
     lv_style_t* button_no_highlight_style = &(display_theme_styles->button_no_highlight);
-    lv_style_t* button_style = &(display_theme_styles->button);
+    lv_style_t* searching_button_style = &(display_theme_styles->searching_label);
 
     // create a group for the button for exit connection
     this->group = lv_group_create();
@@ -87,13 +87,13 @@ lv_obj_t* BluetoothConnection::createLvObj(lv_obj_t* parent)
 
     // Associate a spinner
     this->spinner_obj = lv_spinner_create(this->this_obj, 1000, 60);
-    lv_obj_set_size(this->spinner_obj, 60, 60);
+    //lv_obj_set_size(this->spinner_obj, 60, 60);
     lv_obj_center(this->spinner_obj);
 
     // Associate a label connecting
     this->label_obj = lv_label_create(this->this_obj);
     lv_label_set_text(this->label_obj, SEARCHING_STRING);
-    lv_obj_add_style(this->label_obj, button_style, LV_PART_MAIN);
+    lv_obj_add_style(this->label_obj, searching_button_style, LV_PART_MAIN);
     lv_obj_center(this->label_obj);
 
     //lv_group_focus_obj(this->button_obj);

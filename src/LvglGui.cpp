@@ -206,4 +206,5 @@ void lvgl_setup(ConfigStore *configStore, BluetoothBikeController *bluetoothBike
     if (configStore->getDisplayConfig().connectOnBoot && configStore->getBTAddressesConfig().countBTAddresses() > 0) {
         mainScrollMenu.selectScrollMenuItem(&connectMenuItem);
     }
+
 }

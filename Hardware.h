@@ -67,6 +67,17 @@ void displayfillCircle(unsigned long radius) {
 }
 
 void displaySetContrast(void *display, int contrastLevel) {
+    switch (contrastLevel) {
+        case 0:
+            contrastLevel = 0x01;
+            break;
+        case 1:
+            contrastLevel = 0x14;
+            break;
+        case 2:
+            contrastLevel = 0x2F;
+            break;
+    }
     ((Adafruit_SH1107*) display)->setContrast(contrastLevel);
 }
 
@@ -106,12 +117,13 @@ bool FileSystem::mkDir(const char* dirPath) {
     return false;
 }
 
-bool FileSystem::readDir(char** fileName) {
+bool FileSystem::readDir(char* fileName, int maxFileName) {
     static struct dirent* pDirent;
     if ((pDirent = readdir((DIR*) (this->dir))) == NULL) {
         return false;
     }
-    *fileName = pDirent->d_name;
+    strncpy(fileName, pDirent->d_name, maxFileName-1);
+    fileName[maxFileName-1] = 0x00;
     return true;
 }
 bool FileSystem::openFile(const char* filePath, const char* mode) {
@@ -127,6 +139,7 @@ bool FileSystem::writeFile(const void* buffer, size_t size, size_t n) {
 }
 bool FileSystem::closeFile() {
     fclose((FILE*)this->file);
+    return true;
 }
 
 #endif
@@ -164,8 +177,28 @@ LvGL_DisplayBase* displayInit() {
     displayDevice.setSwapBytes(true);
     displayDevice.fillScreen(TFT_BLACK);
 
+    pinMode(TFT_BL, OUTPUT);
+    ledcSetup(0, 5000, 8);
+    ledcAttachPin(TFT_BL, 0);
+    ledcWrite(0, 255);
+
     static TFTESPI_LvGL_Display lvglDisplay(&displayDevice);
     return &lvglDisplay;
+}
+
+void displaySetContrast(void *display, int contrastLevel) {
+    switch (contrastLevel) {
+        case 0:
+            contrastLevel = 0x08;
+            break;
+        case 1:
+            contrastLevel = 0x7F;
+            break;
+        case 2:
+            contrastLevel = 0xFF;
+            break;
+    }
+    ledcWrite(0, contrastLevel);
 }
 
 #include <Fonts/PixelOperator8pt7b.h>
@@ -193,21 +226,30 @@ void displayfillCircle(unsigned long radius) {
 #define FS_FILE_PREFIX ""
 #define FS_SEPARATOR "/"
 
-bool FileSystem::init() {    
+bool FileSystem::init() {
     this->fileSystem = &LittleFS;
     if (!((fs::LittleFSFS*)(this->fileSystem))->begin(FORMAT_LITTLEFS_IF_FAILED)) {
         return false;
     }
     return true;
 }
-bool FileSystem::openDir(const char* dirPath) {    
-    static fs::File dirFile = ((fs::LittleFSFS*)(this->fileSystem))->open(dirPath);
-    if (dirFile && dirFile.isDirectory()) {
-        this->dir = &dirFile;
+
+bool FileSystem::openDir(const char* dirPath) { 
+    if (this->dir) { 
+        delete((fs::File*) this->dir); 
+        this->dir = NULL;
+    }
+    fs::File* dirFile = new fs::File(((fs::LittleFSFS*)(this->fileSystem))->open(dirPath));
+    if (*dirFile && dirFile->isDirectory()) {
+        this->dir = dirFile;
         return true;
     }
+    LV_LOG_ERROR("unable to openDir '%s'", dirPath);
+    delete(dirFile);
+    this->dir = NULL;
     return false;
 }
+
 bool FileSystem::closeDir() {
     if (this->dir) {
         ((fs::File*)(this->dir))->close();
@@ -221,11 +263,12 @@ bool FileSystem::mkDir(const char* dirPath) {
     return false;
 }
 
-bool FileSystem::readDir(char** fileName) {
+bool FileSystem::readDir(char* fileName, int maxFileName) {
     if (this->dir) {
-        static fs::File nextFile = ((fs::File*) (this->dir))->openNextFile();
+        fs::File nextFile = ((fs::File*) (this->dir))->openNextFile();
         if (nextFile) {
-            *fileName = (char*) nextFile.path();
+            strncpy(fileName, nextFile.path(), maxFileName-1);
+            fileName[maxFileName-1] = 0x00;
             return true;
         }
         return false;
@@ -233,15 +276,24 @@ bool FileSystem::readDir(char** fileName) {
         return false;
     }
 }
+
 bool FileSystem::openFile(const char* filePath, const char* mode) {
-    static fs::File fileFile = ((fs::LittleFSFS*)(this->fileSystem))->open(filePath, mode);
-    if (!fileFile || fileFile.isDirectory()) {
+    if (this->file) { 
+        delete((fs::File*) this->file); 
+        this->file = NULL;
+    }
+    fs::File* fileFile = new fs::File(((fs::LittleFSFS*)(this->fileSystem))->open(filePath, mode));
+
+    if (!*fileFile || fileFile->isDirectory()) {
+        LV_LOG_ERROR("unable to openFile '%s' mode '%s'", filePath, mode);
+        delete(fileFile);
         this->file = NULL;
         return false;
     }
-    this->file = &fileFile;    
+    this->file = fileFile;
     return true;
 }
+
 bool FileSystem::readFile(void* buffer, size_t size, size_t n) {    
     return ((fs::File*)(this->file))->read((uint8_t*)buffer, size*n) == size*n;
 }
@@ -250,10 +302,9 @@ bool FileSystem::writeFile(const void* buffer, size_t size, size_t n) {
 }
 bool FileSystem::closeFile() {
     ((fs::File*)(this->file))->close();
-}
-
-void displaySetContrast(void *display, int contrastLevel) {
-    
+    delete((fs::File*) this->file); 
+    this->file = NULL;
+    return false;
 }
 
 #endif

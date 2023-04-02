@@ -3,19 +3,23 @@
 
 #include "BaseMonitorMain.h"
 
+#include "..\..\..\themes\lv_theme.h"
+
 class BatteryCapacityMonitorMain : public BaseMonitorMain
 {
-private:
-
-    const static lv_point_t battery_line_points[];
+public:
+    const static lv_point_t battery_line_points_sh1107[];
+    const static lv_point_t battery_line_points_tdisplay_s3[];
     const static lv_coord_t battery_line_point_count = 14;
+    const static charge_coords_vert_t charge_coords_sh1107;
+    const static charge_coords_vert_t charge_coords_tdisplay_s3;
 
+private:
     lv_obj_t* levels[10];
     lv_point_t charge_line_points[10][2];
-    lv_style_t battery_line_style;
-    lv_style_t charge_line_style;
 
     uint8_t displayedPercent;
+    const charge_coords_vert_t* main_battery_coords;
 
 public:
     BatteryCapacityMonitorMain();

@@ -69,7 +69,13 @@ void setup() {
     configStore->init(&fileSystem);
 
     if (resetButtonTest(lvglInput->getButtonEncoder())) {
-        configStore->defaults();
+        configStore->writeDefaults();
+    }
+    
+    if (configStore->readBTAddressMap() && configStore->readBikeConfig() && configStore->readDisplayConfig() && configStore->savesConfig()) {
+    } else {
+        LV_LOG_ERROR("Error reading config files, initialise default config.");
+        configStore->writeDefaults();
     }
 
     lv_disp_t *display = displayGlue.getLvDisplay();

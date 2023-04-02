@@ -6,15 +6,22 @@
 
 class BatteryCapacityImageMonitorSmall : public BaseMonitorSmall
 {
-    const static lv_point_t battery_line_points[];
-    const static lv_coord_t battery_line_point_count = 14;
-    lv_obj_t* level;
-    lv_point_t charge_line_points[2];
+public:
+    const static lv_point_t battery_line_points_sh1107[];
+    const static lv_point_t battery_line_points_tdisplay_s3[];
+    const static lv_coord_t battery_line_point_count = 14;    
 
-    lv_style_t battery_line_style;
-    lv_style_t charge_line_style;
+    const static charge_coords_hor_t charge_coords_sh1107;
+    const static charge_coords_hor_t charge_coords_tdisplay_s3;
+private:
+    lv_obj_t* level[3];
+    lv_point_t charge_line_points[3][2];
+
+    const charge_coords_hor_t* charge_coords;
 
     uint8_t displayedPercent;
+
+    const int max_values[3] = { 100, 50, 20 };
 public:
     BatteryCapacityImageMonitorSmall();
     
@@ -39,6 +46,11 @@ public:
     /// For the layout we don't have any actual lv_objects to update
     /// </summary>
     virtual void updateLvObj();
+
+    /// <summary>
+    /// This will calculates the position for Xpos
+    /// </summary>
+    lv_coord_t calculateXPos(int percentage, int percentageMax);
 };
 
 #endif

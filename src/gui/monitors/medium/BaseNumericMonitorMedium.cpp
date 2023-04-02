@@ -11,20 +11,21 @@ BaseNumericMonitorMedium::BaseNumericMonitorMedium(BikeStateAttributeIndex bikeS
 
 lv_obj_t* BaseNumericMonitorMedium::createLvObj(lv_obj_t* parent) {
 	BaseMonitorMedium::createLvObj(parent);
+	display_theme_styles_t* display_theme_styles = (display_theme_styles_t*)lv_disp_get_theme(lv_obj_get_disp(parent))->user_data;
+	lv_style_t* medium_monitor_value_style = &(display_theme_styles->medium_monitor_value);
+	lv_style_t* medium_monitor_label_style = &(display_theme_styles->medium_monitor_label);
 
 	if (this->attributeUnits) {
 		this->label_obj = lv_label_create(this->this_obj);
-		lv_obj_align(this->label_obj, LV_ALIGN_CENTER, 0, 12);
+		lv_obj_add_style(this->label_obj, medium_monitor_label_style, LV_PART_MAIN );
+		lv_obj_align(this->label_obj, LV_ALIGN_CENTER, 0, 0);
 		lv_label_set_text(this->label_obj, this->attributeUnits);
 	}
 
 	this->value_obj = lv_label_create(this->this_obj);
-	//lv_obj_set_style_bg_color(this->value_obj, lv_color_black(), LV_PART_MAIN);
-	//lv_obj_set_style_bg_opa(this->value_obj, LV_OPA_COVER, LV_PART_MAIN);
-	// If there is no title place in the centre
-	lv_obj_align(this->value_obj, LV_ALIGN_CENTER, 0, -7);
+	lv_obj_add_style(this->value_obj, medium_monitor_value_style, LV_PART_MAIN );
+	lv_obj_align(this->value_obj, LV_ALIGN_CENTER, 0, 0);
 	lv_label_set_text(this->value_obj, "");
-	lv_obj_set_style_text_font(this->value_obj, &lv_font_montserrat_26, LV_PART_MAIN);
 
 	return this->this_obj;
 }
