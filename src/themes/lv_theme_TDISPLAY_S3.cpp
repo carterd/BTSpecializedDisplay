@@ -619,6 +619,17 @@ static void style_init(bool dark_bg, const lv_font_t* font)
     style_init_reset(sp);
     lv_style_set_height(sp, 280);
 
+    // Graph Styles
+    sp = &display_theme_styles->main_graph_left_axis;
+    style_init_reset(sp);
+    lv_style_set_height(sp, 250);
+    lv_style_set_width(sp, 10);
+
+    sp = &display_theme_styles->main_graph_panel;
+    style_init_reset(sp);
+    lv_style_set_height(sp, 250);
+    lv_style_set_width(sp, 160);
+
     // Main Battery display
     sp = &display_theme_styles->main_battery_outline;
     style_init_reset(sp);

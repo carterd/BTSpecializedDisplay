@@ -11,6 +11,7 @@ class MotorAssistLevelDotMonitorSmall : public BaseMonitorSmall
 {
 public:
     const static assist_coords_t assist_coords_sh1107;
+    const static assist_coords_t assist_coords_tdisplay;
     const static assist_coords_t assist_coords_tdisplay_s3;
 private:
     lv_style_t assist_line_style;

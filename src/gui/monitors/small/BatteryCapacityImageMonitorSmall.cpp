@@ -10,6 +10,15 @@ const lv_point_t BatteryCapacityImageMonitorSmall::battery_line_points_sh1107[] 
     {2, 1}, {1, 2},         			// Bottom Left
 	{1, 8} };						    // Bottom
 
+const lv_point_t BatteryCapacityImageMonitorSmall::battery_line_points_tdisplay[] = {
+	{6, 16},                             // Bottom
+	{6, 26},{8, 28},                    // Bottom Right
+	{122, 28}, {124, 26},                 // Top Right
+    {124, 20},{128, 18},{128, 12},{124, 10},   // Top Detail
+    {124, 4}, {122, 2},                   // Top Left
+    {8, 2}, {6, 4},         			// Bottom Left
+	{6, 16} };						    // Bottom
+
 const lv_point_t BatteryCapacityImageMonitorSmall::battery_line_points_tdisplay_s3[] = {
 	{2, 20},                             	// Bottom
 	{2, 35},{4, 37},                     	// Bottom Right
@@ -20,6 +29,7 @@ const lv_point_t BatteryCapacityImageMonitorSmall::battery_line_points_tdisplay_
 	{2, 20} };						    	// Bottom
 
 const charge_coords_hor_t BatteryCapacityImageMonitorSmall::charge_coords_sh1107 = {4, 58, 8};
+const charge_coords_hor_t BatteryCapacityImageMonitorSmall::charge_coords_tdisplay = {8, 120, 15};
 const charge_coords_hor_t BatteryCapacityImageMonitorSmall::charge_coords_tdisplay_s3 = {7, 155, 20};
 
 BatteryCapacityImageMonitorSmall::BatteryCapacityImageMonitorSmall() {

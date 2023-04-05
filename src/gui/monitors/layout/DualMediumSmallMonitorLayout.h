@@ -5,13 +5,13 @@
 
 #define MEDIUM_SMALL_MONITOR_OBJECTS 4
 
-class MediumSmallMonitorLayout : public BaseMonitorLayout
+class DualMediumSmallMonitorLayout : public BaseMonitorLayout
 {
 private:
     MonitorLvObject* mediumSmallMonitorLvObjects[MEDIUM_SMALL_MONITOR_OBJECTS];
 
 public:
-    MediumSmallMonitorLayout(MonitorLvObject* smallTopMonitorLvObject, MonitorLvObject* mediumTopMonitorLvObject, MonitorLvObject* mediumBottomMonitorLvObject, MonitorLvObject* smallBottomMonitorLvObject) 
+    DualMediumSmallMonitorLayout(MonitorLvObject* smallTopMonitorLvObject, MonitorLvObject* mediumTopMonitorLvObject, MonitorLvObject* mediumBottomMonitorLvObject, MonitorLvObject* smallBottomMonitorLvObject) 
         : BaseMonitorLayout(mediumSmallMonitorLvObjects, MEDIUM_SMALL_MONITOR_OBJECTS)
     {
         this->mediumSmallMonitorLvObjects[0] = smallTopMonitorLvObject;

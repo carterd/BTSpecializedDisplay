@@ -8,10 +8,12 @@ class BatteryCapacityImageMonitorSmall : public BaseMonitorSmall
 {
 public:
     const static lv_point_t battery_line_points_sh1107[];
+    const static lv_point_t battery_line_points_tdisplay[];
     const static lv_point_t battery_line_points_tdisplay_s3[];
     const static lv_coord_t battery_line_point_count = 14;    
 
     const static charge_coords_hor_t charge_coords_sh1107;
+    const static charge_coords_hor_t charge_coords_tdisplay;
     const static charge_coords_hor_t charge_coords_tdisplay_s3;
 private:
     lv_obj_t* level[3];

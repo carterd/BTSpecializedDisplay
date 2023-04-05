@@ -147,7 +147,173 @@ bool FileSystem::closeFile() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Config of the Display for T-DISPLAY
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-#ifdef ESP32
+#ifdef ARDUINO_TTGO_LoRa32_V1
+
+// Encoder
+//
+#include <TwoButtonEncoder.h>
+#define ENCODER_LEFT_PIN 0
+#define ENCODER_RIGHT_PIN 35
+#define ENCODER_PRESSED_STATE LOW
+#define ENCODER_BUTTON_PIN_MODE INPUT_PULLUP
+static TwoButtonEncoder encoder(ENCODER_LEFT_PIN, ENCODER_RIGHT_PIN, ENCODER_PRESSED_STATE, ENCODER_BUTTON_PIN_MODE);
+
+Arduino_ButtonEncoder_LvGL_Input* encoderInit() {
+    static Arduino_ButtonEncoder_LvGL_Input lvglInput(&encoder);
+    return &lvglInput;
+}
+
+// Display
+//
+#include "TFT_eSPI.h"
+#include <LvglDisplays/TFTESPI_LvGL_Display.h>
+#define DISPLAY_WIDTH 135
+#define DISPLAY_HEIGHT 240
+static TFT_eSPI displayDevice(DISPLAY_WIDTH, DISPLAY_HEIGHT);
+
+LvGL_DisplayBase* displayInit() {
+    displayDevice.init();
+    displayDevice.setRotation(0);
+    displayDevice.setSwapBytes(true);
+    displayDevice.fillScreen(TFT_BLACK);
+
+    pinMode(TFT_BL, OUTPUT);
+    ledcSetup(0, 5000, 8);
+    ledcAttachPin(TFT_BL, 0);
+    ledcWrite(0, 255);
+
+    static TFTESPI_LvGL_Display lvglDisplay(&displayDevice);
+    return &lvglDisplay;
+}
+
+void displaySetContrast(void *display, int contrastLevel) {
+    switch (contrastLevel) {
+        case 0:
+            contrastLevel = 0x08;
+            break;
+        case 1:
+            contrastLevel = 0x7F;
+            break;
+        case 2:
+            contrastLevel = 0xFF;
+            break;
+    }
+    ledcWrite(0, contrastLevel);
+}
+
+#include <Fonts/PixelOperator8pt7b.h>
+#include "src/themes/lv_theme_TDISPLAY.h"
+#include <Utilities/Adafruit_To_LvGL_Font.h>
+#include <font/lv_font.h>
+
+//lv_theme_t* themeInit(lv_disp_t *disp) {
+//    return lv_theme_default_init(disp, lv_color_make(0xff,0xff,0xff), lv_color_make(0xff,0x80,0x80), true, &lv_font_montserrat_28);
+//}
+lv_theme_t* themeInit(lv_disp_t *disp) {
+    return lv_theme_tdisplay_init(disp, true, &lv_font_montserrat_20);
+}
+
+void displayfillCircle(unsigned long radius) {
+    displayDevice.fillCircle(displayDevice.width() / 2, displayDevice.height() / 2, radius, TFT_WHITE);
+}
+
+// File System
+//
+#define FORMAT_LITTLEFS_IF_FAILED true
+#include <Arduino.h>
+#include "FS.h"
+#include <LittleFS.h>
+#define FS_FILE_PREFIX ""
+#define FS_SEPARATOR "/"
+
+bool FileSystem::init() {
+    this->fileSystem = &LittleFS;
+    if (!((fs::LittleFSFS*)(this->fileSystem))->begin(FORMAT_LITTLEFS_IF_FAILED)) {
+        return false;
+    }
+    return true;
+}
+
+bool FileSystem::openDir(const char* dirPath) { 
+    if (this->dir) { 
+        delete((fs::File*) this->dir); 
+        this->dir = NULL;
+    }
+    fs::File* dirFile = new fs::File(((fs::LittleFSFS*)(this->fileSystem))->open(dirPath));
+    if (*dirFile && dirFile->isDirectory()) {
+        this->dir = dirFile;
+        return true;
+    }
+    LV_LOG_ERROR("unable to openDir '%s'", dirPath);
+    delete(dirFile);
+    this->dir = NULL;
+    return false;
+}
+
+bool FileSystem::closeDir() {
+    if (this->dir) {
+        ((fs::File*)(this->dir))->close();
+        this->dir = NULL;
+        return true;
+    }
+    return false;
+}
+bool FileSystem::mkDir(const char* dirPath) {
+    if (((fs::LittleFSFS*)(this->fileSystem))->mkdir(dirPath)) return true;
+    return false;
+}
+
+bool FileSystem::readDir(char* fileName, int maxFileName) {
+    if (this->dir) {
+        fs::File nextFile = ((fs::File*) (this->dir))->openNextFile();
+        if (nextFile) {
+            strncpy(fileName, nextFile.path(), maxFileName-1);
+            fileName[maxFileName-1] = 0x00;
+            return true;
+        }
+        return false;
+    } else {
+        return false;
+    }
+}
+
+bool FileSystem::openFile(const char* filePath, const char* mode) {
+    if (this->file) { 
+        delete((fs::File*) this->file); 
+        this->file = NULL;
+    }
+    fs::File* fileFile = new fs::File(((fs::LittleFSFS*)(this->fileSystem))->open(filePath, mode));
+
+    if (!*fileFile || fileFile->isDirectory()) {
+        LV_LOG_ERROR("unable to openFile '%s' mode '%s'", filePath, mode);
+        delete(fileFile);
+        this->file = NULL;
+        return false;
+    }
+    this->file = fileFile;
+    return true;
+}
+
+bool FileSystem::readFile(void* buffer, size_t size, size_t n) {    
+    return ((fs::File*)(this->file))->read((uint8_t*)buffer, size*n) == size*n;
+}
+bool FileSystem::writeFile(const void* buffer, size_t size, size_t n) {
+    return ((fs::File*)(this->file))->write((uint8_t*)buffer, size*n) == size*n;
+}
+bool FileSystem::closeFile() {
+    ((fs::File*)(this->file))->close();
+    delete((fs::File*) this->file); 
+    this->file = NULL;
+    return false;
+}
+
+#endif
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Config of the Display for T-DISPLAY
+///////////////////////////////////////////////////////////////////////////////////////////////////
+#ifdef ARDUINO_ESP32S3_DEV
 
 // Encoder
 //

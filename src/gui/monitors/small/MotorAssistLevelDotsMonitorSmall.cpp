@@ -2,6 +2,7 @@
 #include "../../../themes/lv_theme.h"
 
 const assist_coords_t MotorAssistLevelDotMonitorSmall::assist_coords_sh1107 = {10, 22, 8};
+const assist_coords_t MotorAssistLevelDotMonitorSmall::assist_coords_tdisplay = {20, 50, 10};
 const assist_coords_t MotorAssistLevelDotMonitorSmall::assist_coords_tdisplay_s3 = {25, 55, 20};
 
 MotorAssistLevelDotMonitorSmall::MotorAssistLevelDotMonitorSmall() {

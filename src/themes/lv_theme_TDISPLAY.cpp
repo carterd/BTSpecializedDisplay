@@ -1,14 +1,17 @@
 /*********************
  *      INCLUDES
  *********************/
-#include "lv_theme_SH1107.h"
+#include <lvgl.h>
+
+#include "lv_theme_TDISPLAY.h"
 
 #include "../gui/monitors/main/BatteryCapacityMonitorMain.h"
 #include "../gui/monitors/small/MotorAssistLevelDotsMonitorSmall.h"
 #include "../gui/monitors/small/BatteryCapacityImageMonitorSmall.h"
-#include "../img/PressButton.h"
-#include "../img/Spanner.h"
-#include "../img/Bluetooth.h"
+#include "../img/tdisplays3/Ride.h"
+#include "../img/tdisplays3/Configure.h"
+#include "../img/tdisplays3/Bluetooth.h"
+#include "../img/tdisplays3/Rides.h"
 
  /*********************
   *      DEFINES
@@ -16,6 +19,13 @@
 
 #define COLOR_FG      dark_bg ?  lv_color_white() : lv_color_black() 
 #define COLOR_BG      dark_bg ?  lv_color_black() : lv_color_white() 
+#define COLOR_RED     lv_color_make(255, 0, 0)
+#define COLOR_GREEN   lv_color_make(0, 255, 0)
+#define COLOR_BAT_GOOD      lv_color_make(128, 255, 128)
+#define COLOR_BAT_MODERATE  lv_color_make(213, 213, 213)
+#define COLOR_BAT_BAD       lv_color_make(255, 128, 128)
+#define COLOR_BAT_OUTLINE   lv_color_white()
+#define COLOR_DOT     lv_color_make(0, 255, 0)
 
   // Card Presets
 #define CARD_OUTLINE_WIDTH      0
@@ -48,10 +58,10 @@
 #define ARC_KNOB_PAD                 2                          // Padding Knob makes it larger than slider
 
 // Spinner Presets
-#define SPINNER_WIDTH           4
+#define SPINNER_WIDTH           16
 #define SPINNER_PAD             0
-#define SPINNER_INDICATOR_WIDTH 4
-#define SPINNER_INDICATOR_PAD   0
+#define SPINNER_INDICATOR_WIDTH 8
+#define SPINNER_INDICATOR_PAD   4
 
 // Slider Presets
 #define SLIDER_OUTLINE_WIDTH            1                           // White outline beyond the black border
@@ -118,17 +128,17 @@ static void theme_apply(lv_theme_t* th, lv_obj_t* obj);
 static void style_init(bool dark_bg, const lv_font_t* font)
 {
     // Images
-    display_theme_styles->connect_button_img = &pressbutton_img_dsc;
-    display_theme_styles->connecting_button_img = &pressbutton_img_dsc;
-    display_theme_styles->configure_button_img = &spanner_img_dsc;
-    display_theme_styles->bluetooth_button_img = &bluetooth_img_dsc;
+    display_theme_styles->connect_button_img = &tdisplays3_ride_img_dsc;
+    display_theme_styles->connecting_button_img = &tdisplays3_ride_img_dsc;
+    display_theme_styles->configure_button_img = &tdisplays3_configure_img_dsc;
+    display_theme_styles->bluetooth_button_img = &tdisplays3_bluetooth_img_dsc;
 
     // Lines
-    display_theme_styles->main_battery_line_points = BatteryCapacityMonitorMain::battery_line_points_sh1107;
-    display_theme_styles->main_battery_coords = &BatteryCapacityMonitorMain::charge_coords_sh1107;
-    display_theme_styles->small_assist_coords = &MotorAssistLevelDotMonitorSmall::assist_coords_sh1107;
-    display_theme_styles->small_battery_line_points = BatteryCapacityImageMonitorSmall::battery_line_points_sh1107;
-    display_theme_styles->small_battery_coords = &BatteryCapacityImageMonitorSmall::charge_coords_sh1107;
+    display_theme_styles->main_battery_line_points = BatteryCapacityMonitorMain::battery_line_points_tdisplay;
+    display_theme_styles->main_battery_coords = &BatteryCapacityMonitorMain::charge_coords_tdisplay;
+    display_theme_styles->small_assist_coords = &MotorAssistLevelDotMonitorSmall::assist_coords_tdisplay;
+    display_theme_styles->small_battery_line_points = BatteryCapacityImageMonitorSmall::battery_line_points_tdisplay;
+    display_theme_styles->small_battery_coords = &BatteryCapacityImageMonitorSmall::charge_coords_tdisplay;
 
     // Screen
     style_init_reset(&display_theme_styles->scr);
@@ -267,7 +277,7 @@ static void style_init(bool dark_bg, const lv_font_t* font)
     // Calender Style
     //---------------------------------------------------------------------------------------------
     sp = &display_theme_styles->calender;
-    style_init_reset(&display_theme_styles->calender);
+    style_init_reset(sp);
 
     lv_style_set_border_opa(sp, LV_OPA_TRANSP);
     //lv_style_set_bg_opa(sp, LV_OPA_TRANSP);
@@ -285,12 +295,13 @@ static void style_init(bool dark_bg, const lv_font_t* font)
     lv_style_set_bg_opa(sp, LV_OPA_TRANSP);
 
     lv_style_set_arc_width(sp, SPINNER_WIDTH);
-    lv_style_set_arc_color(sp, COLOR_FG);
+    lv_style_set_arc_color(sp, COLOR_GREEN);
     lv_style_set_arc_rounded(sp, true);
     lv_style_set_pad_all(sp, SPINNER_PAD);
-
-    lv_style_set_height(sp, 60);
+    lv_style_set_outline_pad(sp, 20);
+    lv_style_set_height(sp, 300);
     lv_style_set_width(sp, 60);
+    lv_style_set_pad_top(sp, 210);
 
     sp = &display_theme_styles->spinner_indicator;
     style_init_reset(sp);
@@ -300,7 +311,6 @@ static void style_init(bool dark_bg, const lv_font_t* font)
     lv_style_set_arc_color(sp, COLOR_BG);
     lv_style_set_arc_rounded(sp, true);
     lv_style_set_pad_all(sp, SPINNER_INDICATOR_PAD);
-
 
     // Arc Style
     //---------------------------------------------------------------------------------------------
@@ -348,7 +358,6 @@ static void style_init(bool dark_bg, const lv_font_t* font)
     lv_style_set_bg_color(sp, COLOR_FG);
     lv_style_set_text_color(sp, COLOR_FG);
     lv_style_set_outline_color(sp, COLOR_FG);
-
 
     // Slider Style
     //---------------------------------------------------------------------------------------------
@@ -500,7 +509,7 @@ static void style_init(bool dark_bg, const lv_font_t* font)
     lv_style_set_outline_width(sp, LIST_OUTLINE_WIDTH);      // Outline width    +===================+
     lv_style_set_outline_pad(sp, LIST_OUTLINE_PAD);          // Outline pad      |                   |
     lv_style_set_border_width(sp, LIST_BORDER_WIDTH);        // Border width     |  +=============+  |
-    lv_style_set_pad_all(sp, 0);                             // Pad all          |  |             |  |
+    lv_style_set_pad_all(sp, 4);                            // Pad all          |  |             |  |
     lv_style_set_pad_gap(sp, 0);                             // Pad gap          |  | XXXXX XXXXX |  |
 
     lv_style_set_radius(sp, 0);                              // Widget Radius
@@ -521,6 +530,7 @@ static void style_init(bool dark_bg, const lv_font_t* font)
     style_init_reset(sp);
     lv_style_set_pad_column(sp, LIST_BUTTON_PAD_COL); // Gap between button symbols and label
     lv_style_set_pad_hor(sp, LIST_BUTTON_PAD_HOR);    // Gap between edges on list entries
+    lv_style_set_pad_ver(sp, 5);
 
     lv_style_set_text_decor(sp, LV_TEXT_DECOR_NONE);   // Default text in buttons not underlined
 
@@ -552,69 +562,62 @@ static void style_init(bool dark_bg, const lv_font_t* font)
     // Searching Lable
     sp = &display_theme_styles->searching_label;
     style_init_reset(sp);
-    lv_style_set_bg_opa(sp, LV_OPA_COVER);
-    lv_style_set_outline_width(sp, BUTTON_OUTLINE_WIDTH);       // Outline width    +===================+
-    lv_style_set_outline_pad(sp, BUTTON_OUTLINE_PAD);           // Outline pad      |                   |
-    lv_style_set_border_width(sp, BUTTON_BORDER_WIDTH);         // Border width     |  +=============+  |
-    lv_style_set_pad_all(sp, BUTTON_PAD);                       // Pad all          |  |             |  |
-    lv_style_set_pad_gap(sp, BUTTON_PAD);                       // Pad gap          |  | XXXXX XXXXX |  |
-
-    lv_style_set_pad_column(sp, BUTTON_PAD_COL);                // Gap between button symbols and label
-    lv_style_set_pad_hor(sp, BUTTON_PAD_HOR);                   // Gap between edges on list entries
-
-    lv_style_set_radius(sp, BUTTON_RADIUS);                     // Widget Radius
-    lv_style_set_border_color(sp, COLOR_BG);
-    lv_style_set_outline_color(sp, COLOR_FG);
-    lv_style_set_bg_color(sp, COLOR_BG);
-    lv_style_set_text_color(sp, COLOR_FG);
-    lv_style_set_outline_color(sp, COLOR_FG);
+    lv_style_set_bg_opa(sp, LV_OPA_TRANSP);
+    lv_style_set_text_opa(sp, LV_OPA_TRANSP);
+    lv_style_set_border_opa(sp, LV_OPA_TRANSP);
+    lv_style_set_outline_opa(sp, LV_OPA_TRANSP);
+    lv_style_set_outline_width(sp, 0);                          // Outline width    +===================+
+    lv_style_set_outline_pad(sp, 0);                            // Outline pad      |                   |
+    lv_style_set_border_width(sp, 0);                           // Border width     |  +=============+  |
 
     // Button Label Bar
     sp = &display_theme_styles->button_label_bar;
     style_init_reset(sp);
-    lv_style_set_height(sp, 10);
+    lv_style_set_height(sp, 30);
     lv_style_set_bg_opa(sp, LV_OPA_COVER);
-    lv_style_set_bg_color(sp, COLOR_FG);
-    lv_style_set_border_color(sp, COLOR_BG);
-    lv_style_set_line_color(sp, COLOR_BG);
-    lv_style_set_text_color(sp, COLOR_BG);
-    lv_style_set_outline_color(sp, COLOR_BG);
+    lv_style_set_bg_color(sp, COLOR_RED);
+    lv_style_set_border_color(sp, COLOR_RED);
+    lv_style_set_line_color(sp, COLOR_RED);
+    lv_style_set_text_color(sp, COLOR_FG);
+    lv_style_set_outline_color(sp, COLOR_RED);
+    
 
     // Menu Label Bar
     sp = &display_theme_styles->menu_label_bar;
     style_init_reset(sp);
-    lv_style_set_height(sp, 16);
+    lv_style_set_height(sp, 32);
     lv_style_set_bg_opa(sp, LV_OPA_COVER);
-    lv_style_set_bg_color(sp, COLOR_FG);
-    lv_style_set_border_color(sp, COLOR_BG);
-    lv_style_set_line_color(sp, COLOR_BG);
-    lv_style_set_text_color(sp, COLOR_BG);
-    lv_style_set_outline_color(sp, COLOR_BG);
+    lv_style_set_bg_color(sp, COLOR_RED);
+    lv_style_set_border_color(sp, COLOR_RED);
+    lv_style_set_line_color(sp, COLOR_RED);
+    lv_style_set_text_color(sp, COLOR_FG);
+    lv_style_set_outline_color(sp, COLOR_FG);
+    lv_style_set_pad_hor(sp, 4);
 
     // Monitor Panels
     sp = &display_theme_styles->small_monitor_panel;
     style_init_reset(sp);
-    lv_style_set_height(sp, 16);
+    lv_style_set_height(sp, 30);
 
     // Monitor Panels
     sp = &display_theme_styles->medium_monitor_panel;
     style_init_reset(sp);
-    lv_style_set_height(sp, 48);
+    lv_style_set_height(sp, 90);
 
     sp = &display_theme_styles->medium_monitor_label;
     style_init_reset(sp);
-    lv_style_set_text_font(sp, font);
-    lv_style_set_pad_top(sp, 24);
+    lv_style_set_text_font(sp, &lv_font_montserrat_28);
+    lv_style_set_pad_top(sp, 48);
 
     sp = &display_theme_styles->medium_monitor_value;
     style_init_reset(sp);
-    lv_style_set_text_font(sp, &lv_font_montserrat_26);
-    lv_style_set_pad_bottom(sp, 14);
+    lv_style_set_text_font(sp, &lv_font_montserrat_48);
+    lv_style_set_pad_bottom(sp, 28);
 
     // Monitor Panels
     sp = &display_theme_styles->main_monitor_panel;
     style_init_reset(sp);
-    lv_style_set_height(sp, 112);
+    lv_style_set_height(sp, 210);
 
     // Graph Styles
     sp = &display_theme_styles->main_graph_left_axis;
@@ -626,60 +629,60 @@ static void style_init(bool dark_bg, const lv_font_t* font)
     style_init_reset(sp);
     lv_style_set_height(sp, 100);
     lv_style_set_width(sp, 60);
-    
+
     // Main Battery display
     sp = &display_theme_styles->main_battery_outline;
     style_init_reset(sp);
-	lv_style_set_line_width(sp, 3);
-	lv_style_set_line_color(sp, lv_color_white());
+    lv_style_set_line_width(sp, 4);
+	lv_style_set_line_color(sp, COLOR_BAT_OUTLINE);
 	lv_style_set_line_rounded(sp, true);
 
     sp = &display_theme_styles->main_battery_charge_good;
     style_init_reset(sp);
-    lv_style_set_line_width(sp, 8);
-	lv_style_set_line_color(sp, lv_color_white());
+    lv_style_set_line_width(sp, 16);
+	lv_style_set_line_color(sp, COLOR_BAT_GOOD);
 	lv_style_set_line_rounded(sp, true);
 
     sp = &display_theme_styles->main_battery_charge_moderate;
     style_init_reset(sp);
-    lv_style_set_line_width(sp, 8);
-	lv_style_set_line_color(sp, lv_color_white());
+    lv_style_set_line_width(sp, 16);
+	lv_style_set_line_color(sp, COLOR_BAT_MODERATE);
 	lv_style_set_line_rounded(sp, true);
 
     sp = &display_theme_styles->main_battery_charge_bad;
     style_init_reset(sp);
-    lv_style_set_line_width(sp, 8);
-	lv_style_set_line_color(sp, lv_color_white());
+    lv_style_set_line_width(sp, 16);
+	lv_style_set_line_color(sp, COLOR_BAT_BAD);
 	lv_style_set_line_rounded(sp, true);
-
+    
     sp = &display_theme_styles->small_assist_dot_line;
     style_init_reset(sp);
-    lv_style_set_line_width(sp, 3);
-	lv_style_set_line_color(sp, lv_color_make(255, 128, 128));
+    lv_style_set_line_width(sp, 12);
+	lv_style_set_line_color(sp, COLOR_DOT);
 	lv_style_set_line_rounded(sp, true);
-
+    
     sp = &display_theme_styles->small_battery_outline;
     style_init_reset(sp);
 	lv_style_set_line_width(sp, 1);
-	lv_style_set_line_color(sp, lv_color_white());
+	lv_style_set_line_color(sp, COLOR_BAT_OUTLINE);
 	lv_style_set_line_rounded(sp, true);
 
     sp = &display_theme_styles->small_battery_charge_good;
     style_init_reset(sp);
-	lv_style_set_line_width(sp, 8);
-	lv_style_set_line_color(sp, lv_color_white());
+	lv_style_set_line_width(sp, 20);
+	lv_style_set_line_color(sp, COLOR_BAT_GOOD);
 	lv_style_set_line_rounded(sp, false);
 
     sp = &display_theme_styles->small_battery_charge_moderate;
     style_init_reset(sp);
-	lv_style_set_line_width(sp, 8);
-	lv_style_set_line_color(sp, lv_color_white());
+	lv_style_set_line_width(sp, 20);
+	lv_style_set_line_color(sp, COLOR_BAT_MODERATE);
 	lv_style_set_line_rounded(sp, false);
 
     sp = &display_theme_styles->small_battery_charge_bad;
     style_init_reset(sp);
-	lv_style_set_line_width(sp, 8);
-	lv_style_set_line_color(sp, lv_color_white());
+	lv_style_set_line_width(sp, 20);
+	lv_style_set_line_color(sp, COLOR_BAT_BAD);
 	lv_style_set_line_rounded(sp, false);
 
 #if LV_USE_TEXTAREA
@@ -702,17 +705,17 @@ static void style_init(bool dark_bg, const lv_font_t* font)
  *   GLOBAL FUNCTIONS
  **********************/
 
-bool lv_theme_sh1107_is_inited(void)
+bool lv_theme_tdisplay_is_inited(void)
 {
     return  display_theme_styles == NULL ? false : true;
 }
 
-lv_theme_t* lv_theme_sh1107_init(lv_disp_t* disp, bool dark_bg, const lv_font_t* font)
+lv_theme_t* lv_theme_tdisplay_init(lv_disp_t* disp, bool dark_bg, const lv_font_t* font)
 {
     /*This trick is required only to avoid the garbage collection of
      *styles' data if LVGL is used in a binding (e.g. Micropython)
      *In a general case styles could be in simple `static lv_style_t my_style...` variables*/
-    if (!lv_theme_sh1107_is_inited()) {
+    if (!lv_theme_tdisplay_is_inited()) {
         display_theme_inited = false;
 #if LVGL_VERSION_MAJOR > 8
         display_theme_styles = (display_theme_styles_t*) lv_malloc(sizeof(display_theme_styles_t));

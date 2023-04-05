@@ -17,7 +17,7 @@
 
 #include "gui/monitors/layout/MainSmallMonitorLayout.h"
 #include "gui/monitors/layout/MultiSmallMonitorLayout.h"
-#include "gui/monitors/layout/MediumSmallmonitorLayout.h"
+#include "gui/monitors/layout/DualMediumSmallmonitorLayout.h"
 
 #include "gui/monitors/main/BatteryCapacityMonitorMain.h"
 #include "gui/monitors/main/RiderPowerGraphMonitorMain.h"
@@ -102,16 +102,16 @@ void lvgl_setup(ConfigStore *configStore, BluetoothBikeController *bluetoothBike
     static RiderPowerMonitorMedium riderPowerMonitorMedium_Screen2;
     static SpeedMonitorMedium speedMonitorMedium_Screen2(configStore);
     static MotorAssistLevelDotMonitorSmall motorAssistLevelDotSmall_Screen2;
-    static MediumSmallMonitorLayout mediumSmallmonitorLayout_Screen2(&motorAssistLevelDotSmall_Screen2, &riderPowerMonitorMedium_Screen2, &speedMonitorMedium_Screen2, &batteryCapacityImageMonitorSmall_Screen2);
-    monitorSelector.addMonitorLvObject(&mediumSmallmonitorLayout_Screen2);
+    static DualMediumSmallMonitorLayout dualMediumSmallmonitorLayout_Screen2(&motorAssistLevelDotSmall_Screen2, &riderPowerMonitorMedium_Screen2, &speedMonitorMedium_Screen2, &batteryCapacityImageMonitorSmall_Screen2);
+    monitorSelector.addMonitorLvObject(&dualMediumSmallmonitorLayout_Screen2);
 
     // Monitor Screen 3 (Assist, Rider Power, Speed Monitor, Battery)
     static BatteryCapacityImageMonitorSmall batteryCapacityImageMonitorSmall_Screen3;
     static CadenceMonitorMedium cadenceMonitorMedium;
     static SpeedMonitorMedium speedMonitorMedium_Screen3(configStore);
     static MotorAssistLevelDotMonitorSmall motorAssistLevelDotSmall_Screen3;
-    static MediumSmallMonitorLayout mediumSmallmonitorLayout_Screen3(&motorAssistLevelDotSmall_Screen3, &cadenceMonitorMedium, &speedMonitorMedium_Screen3, &batteryCapacityImageMonitorSmall_Screen3);
-    monitorSelector.addMonitorLvObject(&mediumSmallmonitorLayout_Screen3);
+    static DualMediumSmallMonitorLayout dualMediumSmallmonitorLayout_Screen3(&motorAssistLevelDotSmall_Screen3, &cadenceMonitorMedium, &speedMonitorMedium_Screen3, &batteryCapacityImageMonitorSmall_Screen3);
+    monitorSelector.addMonitorLvObject(&dualMediumSmallmonitorLayout_Screen3);
 
     // Monitor Screen 2 (Power Average/Min Max)
     static RiderPowerMonitorSmall riderPowerSmall_Screen4;

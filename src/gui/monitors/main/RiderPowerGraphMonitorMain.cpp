@@ -39,13 +39,19 @@ RiderPowerGraphMonitorMain::RiderPowerGraphMonitorMain(PowerMeterLogger* powerMe
 lv_obj_t* RiderPowerGraphMonitorMain::createLvObj(lv_obj_t* parent) {
     BaseMonitorMain::createLvObj(parent);
     
+    display_theme_styles_t* display_theme_styles = (display_theme_styles_t*)lv_disp_get_theme(lv_obj_get_disp(parent))->user_data;
+    lv_style_t* main_graph_left_axis_style = &(display_theme_styles->main_graph_left_axis);
+    lv_style_t* main_graph_panel_style = &(display_theme_styles->main_graph_panel);
+
     this->leftAxisLabelsParent = lv_obj_create(this->this_obj);
-    lv_obj_set_size(this->leftAxisLabelsParent, 4, GRAPH_HEIGHT);
+    lv_obj_add_style(this->leftAxisLabelsParent, main_graph_left_axis_style, LV_PART_MAIN);
+    //lv_obj_set_size(this->leftAxisLabelsParent, 4, GRAPH_HEIGHT);
     lv_obj_set_align(this->leftAxisLabelsParent, LV_ALIGN_RIGHT_MID);
 
     //  Create a lineand apply the new style
     this->graphLinesParent = lv_line_create(this->this_obj);
-    lv_obj_set_size(this->graphLinesParent, GRAPH_WIDTH, GRAPH_HEIGHT);
+    lv_obj_add_style(this->graphLinesParent, main_graph_panel_style, LV_PART_MAIN);
+    //lv_obj_set_size(this->graphLinesParent, GRAPH_WIDTH, GRAPH_HEIGHT);
     lv_obj_set_align(this->graphLinesParent, LV_ALIGN_LEFT_MID);
 
     for (int i = 0; i < GRAPH_WIDTH; i++) {

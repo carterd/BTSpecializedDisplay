@@ -94,6 +94,10 @@ typedef struct {
         lv_style_t small_battery_charge_moderate;
         lv_style_t small_battery_charge_bad;
 
+        // Graph Styles
+        lv_style_t main_graph_left_axis;
+        lv_style_t main_graph_panel;
+
         // Images
         lv_img_dsc_t* connect_button_img;
         lv_img_dsc_t* connecting_button_img;

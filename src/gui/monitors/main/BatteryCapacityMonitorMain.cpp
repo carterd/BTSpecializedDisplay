@@ -6,13 +6,22 @@ BatteryCapacityMonitorMain::BatteryCapacityMonitorMain() {
 }
 
 const lv_point_t BatteryCapacityMonitorMain::battery_line_points_sh1107[] = {
-	{32,110},							// Bottom
+	{32, 110},							// Bottom
 	{54, 110}, {55, 109},				// Bottom Right
 	{55, 6}, {54, 5},					// Top Right
 	{42, 5}, {39, 2}, {24, 2}, {21, 5}, // Top Detail
 	{9, 5}, {8, 6},						// Top Left
 	{8, 109}, {9, 110},					// Bottom Left
 	{32, 110} };						// Bottom
+
+const lv_point_t BatteryCapacityMonitorMain::battery_line_points_tdisplay[] = {
+	{68, 208},							// Bottom
+	{112, 208}, {114, 206},				// Bottom Right
+	{114, 10}, {102, 8},				    // Top Right
+	{88, 8}, {82, 2}, {52, 2}, {46, 8}, // Top Detail
+	{22, 8}, {20, 10},					// Top Left
+	{20, 206}, {22, 208},				// Bottom Left
+	{68, 208} };						// Bottom
 
 const lv_point_t BatteryCapacityMonitorMain::battery_line_points_tdisplay_s3[] = {
 	{86, 275},							// Bottom
@@ -24,6 +33,7 @@ const lv_point_t BatteryCapacityMonitorMain::battery_line_points_tdisplay_s3[] =
 	{86, 275} };						// Bottom
 
 const charge_coords_vert_t BatteryCapacityMonitorMain::charge_coords_sh1107 = {16, 48, 103, 10};
+const charge_coords_vert_t BatteryCapacityMonitorMain::charge_coords_tdisplay = {36, 98, 194, 19};
 const charge_coords_vert_t BatteryCapacityMonitorMain::charge_coords_tdisplay_s3 = {46, 122, 256, 25};
 
 lv_obj_t* BatteryCapacityMonitorMain::createLvObj(lv_obj_t* parent) {

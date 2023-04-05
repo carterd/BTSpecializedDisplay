@@ -87,7 +87,6 @@ lv_obj_t* BluetoothConnection::createLvObj(lv_obj_t* parent)
 
     // Associate a spinner
     this->spinner_obj = lv_spinner_create(this->this_obj, 1000, 60);
-    //lv_obj_set_size(this->spinner_obj, 60, 60);
     lv_obj_center(this->spinner_obj);
 
     // Associate a label connecting
@@ -95,8 +94,6 @@ lv_obj_t* BluetoothConnection::createLvObj(lv_obj_t* parent)
     lv_label_set_text(this->label_obj, SEARCHING_STRING);
     lv_obj_add_style(this->label_obj, searching_button_style, LV_PART_MAIN);
     lv_obj_center(this->label_obj);
-
-    //lv_group_focus_obj(this->button_obj);
     
     // create the optional monitor tile
     if (this->monitorSelector) {        
