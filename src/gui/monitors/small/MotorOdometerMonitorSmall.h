@@ -37,7 +37,7 @@ public:
     /// <param name="event">The lv event that identifies pressing the device entry</param>
     virtual void updateLvObj() {        
         char valueString[32];
-        float km = this->bluetoothBikeController->getBikeState().getStateAttribute(BikeStateAttributeIndex::MOTOR_ODOMETER).bikeStateAttributeValue.valueUint32 / 1000.0f;
+        float km = this->bluetoothBike->getBikeState().getStateAttribute(BikeStateAttributeIndex::MOTOR_ODOMETER).bikeStateAttributeValue.valueUint32 / 1000.0f;
         float miles = km * 0.621371;
 
         sprintf(valueString, "%.0f%s", (this->displayMetric ? km : miles), this->attributeUnits);

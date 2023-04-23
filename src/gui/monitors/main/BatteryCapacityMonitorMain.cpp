@@ -69,10 +69,10 @@ lv_obj_t* BatteryCapacityMonitorMain::createLvObj(lv_obj_t* parent) {
 
 void BatteryCapacityMonitorMain::statusUpdate()
 {
-	if (this->bluetoothBikeController && this->bluetoothBikeController->getConnected()) {
+	if (this->bluetoothBike && this->bluetoothBike->isConnected()) {
 		// This bleDevice should always be true as we've already idenfied scanned device available		
-		if (this->bluetoothBikeController->getBikeState().getStateAttribute(BikeStateAttributeIndex::BATTERY_CHARGE_PERCENT).bikeStateAttributeValue.valueUint8 != this->displayedPercent) {
-			this->displayedPercent = this->bluetoothBikeController->getBikeState().getStateAttribute(BikeStateAttributeIndex::BATTERY_CHARGE_PERCENT).bikeStateAttributeValue.valueUint8;
+		if (this->bluetoothBike->getBikeState().getStateAttribute(BikeStateAttributeIndex::BATTERY_CHARGE_PERCENT).bikeStateAttributeValue.valueUint8 != this->displayedPercent) {
+			this->displayedPercent = this->bluetoothBike->getBikeState().getStateAttribute(BikeStateAttributeIndex::BATTERY_CHARGE_PERCENT).bikeStateAttributeValue.valueUint8;
 			MonitorLvObject::statusUpdate();
 		}
 		// We should use a counter to keep battery upto date ... as probaby needs explicit read from time to time
@@ -85,7 +85,7 @@ void BatteryCapacityMonitorMain::statusUpdate()
 
 void BatteryCapacityMonitorMain::initBluetoothStats()
 {
-	this->bluetoothBikeController->getConnectedBluetoothBike().readBikeStateAttribute(BikeStateAttributeIndex::BATTERY_CHARGE_PERCENT, MonitorAttributeType::EVERY_MINUTE);
+	this->bluetoothBike->readBikeStateAttribute(BikeStateAttributeIndex::BATTERY_CHARGE_PERCENT, MonitorAttributeType::EVERY_MINUTE);
 }
 
 void BatteryCapacityMonitorMain::updateLvObj() {

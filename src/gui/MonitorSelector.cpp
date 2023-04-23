@@ -148,11 +148,11 @@ void MonitorSelector::initBluetoothStats() {
     }
 }
 
-void MonitorSelector::setBluetoothController(BluetoothBikeController* bluetoothBikeController)
+void MonitorSelector::setBluetoothBike(BluetoothBike* bluetoothBike)
 {
     // Frist ensure all ScrollMenuItems are removed
     for (std::vector<MonitorLvObject*>::iterator it = std::begin(this->monitorLvObjects); it != std::end(this->monitorLvObjects); ++it) {
-        (*it)->setBluetoothController(bluetoothBikeController);        
+        (*it)->setBluetoothBike(bluetoothBike);        
     }
 }
 

@@ -33,5 +33,5 @@ void TimeticksMonitorSmall::updateLvObj()
 
 void TimeticksMonitorSmall::initBluetoothStats()
 {
-	this->bluetoothBikeController->getConnectedBluetoothBike().readBikeStateAttribute(BikeStateAttributeIndex::BIKE_ON_OFF_STATE, MonitorAttributeType::EVERY_SECOND);
+	this->bluetoothBike->readBikeStateAttribute(BikeStateAttributeIndex::BIKE_ON_OFF_STATE, MonitorAttributeType::EVERY_SECOND);
 }

@@ -5,7 +5,7 @@
 
 #include "ButtonLabelledLvObject.h"
 #include "ButtonLabelBar.h"
-#include "../dev/BluetoothBikeController.h"
+#include "../dev/BluetoothScanner.h"
 #include "../dev/ConfigStore.h"
 
 #include <unordered_map>
@@ -19,7 +19,7 @@ private:
 	lv_obj_t* list_obj;
 	lv_obj_t* exit_button_obj;
 	lv_obj_t* scan_anim_obj;
-	BluetoothBikeController* bluetoothController;
+	BluetoothScanner* bluetoothScanner;
 	ConfigStore* configStore;
 	std::unordered_map<lv_obj_t*, String> buttonAddressMap;
 	bool scanning;
@@ -86,7 +86,7 @@ public:
 	/// <param name="bluetoothMaster">The bluetooth controller object</param>
 	/// <param name="configStore">The config store containing know bluetooth devices</param>
 	/// <param name="indev">The indev used for taking context of the encoder</param>
-	BluetoothScanList(BluetoothBikeController* bluetoothMaster, ConfigStore* configStore, lv_indev_t* indev, ButtonLabelBar* buttonLabelBar = NULL);
+	BluetoothScanList(BluetoothScanner* bluetoothScanner, ConfigStore* configStore, lv_indev_t* indev, ButtonLabelBar* buttonLabelBar = NULL);
 
 	/// <summary>
 	/// Distructor foer the scan list object

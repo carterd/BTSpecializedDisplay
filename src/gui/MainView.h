@@ -7,7 +7,6 @@
 #include "BaseLvObject.h"
 #include "ButtonLabelledLvObject.h"
 #include "ButtonLabelBar.h"
-#include "../dev/BluetoothBikeController.h"
 #include "../dev/BluetoothBikeDefinitions.h"
 #include "../dev/BluetoothBikeState.h"
 

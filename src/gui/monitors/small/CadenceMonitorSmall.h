@@ -13,7 +13,7 @@ public:
 	{
 		BaseNumericMonitorSmall::initBluetoothStats();
 		// Extra bluetooth stat is required for this attribute
-		this->bluetoothBikeController->getConnectedBluetoothBike().readBikeStateAttribute(BikeStateAttributeIndex::CRANK_ROTATIONS, MonitorAttributeType::EVERY_TEN_SECONDS);
+		this->bluetoothBike->readBikeStateAttribute(BikeStateAttributeIndex::CRANK_ROTATIONS, MonitorAttributeType::EVERY_TEN_SECONDS);
 	}
 };
 

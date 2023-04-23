@@ -24,10 +24,10 @@ void BluetoothScanList::refresh_cb(lv_event_t* event) {
 	((BluetoothScanList*)(event->user_data))->refreshCB(event);
 }
 
-BluetoothScanList::BluetoothScanList(BluetoothBikeController* bluetoothController, ConfigStore* configStore, lv_indev_t* indev, ButtonLabelBar* buttonLabelBar) : ButtonLabelledLvObject(indev, buttonLabelBar)
+BluetoothScanList::BluetoothScanList(BluetoothScanner* bluetoothScanner, ConfigStore* configStore, lv_indev_t* indev, ButtonLabelBar* buttonLabelBar) : ButtonLabelledLvObject(indev, buttonLabelBar)
 {
 	this->indev = indev;
-	this->bluetoothController = bluetoothController;
+	this->bluetoothScanner = bluetoothScanner;
 	this->configStore = configStore;
 	this->scanning = false;
 	this->defocusLvObj = NULL;
@@ -120,9 +120,9 @@ void BluetoothScanList::updateButtonLabelBar() {
 
 void BluetoothScanList::startBTScan()
 {
-	if (this->bluetoothController) {
-		this->bluetoothController->setListenerLvObj(this->this_obj);
-		this->bluetoothController->startScan();
+	if (this->bluetoothScanner) {
+		this->bluetoothScanner->setListenerLvObj(this->this_obj);
+		this->bluetoothScanner->startScan();
 	}
 	lv_label_set_long_mode(this->scan_anim_obj, LV_LABEL_LONG_SCROLL_CIRCULAR);
 	this->scanning = true;
@@ -131,8 +131,8 @@ void BluetoothScanList::startBTScan()
 void BluetoothScanList::stopBTScan()
 {
 	this->scanning = false;
-	if (this->bluetoothController) {
-		this->bluetoothController->stopScan();
+	if (this->bluetoothScanner) {
+		this->bluetoothScanner->stopScan();
 	}
 	lv_label_set_long_mode(this->scan_anim_obj, LV_LABEL_LONG_CLIP);	
 }
@@ -225,10 +225,10 @@ lv_obj_t* BluetoothScanList::getDeviceButton(const String& addressString) {
 void BluetoothScanList::refreshCB(lv_event_t* event)
 {
 	if (this->scanning) {
-		if (this->bluetoothController && this->bluetoothController->getScannedDeviceAvailable()) {
+		if (this->bluetoothScanner && this->bluetoothScanner->getScannedDeviceAvailable()) {
 			// This bleDevice should always be true as we've already idenfied scanned device available
-			BLEDevice bleDevice = this->bluetoothController->getScannedDevice();
-			this->bluetoothController->continueScan();
+			BLEDevice bleDevice = this->bluetoothScanner->getScannedDevice();
+			this->bluetoothScanner->continueScan();
 			if (bleDevice) {
 				if (lv_obj_get_child_cnt(this->list_obj) < 20) {
 					this->addDeviceItem(&bleDevice);

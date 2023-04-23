@@ -19,7 +19,7 @@ public:
     /// <summary>
     /// Set the bluetoothController which is required by all monitors
     /// </summary>
-    virtual void setBluetoothController(BluetoothBikeController* bluetoothBikeController);
+    virtual void setBluetoothBike(BluetoothBike* bluetoothBike);
 
     /// <summary>
     /// Returns the LV object instance to represent this class instance

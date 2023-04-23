@@ -1,11 +1,10 @@
 #include "MonitorLvObject.h"
 
 MonitorLvObject::MonitorLvObject() {
-    this->bluetoothBikeController = NULL;
 }
 
-void MonitorLvObject::setBluetoothController(BluetoothBikeController* bluetoothBikeController) {
-    this->bluetoothBikeController = bluetoothBikeController;
+void MonitorLvObject::setBluetoothBike(BluetoothBike* bluetoothBike) {
+    this->bluetoothBike = bluetoothBike;
 }
 
 lv_coord_t MonitorLvObject::getHeight() {

@@ -37,6 +37,18 @@
  */
 class BluetoothBike
 {
+public:
+	/// <summary>
+	/// This is the updateHandler static method called from BLEDevice for notifications of CSC characterisitics of a bike.
+	/// </summary>
+	static void update_csc_handler_cb(BLEDevice device, BLECharacteristic characteristic);
+
+	/// <summary>
+	/// This is the updateHandler static method called from BLEDevice for notifications of Ebike characterisitics.
+	/// </summary>
+	static void update_ebs_handler_cb(BLEDevice device, BLECharacteristic characteristic);
+
+	static BluetoothBike* singleton;
 
 private:
 	/// <summary>
@@ -143,6 +155,16 @@ private:
 	bool writeRequestCommand(BluetoothBikeRequest::BluetoothBikeRequestCommand bluetoothBikeRequestCommand, void* valuePtr);
 
 	/// <summary>
+	/// Set the BLEDevice for the BluetoothBike, the BLEDevice should be treated as disconnected and hence
+	/// require a subsequence call to connect() after the setBleDevice() call. 
+	/// </summary>
+	/// Interestingly we only reset  attributes if the BLEDevice has changed, therefore state can be mantained 
+	/// between loss of signal disconnects. NOTE: However if you require say MonitorAttributeType to be reset 
+	/// then the user is explicitly required to set the BLEDevice to an empty BLEDeive to ensure all parameters
+	/// of BluetoothBike are reset (as if connecting for the first time).
+	void setBleDevice(BLEDevice& bleDevice);
+
+	/// <summary>
 	/// This helper function converts the current content of the readBuffer to connectedBikeStatus.
 	/// </summary>
 	void readBufferToEbsBikeState();
@@ -170,11 +192,20 @@ private:
 	uint8_t readBuffer[20];
 
 protected:
+	/// <summary>
+	/// This is the lv object which has to be infromed of updates to say scanning
+	/// </summary>
+	lv_obj_t* listener_obj;
 
     /// <summary>
     /// Store of the last time stamp that bike status was updated
     /// </summary>
     uint32_t bikeStatusLastUpdateTime;
+
+    /// <summary>
+    /// Store of the last time stamp that bike status was checked and acted upon
+    /// </summary>
+	uint32_t bikeStatusLastCheckTime;
 
 	/// <summary>
 	/// Identifies the type of bike connected
@@ -244,24 +275,38 @@ public:
 	BluetoothBike();
 
 	/// <summary>
-	/// Set the BLEDevice for the BluetoothBike, the BLEDevice should be treated as disconnected and hence
-	/// require a subsequence call to connect() after the setBleDevice() call. 
+	/// Set the current LV object that is required to be updated with changes in the bluetooth controller
 	/// </summary>
-	/// Interestingly we only reset  attributes if the BLEDevice has changed, therefore state can be mantained 
-	/// between loss of signal disconnects. NOTE: However if you require say MonitorAttributeType to be reset 
-	/// then the user is explicitly required to set the BLEDevice to an empty BLEDeive to ensure all parameters
-	/// of BluetoothBike are reset (as if connecting for the first time).
-	void setBleDevice(BLEDevice& bleDevice);
+	/// <param name="listener_obj">lv_object to be sent refesh events on changes to BT scan/connection</param>
+	void setListenerLvObj(lv_obj_t* listener_obj) { this->listener_obj = listener_obj; }
 
     /// <summary>
     /// Performs the connect of the BluetoothBike to it's bleDevice
     /// </summary>
-    bool connect();
+    bool connect(BLEDevice bleDevice);
 
     /// <summary>
     /// Performs the disconnect of the BluethoothBike form it's bleDevice
     /// </summary>
     bool disconnect();
+
+	/// <summary>
+	/// Rquired to be called periodically to check state of the bike and connection
+	/// </summary>
+	void checkForChange();
+
+	/// <summary>
+	/// Helper function that checks for a stale attributes of a given monitorAttributeType and may not have been updated by
+	/// any notification and therefore requires an explicit read, but attempts to distribute these reads.
+	/// Really clumbsy way of distribution of requests so they're not clumped together
+	/// </summary>
+	void checkForStaleBikeStateAttributeSelfDistribution(MonitorAttributeType monitorAttributeType, uint32_t maximumTime, uint32_t* prevFetchTimeTicks, uint32_t* avrgGapTimeTicks, uint32_t adjustmentTicks);
+
+	/// <summary>
+	/// Helper function that checks for a stale attributes of a given monitorAttributeType and may not have been updated by
+	/// any notification and therefore requires an explicit read.
+	/// </summary>
+	void checkForStaleBikeStateAttribute(MonitorAttributeType monitorAttributeType, uint32_t maximumTime);
 
 	/// <summary>
     /// Performs poll on the BLEDevice, and hence possibly fires updates due to notifications.
@@ -277,6 +322,15 @@ public:
     /// Returns the last update time of any of the bikes states 
     /// </summary>
     uint32_t getBikeStatusLastUpdateTime() { return this->bikeStatusLastUpdateTime; }
+
+ 	/// <summary>
+	/// Returns true if the bike state of the connected bike has been updated since the last call to checkForConnectionChange(),
+	/// hence we should at this point be identifying that an update of the GUI should be performed.
+	/// </summary>
+	bool getConnectedBikeStateUpdated() {
+		// If the connectedBikeLastUpdate time of the controller is smaller than update of the connected bike then bike state updated
+		return this->bikeStatusLastCheckTime < this->bikeStatusLastUpdateTime;
+	}
 
     /// <summary>
     /// returns true if the given bleDeivce matched the one used by this bike object

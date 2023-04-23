@@ -10,6 +10,10 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 #ifdef ARDUINO_ARCH_RP2040
 
+// Bluetooth
+//
+#define BLE_CONNECTION_REQUIRES_SCAN_STOP true
+
 // Encoder
 //
 #include <ThreeButtonEncoder.h>
@@ -163,6 +167,10 @@ Arduino_ButtonEncoder_LvGL_Input* encoderInit() {
     return &lvglInput;
 }
 
+// Bluetooth
+//
+#define BLE_CONNECTION_REQUIRES_SCAN_STOP false
+
 // Display
 //
 #include "TFT_eSPI.h"
@@ -314,6 +322,10 @@ bool FileSystem::closeFile() {
 // Config of the Display for T-DISPLAY
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 #ifdef ARDUINO_ESP32S3_DEV
+
+// Bluetooth
+//
+#define BLE_CONNECTION_REQUIRES_SCAN_STOP false
 
 // Encoder
 //

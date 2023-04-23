@@ -6,7 +6,9 @@
 #include "ButtonLabelledLvObject.h"
 #include "MonitorLvObject.h"
 #include "ButtonLabelBar.h"
-#include "../dev/BluetoothBikeController.h"
+#include "../dev/BluetoothController.h"
+#include "../dev/BluetoothScanner.h"
+#include "../dev/BluetoothBike.h"
 #include "../dev/ConfigStore.h"
 
 #define CONNECT_ONLY_WHEN_BATTERY_CONNECTED 0
@@ -57,7 +59,18 @@ private:
     /// <summary>
     /// This is the bluetooth controller object
     /// </summary>
-    BluetoothBikeController* bluetoothController;
+    BluetoothController* bluetoothController;
+
+    /// <summary>
+    /// This is the bluetooth bike object
+    /// </summary>
+    BluetoothBike* bluetoothBike;
+
+    /// <summary>
+    /// This is the bluetooth scanner object
+    /// </summary>
+    BluetoothScanner* bluetoothScanner;
+
     /// <summary>
     /// The config store which contains the bluetooth devices to connect to
     /// </summary>
@@ -141,7 +154,7 @@ public:
     /// <param name="bluetoothMaster">an instance of the bluetooth controller</param>
     /// <param name="configStore">an instance of the config store for devices to connect to</param>
     /// <param name="configStore">an image to be the background image while connecting</param>
-    BluetoothConnection(BluetoothBikeController* bluetoothMaster, ConfigStore* configStore, lv_img_dsc_t* image, lv_indev_t* indev, ButtonLabelBar* buttonLabelBar = NULL);
+    BluetoothConnection(BluetoothController* bluetoothController, BluetoothBike* bluetoothBike, BluetoothScanner* bluetoothScanner, ConfigStore* configStore, lv_img_dsc_t* image, lv_indev_t* indev, ButtonLabelBar* buttonLabelBar = NULL);
 
     virtual ~BluetoothConnection();
 

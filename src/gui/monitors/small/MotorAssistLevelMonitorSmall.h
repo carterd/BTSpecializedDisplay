@@ -16,12 +16,12 @@ public:
 	virtual void initBluetoothStats()
 	{
 		BaseNumericMonitorSmall::initBluetoothStats();
-		this->bluetoothBikeController->getConnectedBluetoothBike().readBikeStateAttribute(BikeStateAttributeIndex::BIKE_ON_OFF_STATE, MonitorAttributeType::EVERY_TEN_SECONDS);
+		this->bluetoothBike->readBikeStateAttribute(BikeStateAttributeIndex::BIKE_ON_OFF_STATE, MonitorAttributeType::EVERY_TEN_SECONDS);
 	}
 
 	virtual void updateLvObj() {		
 		const char* valueString;
-		BikeStateAttribute& bikeStateAttribute = this->bluetoothBikeController->getBikeState().getStateAttribute(this->bikeStateAttributeIndex);
+		BikeStateAttribute& bikeStateAttribute = this->bluetoothBike->getBikeState().getStateAttribute(this->bikeStateAttributeIndex);
 
 		uint16_t assistLevel = bikeStateAttribute.bikeStateAttributeValue.valueUint16;
 

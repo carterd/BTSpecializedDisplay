@@ -5,7 +5,7 @@
 #include <ArduinoBLE.h>
 
 #include "BaseLvObject.h"
-#include "../dev/BluetoothBikeController.h"
+#include "../dev/BluetoothBike.h"
 #include "../dev/BluetoothBikeDefinitions.h"
 #include "../dev/BluetoothBikeState.h"
 #include "../themes/lv_theme.h"
@@ -19,7 +19,7 @@ protected:
     /// <summary>
     /// A bluetooth controller is to be associated with monitors so they can read intial stats and set which stats are required by the monitor
     /// </summary>
-    BluetoothBikeController* bluetoothBikeController;
+    BluetoothBike* bluetoothBike;
 
     /// <summary>
     /// State of the monitor if it's in focus, i.e. display should be updated on status changes
@@ -51,7 +51,7 @@ public:
     /// Setter for the bluetoothController
     /// </summary>
     /// <param name="bluetoothBikeController"></param>
-    virtual void setBluetoothController(BluetoothBikeController* bluetoothBikeController);
+    virtual void setBluetoothBike(BluetoothBike* bluetoothBike);
 
     /// <summary>
     /// Called each time stats are updated, currently this could be stats on other monitors so a check is required to see if the monitor is really updated.

@@ -7,7 +7,9 @@
 
 #include "LedError.h"
 #include "src/LvglGui.h"
-#include "src/dev/BluetoothBikeController.h"
+#include "src/dev/BluetoothController.h"
+#include "src/dev/BluetoothBike.h"
+#include "src/dev/BluetoothScanner.h"
 
 #define MIN_RESET_BUTTON_PRESS_TIME_MS 10 * 1000
 #define _SERIAL_DEBUG 1
@@ -21,7 +23,9 @@ static Arduino_LvGL_Glue displayGlue;
  * @brief Statics kept around
  * 
  */
-BluetoothBikeController* bluetoothBikeController;
+BluetoothScanner* bluetoothScanner;
+BluetoothBike* bluetoothBike;
+BluetoothController* bluetoothController;
 ConfigStore* configStore;
 
 bool resetButtonTest(Encoder* encoder) {
@@ -48,6 +52,11 @@ void setup() {
     while (!Serial);
 #endif
 
+    if (!BLE.begin()) {
+        //Serial.println("starting BLE failed!");
+        while (1);
+    }
+
     // Initialise display
     LvGL_DisplayBase* lvglDisplay = displayInit();
 
@@ -60,10 +69,10 @@ void setup() {
         led_error(result);
     }
 
-    bluetoothBikeController = new BluetoothBikeController();
+    bluetoothController = new BluetoothController(BLE_CONNECTION_REQUIRES_SCAN_STOP);
+    bluetoothScanner = new BluetoothScanner();
+    bluetoothBike = new BluetoothBike();
     configStore = new ConfigStore(FS_FILE_PREFIX FS_SEPARATOR "knownDevices.bin", FS_FILE_PREFIX FS_SEPARATOR "bikeConfig.bin", FS_FILE_PREFIX FS_SEPARATOR "displayConfig.bin", FS_FILE_PREFIX FS_SEPARATOR "saves");
-
-    bluetoothBikeController->init();
 
     static FileSystem fileSystem;
     configStore->init(&fileSystem);
@@ -90,7 +99,7 @@ void setup() {
     lv_disp_set_theme(display, theme);
     //lv_disp_set_theme(display, default_theme);
 
-    lvgl_setup(configStore, bluetoothBikeController, displayGlue, indev);
+    lvgl_setup(configStore, bluetoothController, bluetoothBike, bluetoothScanner, displayGlue, indev);
 }
 
 void loop() {
@@ -99,7 +108,8 @@ void loop() {
   lv_task_handler(); // Call LittleVGL task handler periodically
   unsigned long start = millis();
   
-  bluetoothBikeController->checkForChange();
+  bluetoothBike->checkForChange();
+  bluetoothScanner->checkForChange();
 
   unsigned long end = millis();
   if (start <= end && end - start < 20) {

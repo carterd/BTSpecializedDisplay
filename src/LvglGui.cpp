@@ -55,7 +55,6 @@
 #include "img/Phone.h"
 
 #include "dev/Display.h"
-#include "dev/BluetoothBikeController.h"
 
 #include "stats/PowerMeterLogger.h"
 #include "stats/SpeedMeterLogger.h"
@@ -67,7 +66,7 @@
  * @brief Set up the components of the LVGL display
  * 
  */
-void lvgl_setup(ConfigStore *configStore, BluetoothBikeController *bluetoothBikeController, Arduino_LvGL_Glue& displayGlue, lv_indev_t* indev) {
+void lvgl_setup(ConfigStore *configStore, BluetoothController *bluetoothController, BluetoothBike* bluetoothBike, BluetoothScanner *bluetoothScanner, Arduino_LvGL_Glue& displayGlue, lv_indev_t* indev) {
 
     //
     // Configure the Display
@@ -150,7 +149,7 @@ void lvgl_setup(ConfigStore *configStore, BluetoothBikeController *bluetoothBike
     // ====================
     //
 
-    static BluetoothConnection bluetoothConnection(bluetoothBikeController, configStore, display_theme_styles->connecting_button_img, indev, &buttonLabelBar);
+    static BluetoothConnection bluetoothConnection(bluetoothController, bluetoothBike, bluetoothScanner, configStore, display_theme_styles->connecting_button_img, indev, &buttonLabelBar);
     bluetoothConnection.setMonitorSelector(&monitorSelector);
     static ScrollMenuItem connectMenuItem(display_theme_styles->connect_button_img, false);
     //static ScrollMenuItem connectMenuItem(&ride_img_dsc, false);
@@ -169,7 +168,8 @@ void lvgl_setup(ConfigStore *configStore, BluetoothBikeController *bluetoothBike
     // Bluetooth Menu Item
     // ===================
     //
-    static BluetoothScanList bluetoothScanList(bluetoothBikeController, configStore, indev, &buttonLabelBar);
+    //static BluetoothScanList bluetoothScanList(bluetoothBikeController, configStore, indev, &buttonLabelBar);
+    static BluetoothScanList bluetoothScanList(bluetoothScanner, configStore, indev, &buttonLabelBar);
     static ScrollMenuItem bluetoothMenuItem(display_theme_styles->bluetooth_button_img);
     bluetoothMenuItem.setPopupItem(&bluetoothScanList);
 

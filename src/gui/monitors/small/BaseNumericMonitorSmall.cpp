@@ -30,7 +30,7 @@ lv_obj_t* BaseNumericMonitorSmall::createLvObj(lv_obj_t* parent) {
 
 void BaseNumericMonitorSmall::statusUpdate() 
 {
-	BikeStateAttribute& bikeStateAttribute = this->bluetoothBikeController->getBikeState().getStateAttribute(this->bikeStateAttributeIndex);
+	BikeStateAttribute& bikeStateAttribute = this->bluetoothBike->getBikeState().getStateAttribute(this->bikeStateAttributeIndex);
 
 	char* previousLabel = lv_label_get_text(this->value_obj);
 	if (*previousLabel != 0) {
@@ -56,7 +56,7 @@ void BaseNumericMonitorSmall::statusUpdate()
 void BaseNumericMonitorSmall::updateLvObj()
 {
 	char valueString[32];
-	BikeStateAttribute& bikeStateAttribute = this->bluetoothBikeController->getBikeState().getStateAttribute(this->bikeStateAttributeIndex);
+	BikeStateAttribute& bikeStateAttribute = this->bluetoothBike->getBikeState().getStateAttribute(this->bikeStateAttributeIndex);
 	
 	// If not defined initalise the print formatting for this attribute
 	if (this->printFormat == NULL) {
@@ -103,7 +103,7 @@ void BaseNumericMonitorSmall::updateLvObj()
 
 void BaseNumericMonitorSmall::initBluetoothStats()
 {
-	this->bluetoothBikeController->getConnectedBluetoothBike().readBikeStateAttribute(this->bikeStateAttributeIndex, this->monitorAttributeType);
+	this->bluetoothBike->readBikeStateAttribute(this->bikeStateAttributeIndex, this->monitorAttributeType);
 }
 
 void BaseNumericMonitorSmall::focusLvObj(BaseLvObject* defocusLvObj)

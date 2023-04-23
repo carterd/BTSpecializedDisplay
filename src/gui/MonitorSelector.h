@@ -117,7 +117,7 @@ public:
     /// This is used to pass the bluetooth controller to it's actual collection of monitors
     /// </summary>
     /// <param name="bluetoothBikeController"></param>
-    void setBluetoothController(BluetoothBikeController* bluetoothBikeController);
+    void setBluetoothBike(BluetoothBike* bluetoothBike);
 
     void initBluetoothStats();
 

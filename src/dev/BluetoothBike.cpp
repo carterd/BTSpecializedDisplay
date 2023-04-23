@@ -1,7 +1,6 @@
 
 #include "BluetoothBike.h"
 #include "BluetoothBikeRequest.h"
-#include "BluetoothBikeController.h"
 
 #include <ArduinoBLE.h>
 #include <Arduino.h>
@@ -11,14 +10,32 @@
  */
 BikeStateToBluetoothBikeRequest BluetoothBike::bikeStateToBluetoothBikeRequest;
 
+BluetoothBike* BluetoothBike::singleton = NULL;
+
+void BluetoothBike::update_ebs_handler_cb(BLEDevice device, BLECharacteristic characteristic) {
+    if (BluetoothBike::singleton && BluetoothBike::singleton->isBleDevice(device)) {
+      BluetoothBike::singleton->updateEbsCharacteristicCB(device, characteristic);
+    }
+}
+
+void BluetoothBike::update_csc_handler_cb(BLEDevice device, BLECharacteristic characteristic) {
+    if (BluetoothBike::singleton && BluetoothBike::singleton->isBleDevice(device)) {
+      BluetoothBike::singleton->updateCscCharacteristicCB(device, characteristic);
+    }
+}
+
 /**
  * @brief Construct a new Bluetooth Bike Bluetooth Bike object
  * 
  * @param bleDevice the BLE device which is the bile
  */
-BluetoothBike::BluetoothBike() {    
+BluetoothBike::BluetoothBike() {   
+    this->listener_obj = NULL;
     this->bikeType = BikeType::NONE;
     this->bikeStatusLastUpdateTime = 0;
+    this->bikeStatusLastCheckTime = 0;
+    BluetoothBike::singleton = this;
+
 }
 
 void BluetoothBike::setBleDevice(BLEDevice& bleDevice) {
@@ -41,7 +58,10 @@ void BluetoothBike::setBleDevice(BLEDevice& bleDevice) {
  * @return true The bluetooth bike object is connected to the external bike
  * @return false Connection has failed this object is not connected to the external bike
  */
-bool BluetoothBike::connect() {
+bool BluetoothBike::connect(BLEDevice bleDevice) {
+  // Ensure any existing bluetoothBike is cleaned up
+  this->setBleDevice(bleDevice);
+
   if (this->bleDevice.connect()) {
     if (this->bleDevice.discoverAttributes()) {
       this->bikeType = BikeType::NONE;
@@ -87,7 +107,7 @@ bool BluetoothBike::disconnect() {
 bool BluetoothBike::subscribeEbsNotifications() {
   //  notifications use static handlers on the controller as the controller can identify which BluetoothBike to forward to
   if (this->ebsNotifyKeyValueBleCha.canSubscribe() && this->ebsNotifyKeyValueBleCha.subscribe()) {
-    this->ebsNotifyKeyValueBleCha.setEventHandler(BLEUpdated, BluetoothBikeController::update_ebs_handler_cb);
+    this->ebsNotifyKeyValueBleCha.setEventHandler(BLEUpdated, BluetoothBike::update_ebs_handler_cb);
     return true;
   }
   return false;
@@ -100,10 +120,80 @@ bool BluetoothBike::subscribeCscNotifications() {
   }
   //  notifications use static handlers on the controller as the controller can identify which BluetoothBike to forward to
   if (this->cscMeasurementBleCha.canSubscribe() && this->cscMeasurementBleCha.subscribe()) {
-    this->cscMeasurementBleCha.setEventHandler(BLEUpdated, BluetoothBikeController::update_csc_handler_cb);
+    this->cscMeasurementBleCha.setEventHandler(BLEUpdated, BluetoothBike::update_csc_handler_cb);
     return true;
   }
   return false;
+}
+
+/**
+ * @brief Main entry for generic checking the bluetooth for change scanning or connection
+ * 
+ */
+void BluetoothBike::checkForChange() {
+    // Controller believes the bike is connected
+    if (this->isConnected()) {
+        // Attempt to poll the device and receive any notifications
+        this->poll();
+
+        uint32_t timeStamp = millis();
+        static uint32_t prevFetchTimeTicks[3];
+        static uint32_t avrgGapTimeTicks[3];
+        if (timeStamp > 60 * 1000) this->checkForStaleBikeStateAttributeSelfDistribution(MonitorAttributeType::EVERY_MINUTE, timeStamp - 60 * 1000, &prevFetchTimeTicks[0], &avrgGapTimeTicks[0], 60);
+        if (timeStamp > 10 * 1000)  this->checkForStaleBikeStateAttributeSelfDistribution(MonitorAttributeType::EVERY_TEN_SECONDS, timeStamp - 10 * 1000, &prevFetchTimeTicks[1], & avrgGapTimeTicks[1], 60);
+        if (timeStamp > 1000)  this->checkForStaleBikeStateAttributeSelfDistribution(MonitorAttributeType::EVERY_SECOND, timeStamp - 1000, &prevFetchTimeTicks[2], &avrgGapTimeTicks[2], 60);
+        if (timeStamp > 20) this->checkForStaleBikeStateAttribute(MonitorAttributeType::CONSTANTLY, timeStamp - 20);
+
+        // If there is a listener and we've got some udpate information for the gui then perform callback
+        if (this->listener_obj && this->getConnectedBikeStateUpdated()) {
+            lv_event_send(this->listener_obj, LV_EVENT_REFRESH, this);
+        }
+        this->bikeStatusLastCheckTime = this->bikeStatusLastUpdateTime;
+    }
+    else {
+      this->bikeStatusLastUpdateTime = 0;
+    }
+}
+
+void BluetoothBike::checkForStaleBikeStateAttributeSelfDistribution(MonitorAttributeType monitorAttributeType, uint32_t maximumTime, uint32_t* prevFetchTimeTicks, uint32_t* avrgGapTimeTicks, uint32_t adjustmentTicks) {
+    // If we have had an update then don't do extra checks for attributes at this time
+    if (!this->getConnectedBikeStateUpdated()) {
+        BikeStateAttributeIndex bikeStateAttributeIndex = this->getBikeState().getOldestStateAttribute(monitorAttributeType);
+        if (bikeStateAttributeIndex != BikeStateAttributeIndex::BIKE_STATE_ATTRIBUTE_SIZE) {
+            uint32_t oldestLastFetchTimeTicks = this->getBikeState().getStateAttribute(bikeStateAttributeIndex).lastFetchTimeTicks;
+            if (oldestLastFetchTimeTicks < (maximumTime + adjustmentTicks)) {
+                if (oldestLastFetchTimeTicks < maximumTime) {
+                    if (this->readBikeStateAttribute(bikeStateAttributeIndex, monitorAttributeType)
+                        || (millis() - *prevFetchTimeTicks > (*avrgGapTimeTicks + adjustmentTicks))) {
+                        // avrgGapTimeTicks will tend towards the maximumTime divided between the number of attributes associated with this monitorAttributeType
+                        uint32_t gapTimeTicks = this->getBikeState().getStateAttribute(bikeStateAttributeIndex).lastFetchTimeTicks - *prevFetchTimeTicks;
+                        if (gapTimeTicks > *avrgGapTimeTicks) {
+                            *avrgGapTimeTicks += (gapTimeTicks - *avrgGapTimeTicks) / 8;
+                        }
+                        else {
+                            *avrgGapTimeTicks -= (*avrgGapTimeTicks - gapTimeTicks) / 8;
+                        }
+                        *prevFetchTimeTicks = this->getBikeState().getStateAttribute(bikeStateAttributeIndex).lastFetchTimeTicks;
+                    }
+                }
+            }
+        }
+    }
+}
+
+void BluetoothBike::checkForStaleBikeStateAttribute(MonitorAttributeType monitorAttributeType, uint32_t maximumTime) {
+    // If we have had an update then don't do extra checks for attributes at this time
+    if (!this->getConnectedBikeStateUpdated()) {
+        BikeStateAttributeIndex bikeStateAttributeIndex = this->getBikeState().getOldestStateAttribute(monitorAttributeType);
+        if (bikeStateAttributeIndex != BikeStateAttributeIndex::BIKE_STATE_ATTRIBUTE_SIZE) {
+            if (this->getBikeState().getStateAttribute(bikeStateAttributeIndex).lastFetchTimeTicks < maximumTime) {
+                this->readBikeStateAttribute(bikeStateAttributeIndex, monitorAttributeType);
+            }
+            else {
+                // Here is the possiblity of fetching early in order to distribute fetches evenly
+            }
+        }
+    }
 }
 
 void BluetoothBike::poll() {

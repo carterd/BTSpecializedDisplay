@@ -5,11 +5,11 @@ BaseMonitorLayout::BaseMonitorLayout(MonitorLvObject** monitorLvObjects, int num
     this->numberOfMonitorObjects = numberOfMonitorObjects;
 }
 
-void BaseMonitorLayout::setBluetoothController(BluetoothBikeController* bluetoothBikeController)
+void BaseMonitorLayout::setBluetoothBike(BluetoothBike* bluetoothBike)
 {
-	this->bluetoothBikeController = bluetoothBikeController;
+	this->bluetoothBike = bluetoothBike;
 	for (int i = 0; i < this->numberOfMonitorObjects; i++) {
-		this->monitorLvObjects[i]->setBluetoothController(bluetoothBikeController);
+		this->monitorLvObjects[i]->setBluetoothBike(bluetoothBike);
 	}
 }
 
@@ -40,7 +40,7 @@ lv_obj_t* BaseMonitorLayout::createLvObj(lv_obj_t* parent) {
 
 void BaseMonitorLayout::statusUpdate()
 {
-	if (this->bluetoothBikeController && this->bluetoothBikeController->getConnected()) {
+	if (this->bluetoothBike && this->bluetoothBike->isConnected()) {
 		// This bleDevice should always be true as we've already idenfied scanned device available
 		for (int i = 0; i < this->numberOfMonitorObjects; i++) {
 			if (this->monitorLvObjects[i]) {

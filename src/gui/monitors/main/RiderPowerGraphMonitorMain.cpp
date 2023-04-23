@@ -79,14 +79,14 @@ lv_obj_t* RiderPowerGraphMonitorMain::createLvObj(lv_obj_t* parent) {
 void RiderPowerGraphMonitorMain::statusUpdate()
 {
     // Update the powerMeterLogger
-    this->powerMeterLogger->addReading(this->bluetoothBikeController->getBikeState().getStateAttribute(BikeStateAttributeIndex::RIDER_POWER).bikeStateAttributeValue.valueUint16, this->bluetoothBikeController->getBikeState().getStateAttribute(BikeStateAttributeIndex::RIDER_POWER).lastFetchTimeTicks);
+    this->powerMeterLogger->addReading(this->bluetoothBike->getBikeState().getStateAttribute(BikeStateAttributeIndex::RIDER_POWER).bikeStateAttributeValue.valueUint16, this->bluetoothBike->getBikeState().getStateAttribute(BikeStateAttributeIndex::RIDER_POWER).lastFetchTimeTicks);
     // Update the screen
     MonitorLvObject::statusUpdate();
 }
 
 void RiderPowerGraphMonitorMain::initBluetoothStats()
 {
-	this->bluetoothBikeController->getConnectedBluetoothBike().readBikeStateAttribute(BikeStateAttributeIndex::RIDER_POWER, MonitorAttributeType::EVERY_SECOND);
+	this->bluetoothBike->readBikeStateAttribute(BikeStateAttributeIndex::RIDER_POWER, MonitorAttributeType::EVERY_SECOND);
 }
 
 void RiderPowerGraphMonitorMain::updateLvObj() {
@@ -107,8 +107,8 @@ void RiderPowerGraphMonitorMain::updateLvObj() {
         updateGraph = true;
     }
 
-    if (this->currentPower != this->bluetoothBikeController->getBikeState().getStateAttribute(BikeStateAttributeIndex::RIDER_POWER).bikeStateAttributeValue.valueUint16) {
-        this->currentPower = this->bluetoothBikeController->getBikeState().getStateAttribute(BikeStateAttributeIndex::RIDER_POWER).bikeStateAttributeValue.valueUint16;
+    if (this->currentPower != this->bluetoothBike->getBikeState().getStateAttribute(BikeStateAttributeIndex::RIDER_POWER).bikeStateAttributeValue.valueUint16) {
+        this->currentPower = this->bluetoothBike->getBikeState().getStateAttribute(BikeStateAttributeIndex::RIDER_POWER).bikeStateAttributeValue.valueUint16;
         if (this->currentPower > this->graphDisplayMaxPower) {
             this->updateMultipler(this->currentPower);
         }

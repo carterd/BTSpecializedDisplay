@@ -34,12 +34,12 @@ lv_obj_t* MotorAssistLevelDotMonitorSmall::createLvObj(lv_obj_t* parent) {
 
 void MotorAssistLevelDotMonitorSmall::statusUpdate()
 {
-	if (this->bluetoothBikeController && this->bluetoothBikeController->getConnected()) {
+	if (this->bluetoothBike && this->bluetoothBike->isConnected()) {
 		// This bleDevice should always be true as we've already idenfied scanned device available
-		if (this->bluetoothBikeController->getBikeState().getStateAttribute(BikeStateAttributeIndex::MOTOR_ASSIST_LEVEL).bikeStateAttributeValue.valueUint16 != this->displayedMotorAssistLevel ||
-			this->bluetoothBikeController->getBikeState().getStateAttribute(BikeStateAttributeIndex::BIKE_ON_OFF_STATE).bikeStateAttributeValue.valueUint8 != this->displayedBikeOnOffState) {
-			this->displayedMotorAssistLevel = this->bluetoothBikeController->getBikeState().getStateAttribute(BikeStateAttributeIndex::MOTOR_ASSIST_LEVEL).bikeStateAttributeValue.valueUint16;
-			this->displayedBikeOnOffState = this->bluetoothBikeController->getBikeState().getStateAttribute(BikeStateAttributeIndex::BIKE_ON_OFF_STATE).bikeStateAttributeValue.valueUint8;
+		if (this->bluetoothBike->getBikeState().getStateAttribute(BikeStateAttributeIndex::MOTOR_ASSIST_LEVEL).bikeStateAttributeValue.valueUint16 != this->displayedMotorAssistLevel ||
+			this->bluetoothBike->getBikeState().getStateAttribute(BikeStateAttributeIndex::BIKE_ON_OFF_STATE).bikeStateAttributeValue.valueUint8 != this->displayedBikeOnOffState) {
+			this->displayedMotorAssistLevel = this->bluetoothBike->getBikeState().getStateAttribute(BikeStateAttributeIndex::MOTOR_ASSIST_LEVEL).bikeStateAttributeValue.valueUint16;
+			this->displayedBikeOnOffState = this->bluetoothBike->getBikeState().getStateAttribute(BikeStateAttributeIndex::BIKE_ON_OFF_STATE).bikeStateAttributeValue.valueUint8;
 			MonitorLvObject::statusUpdate();
 		}
 		// We should use a counter to keep battery upto date ... as probaby needs explicit read from time to time
@@ -52,8 +52,8 @@ void MotorAssistLevelDotMonitorSmall::statusUpdate()
 
 void MotorAssistLevelDotMonitorSmall::initBluetoothStats()
 {
-	this->bluetoothBikeController->getConnectedBluetoothBike().readBikeStateAttribute(BikeStateAttributeIndex::MOTOR_ASSIST_LEVEL, MonitorAttributeType::EVERY_MINUTE);
-	this->bluetoothBikeController->getConnectedBluetoothBike().readBikeStateAttribute(BikeStateAttributeIndex::BIKE_ON_OFF_STATE, MonitorAttributeType::EVERY_TEN_SECONDS);
+	this->bluetoothBike->readBikeStateAttribute(BikeStateAttributeIndex::MOTOR_ASSIST_LEVEL, MonitorAttributeType::EVERY_MINUTE);
+	this->bluetoothBike->readBikeStateAttribute(BikeStateAttributeIndex::BIKE_ON_OFF_STATE, MonitorAttributeType::EVERY_TEN_SECONDS);
 }
 
 void MotorAssistLevelDotMonitorSmall::updateLvObj() {
