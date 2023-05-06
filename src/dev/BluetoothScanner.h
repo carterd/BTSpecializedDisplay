@@ -80,6 +80,8 @@ public:
 	/// <returns>True if the scan was successfully restarted</returns>
 	bool continueScan();
 
+	bool isScanning() { return this->scanning; }
+
 	/// <summary>
 	/// This should be called periodically to update the listener object on changes to the controller
 	/// Identify if any new devices have been found when in scanning mode and hence requires such changes to be processed by 

@@ -9,6 +9,7 @@
 #include "src/LvglGui.h"
 #include "src/dev/BluetoothController.h"
 #include "src/dev/BluetoothBike.h"
+#include "src/dev/BluetoothHeartRateMonitor.h"
 #include "src/dev/BluetoothScanner.h"
 
 #define MIN_RESET_BUTTON_PRESS_TIME_MS 10 * 1000
@@ -25,6 +26,7 @@ static Arduino_LvGL_Glue displayGlue;
  */
 BluetoothScanner* bluetoothScanner;
 BluetoothBike* bluetoothBike;
+BluetoothHeartRateMonitor* bluetoothHeartRateMonitor;
 BluetoothController* bluetoothController;
 ConfigStore* configStore;
 
@@ -68,10 +70,12 @@ void setup() {
     if (result != LVGL_OK) {    
         led_error(result);
     }
-
-    bluetoothController = new BluetoothController(BLE_CONNECTION_REQUIRES_SCAN_STOP);
+    
     bluetoothScanner = new BluetoothScanner();
     bluetoothBike = new BluetoothBike();
+    bluetoothHeartRateMonitor = new BluetoothHeartRateMonitor();
+    bluetoothController = new BluetoothController(bluetoothBike, bluetoothHeartRateMonitor, bluetoothScanner, BLE_CONNECTION_REQUIRES_SCAN_STOP);
+    
     configStore = new ConfigStore(FS_FILE_PREFIX FS_SEPARATOR "knownDevices.bin", FS_FILE_PREFIX FS_SEPARATOR "bikeConfig.bin", FS_FILE_PREFIX FS_SEPARATOR "displayConfig.bin", FS_FILE_PREFIX FS_SEPARATOR "saves");
 
     static FileSystem fileSystem;
@@ -99,7 +103,7 @@ void setup() {
     lv_disp_set_theme(display, theme);
     //lv_disp_set_theme(display, default_theme);
 
-    lvgl_setup(configStore, bluetoothController, bluetoothBike, bluetoothScanner, displayGlue, indev);
+    lvgl_setup(configStore, bluetoothController, bluetoothBike, bluetoothHeartRateMonitor, bluetoothScanner, displayGlue, indev);
 }
 
 void loop() {

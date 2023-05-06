@@ -9,6 +9,7 @@
 #include "../dev/BluetoothController.h"
 #include "../dev/BluetoothScanner.h"
 #include "../dev/BluetoothBike.h"
+#include "../dev/BluetoothHeartRateMonitor.h"
 #include "../dev/ConfigStore.h"
 
 #define CONNECT_ONLY_WHEN_BATTERY_CONNECTED 0
@@ -62,14 +63,9 @@ private:
     BluetoothController* bluetoothController;
 
     /// <summary>
-    /// This is the bluetooth bike object
+    /// The state of the connection is connected state
     /// </summary>
-    BluetoothBike* bluetoothBike;
-
-    /// <summary>
-    /// This is the bluetooth scanner object
-    /// </summary>
-    BluetoothScanner* bluetoothScanner;
+    bool connectedHeartRateMonitor;
 
     /// <summary>
     /// The config store which contains the bluetooth devices to connect to
@@ -82,14 +78,9 @@ private:
     uint32_t connectingStartTime;
 
     /// <summary>
-    /// The state of the connection is in connecting state
+    /// The state of the connection is connected state and the display should show bike info
     /// </summary>
-    bool connecting;
-
-    /// <summary>
-    /// The state of the connection is connected state
-    /// </summary>
-    bool connected;
+    bool connectedBike;
 
     /// <summary>
     /// Ture when the monitorSelector is the actively shown on the display
@@ -106,23 +97,42 @@ private:
     /// </summary>
     BaseLvObject* defocusLvObj;
 
+    /// <summary>
+    /// This is the monitor selector object containing all the monitor views
+    /// </summary>
     MonitorSelector* monitorSelector;
 
+    /// <summary>
+    /// This is a state flag to identify when the connection is the initial connection and when reconnect from loss of comms
+    /// </summary>
+    bool initialConnectionState;
+
+    /// <summary>
+    /// This is a state flag to identify that the connecting session has been identified to include a heart rate monitor
+    /// </summary>
+    bool connectingIncludesHeartRateMonitorState;
 private:
-
+    /// <summary>
+    /// Switch the object to show the monitoring windows
+    /// </summary>
     void switchToMonitorLvObject();
-
+    /// <summary>
+    /// Switch the to the connecting view of spinner etc
+    /// </summary>
     void switchToConnectionLvObject();
 
     /// <summary>
     /// Call on hiding the button label if one has been defined for this gui object
     /// </summary>
     void hideButtonLabels();
+    /// <summary>
+    /// Call show on the button label if one has been defined for this gui object
+    /// </summary>
     void showButtonLabels();
     /// <summary>
     /// This will start the process of connection to any of the BLE devices in the config store
     /// </summary>
-    void startBTConnection();
+    void startBikeConnection();
     /// <summary>
     /// This will end the process of connection
     /// </summary>
@@ -154,7 +164,7 @@ public:
     /// <param name="bluetoothMaster">an instance of the bluetooth controller</param>
     /// <param name="configStore">an instance of the config store for devices to connect to</param>
     /// <param name="configStore">an image to be the background image while connecting</param>
-    BluetoothConnection(BluetoothController* bluetoothController, BluetoothBike* bluetoothBike, BluetoothScanner* bluetoothScanner, ConfigStore* configStore, lv_img_dsc_t* image, lv_indev_t* indev, ButtonLabelBar* buttonLabelBar = NULL);
+    BluetoothConnection(BluetoothController* bluetoothController, ConfigStore* configStore, lv_img_dsc_t* image, lv_indev_t* indev, ButtonLabelBar* buttonLabelBar = NULL);
 
     virtual ~BluetoothConnection();
 

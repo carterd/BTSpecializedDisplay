@@ -22,18 +22,18 @@ void BluetoothConnection::connecting_timer_cb(lv_timer_t * timer) {
     ((BluetoothConnection*)(timer->user_data))->connectingTimerCB(timer);
 }
 
-BluetoothConnection::BluetoothConnection(BluetoothController* bluetoothController, BluetoothBike* bluetoothBike, BluetoothScanner* bluetoothScanner, ConfigStore* configStore, lv_img_dsc_t* image, lv_indev_t* indev, ButtonLabelBar* buttonLabelBar)  : ButtonLabelledLvObject(indev, buttonLabelBar)
+BluetoothConnection::BluetoothConnection(BluetoothController* bluetoothController, ConfigStore* configStore, lv_img_dsc_t* image, lv_indev_t* indev, ButtonLabelBar* buttonLabelBar)  : ButtonLabelledLvObject(indev, buttonLabelBar)
 {
 	this->bluetoothController = bluetoothController;
-    this->bluetoothBike = bluetoothBike;
-    this->bluetoothScanner = bluetoothScanner;
 	this->configStore = configStore;
 	this->image = image;
-    this->connecting = false;
-    this->connected = false;
+    this->connectedBike = false;
+    this->connectedHeartRateMonitor = false;
     this->monitorSelectorActive = false;
     this->monitorSelector = NULL;
     this->exiting = false;
+    this->initialConnectionState = true;
+    this->connectingIncludesHeartRateMonitorState = false;
 }
 
 BluetoothConnection::~BluetoothConnection()
@@ -119,6 +119,12 @@ void BluetoothConnection::focusLvObj(BaseLvObject* defocusLvObj)
     this->updateButtonLabelBar();
 
     if (defocusLvObj) {
+        // We have arrived here from an external lvObject so we're on the initial connection
+        this->defocusLvObj = defocusLvObj;
+        this->exiting = false;
+        this->initialConnectionState = true;
+
+        this->connectingIncludesHeartRateMonitorState = false;
         // Ensure the connection view is shown if jumping to the connection
         lv_obj_set_tile_id(this->tileview_obj, 0, 0, LV_ANIM_OFF);
         // Capture movement from here on in
@@ -126,12 +132,11 @@ void BluetoothConnection::focusLvObj(BaseLvObject* defocusLvObj)
         lv_group_focus_obj(this->button_obj);
 
         this->monitorSelectorActive = false;
-        this->exiting = false;
-        this->defocusLvObj = defocusLvObj;
-        this->startBTConnection();
+        this->startBikeConnection();
         
     } else {
-        // If we are already connecting and we get focus
+        // If we are already connecting and we get focus this is a reconnect due to disconnect
+        this->initialConnectionState = false;
         // Ensure the connection view is shown if jumping to the connection
         lv_obj_set_tile_id(this->tileview_obj, 0, 0, LV_ANIM_OFF);
         // Capture movement from here on in
@@ -139,7 +144,7 @@ void BluetoothConnection::focusLvObj(BaseLvObject* defocusLvObj)
         lv_group_focus_obj(this->button_obj);
 
         this->monitorSelectorActive = false;
-        this->startBTConnection();
+        this->startBikeConnection();
     }
 }
 
@@ -149,21 +154,16 @@ void BluetoothConnection::setMonitorSelector(MonitorSelector* monitorSelector)
     this->monitorSelector->setBluetoothConnection(this);
 }
 
-void BluetoothConnection::startBTConnection()
+void BluetoothConnection::startBikeConnection()
 {
     this->connectingStartTime = millis();
     this->connecting_timer = lv_timer_create(connecting_timer_cb, CONNECTING_TIMEOUT_MILLIS, this);
-
-    if (this->bluetoothScanner) {
-        this->bluetoothScanner->setListenerLvObj(this->button_obj);
-        this->bluetoothScanner->startScan();
-    }
-
-    if (this->bluetoothBike) {
-        this->bluetoothBike->setListenerLvObj(this->button_obj);
-    }
-    this->connecting = true;
-    this->connected = false;
+    // We should be in a disconnected state but ensure the bike is disconnected
+    this->connectedBike = false;
+    this->bluetoothController->getBluetoothBike()->disconnect();
+    this->connectedHeartRateMonitor = this->bluetoothController->getBluetoothHeartRateMonitor()->isConnected();
+    
+    this->bluetoothController->startConnections(this->button_obj);
 
     lv_obj_clear_flag(this->label_obj, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(this->spinner_obj, LV_OBJ_FLAG_HIDDEN);
@@ -171,14 +171,9 @@ void BluetoothConnection::startBTConnection()
 
 void BluetoothConnection::stopBTConnection()
 {
-    this->connecting = false;
-    this->connected = false;
-    if (this->bluetoothScanner) {
-        this->bluetoothScanner->stopScan();
-    }
-    if (this->bluetoothBike) {
-        this->bluetoothBike->disconnect();
-    }
+    this->connectedBike = false;
+    this->connectedHeartRateMonitor = false;
+    this->bluetoothController->stopConnections();
 }
 
 void BluetoothConnection::restartBTConnection() {
@@ -212,7 +207,7 @@ void BluetoothConnection::switchToMonitorLvObject()
 {
     // Ensure the monitor screen is set up and move the gui to showing it
     if (this->monitorSelector) {
-        this->monitorSelector->setBluetoothBike(this->bluetoothBike);
+        this->monitorSelector->setBluetoothBike(this->bluetoothController->getBluetoothBike());
         this->monitorSelector->initBluetoothStats();
         this->monitorSelector->focusLvObj(this);
         lv_obj_set_tile_id(this->tileview_obj, 0, 1, LV_ANIM_ON);
@@ -237,69 +232,47 @@ void BluetoothConnection::connectionSuccess()
     // On successful connection we should ensure the bike config is set correctly
     BikeConfig bikeConfig = this->configStore->getBikeConfig();
 
-    if (bikeConfig.beeper.managed) this->bluetoothBike->writeBikeStateAttribute(BikeStateAttributeIndex::BEEP_ON_OFF_STATE, &(bikeConfig.beeper.value));
-    //if (bikeConfig.wheelCircumference.managed) this->bluetoothBike->writeBikeStateAttribute(BikeStateAttributeIndex::WHEEL_CIRCUMFERENCE, &(bikeConfig.wheelCircumference.value));
-    if (bikeConfig.supportAssistLevels.managed) this->bluetoothBike->writeBikeStateAttribute(BikeStateAttributeIndex::SUPPORT_ASSIST_LEVELS, &(bikeConfig.supportAssistLevels.value));
-    if (bikeConfig.peakPowerAssistLevels.managed) this->bluetoothBike->writeBikeStateAttribute(BikeStateAttributeIndex::PEAK_POWER_ASSIST_LEVELS, &(bikeConfig.peakPowerAssistLevels.value));
+    if (bikeConfig.beeper.managed) this->bluetoothController->getBluetoothBike()->writeBikeStateAttribute(BikeStateAttributeIndex::BEEP_ON_OFF_STATE, &(bikeConfig.beeper.value));
+    //if (bikeConfig.wheelCircumference.managed) this->bluetoothController->getBluetoothBike()->writeBikeStateAttribute(BikeStateAttributeIndex::WHEEL_CIRCUMFERENCE, &(bikeConfig.wheelCircumference.value));
+    if (bikeConfig.supportAssistLevels.managed) this->bluetoothController->getBluetoothBike()->writeBikeStateAttribute(BikeStateAttributeIndex::SUPPORT_ASSIST_LEVELS, &(bikeConfig.supportAssistLevels.value));
+    if (bikeConfig.peakPowerAssistLevels.managed) this->bluetoothController->getBluetoothBike()->writeBikeStateAttribute(BikeStateAttributeIndex::PEAK_POWER_ASSIST_LEVELS, &(bikeConfig.peakPowerAssistLevels.value));
     
     // Ensure the monitor screen is set up and move the gui to showing it
     this->switchToMonitorLvObject();
-
-    // The referesh is now going to connect into the monitored panel(s)
-    this->connecting = false;
-    this->connected = true;
 }
 
-void BluetoothConnection::checkForConnection() {
-    if (this->connecting) {
-        if (this->bluetoothScanner && this->bluetoothScanner->getScannedDeviceAvailable()) {
-            // This should always be true as we've checked there is a scanned device above
-            BLEDevice bleDevice = this->bluetoothScanner->getScannedDevice();
-            if (bleDevice) {
-                if (this->configStore->getBTAddressesConfig().containsBTAddress(bleDevice.address().c_str())) {
-                    if (this->bluetoothController->getConnectionRequiresScanStop()) { this->bluetoothScanner->stopScan(); }                    
-                    if (this->bluetoothBike->connect(bleDevice)) {
-                        switch (this->bluetoothBike->getBikeType())
-                        {
-                        case BikeType::GEN1:
-                        case BikeType::GEN2:
-                            if (this->bluetoothBike->readBikeStateAttribute(BikeStateAttributeIndex::BATTERY_CONNECTED_STATE)
-                                && (this->bluetoothBike->getBikeState().getStateAttribute(BikeStateAttributeIndex::BATTERY_CONNECTED_STATE).bikeStateAttributeValue.valueBool
-                                    || configStore->getDisplayConfig().connectBatteryOnly))
-                            {
-                                // Connected
-                                this->connectionSuccess();
-                                return;
-                            }
-                            break;
-                        }
-                        this->bluetoothBike->disconnect();
-                    }
-                    this->bluetoothScanner->startScan();
-                }
-            }
-            this->bluetoothScanner->continueScan();
+void BluetoothConnection::checkForConnection() {  
+    if (this->bluetoothController->checkForConnections(&this->configStore->getBTAddressesConfig(), this->configStore->getDisplayConfig().connectBatteryOnly)) {
+        if (!this->connectedBike && this->bluetoothController->getBluetoothBike()->isConnected()) {
+            // The referesh is now going to connect into the monitored panel(s)
+            this->connectedBike = true;
+            this->connectionSuccess();
         }
-    } 
-    else {
-        // This needs to be corrected further
-        if (this->bluetoothScanner && this->bluetoothScanner->getScannedDeviceAvailable()) {
-            this->bluetoothScanner->continueScan();
+        if (!this->connectedHeartRateMonitor && this->bluetoothController->getBluetoothHeartRateMonitor()->isConnected()) {            
+            // If we're riding with 
+            this->connectedHeartRateMonitor = true;
+            this->connectingIncludesHeartRateMonitorState = true;
         }
     }
 }
 
 void BluetoothConnection::checkForConnectedUpdates() {
-    if (this->connected) {
+    if (this->connectedBike) {
         // Check that the BT connection is still there
-        if (this->bluetoothBike->isConnected()) {
+        if (this->bluetoothController->getBluetoothBike()->isConnected()) {
             // We are begin refereshed by the connection now
             this->monitorSelector->statusUpdate();
-        }
-        // If the BT connection has gone down then we need to attempt to re-establish
+        }        
         else {
+            // If the BT connection has gone down then we need to attempt to re-establish
             this->restartBTConnection();
+            return;
         }
+    }
+    if (this->connectedHeartRateMonitor && !this->bluetoothController->getBluetoothHeartRateMonitor()->isConnected()) {
+        // represents the identification of loss of Heart rate monitor
+        this->connectedHeartRateMonitor = false;
+        this->bluetoothController->startConnections(this->button_obj);    
     }
 }
 
@@ -338,7 +311,15 @@ void BluetoothConnection::encoderActivityCB(lv_event_t* event)
 
 void BluetoothConnection::connectingTimerCB(lv_timer_t* timer) 
 {
-    if (this->connecting_timer == timer && this->connecting) {
-        this->exitButtonCB();
+    if (this->connecting_timer == timer) {
+        if (!this->connectedBike) {
+            // No bike after timeout then quit looking for bike
+            this->exitButtonCB();
+        }
+        else {
+            // We've connected to the bike ... do we need to keep scanning for heart rate monitor
+            if (!this->connectingIncludesHeartRateMonitorState)                
+                this->bluetoothController->stopScanning();
+        }
     }
 }

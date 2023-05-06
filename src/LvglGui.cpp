@@ -66,7 +66,7 @@
  * @brief Set up the components of the LVGL display
  * 
  */
-void lvgl_setup(ConfigStore *configStore, BluetoothController *bluetoothController, BluetoothBike* bluetoothBike, BluetoothScanner *bluetoothScanner, Arduino_LvGL_Glue& displayGlue, lv_indev_t* indev) {
+void lvgl_setup(ConfigStore *configStore, BluetoothController *bluetoothController, BluetoothBike* bluetoothBike, BluetoothHeartRateMonitor* bluetoothHeartRateMonitor, BluetoothScanner *bluetoothScanner, Arduino_LvGL_Glue& displayGlue, lv_indev_t* indev) {
 
     //
     // Configure the Display
@@ -149,7 +149,7 @@ void lvgl_setup(ConfigStore *configStore, BluetoothController *bluetoothControll
     // ====================
     //
 
-    static BluetoothConnection bluetoothConnection(bluetoothController, bluetoothBike, bluetoothScanner, configStore, display_theme_styles->connecting_button_img, indev, &buttonLabelBar);
+    static BluetoothConnection bluetoothConnection(bluetoothController, configStore, display_theme_styles->connecting_button_img, indev, &buttonLabelBar);
     bluetoothConnection.setMonitorSelector(&monitorSelector);
     static ScrollMenuItem connectMenuItem(display_theme_styles->connect_button_img, false);
     //static ScrollMenuItem connectMenuItem(&ride_img_dsc, false);
