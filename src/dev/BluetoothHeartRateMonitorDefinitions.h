@@ -15,7 +15,7 @@
 // U-Int-8 (BPM measurement) [only if Monitor Flags bit 0 = FALSE Heart rate monitor Flags]
 // U-Int-16 (BPM measurement) [only if Monitor Flags bit 0 = TRUE Heart rate monitor Flags]
 //   This value represents the current bpm measured
-// U-Int-16 (Energy Expended status bit) [only present if bit 3 = TRUE Heart rate monitor Flags]
+// U-Int-16 (Energy Expended) [only present if bit 3 = TRUE Heart rate monitor Flags]
 //   This value represents the energy expended value
 // U-Int-16 x N (number of RR Intervals) [only present if bit 4 = TRUE Heart rate monitor Flags]
 //   Milliseconds for RR Intervals
