@@ -548,8 +548,8 @@ void BluetoothBike::readBufferToCscMeasurement()
         wheelSpeedCadenceReading.eventTime - lastWheelSpeedCadenceReading.eventTime : 
         0x10000 + wheelSpeedCadenceReading.eventTime - lastWheelSpeedCadenceReading.eventTime;
       int32_t wheelRotationsDelta = wheelSpeedCadenceReading.rotationCount - lastWheelSpeedCadenceReading.rotationCount;
-      float wheelRatationsPerSecond = 60000.0 * wheelRotationsDelta / eventTimeDelta;
-      bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::WHEEL_ROTATIONS_PER_MIN, wheelRatationsPerSecond, time);
+      float wheelRatationsPerMinute = 60000.0 * wheelRotationsDelta / eventTimeDelta;
+      bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::WHEEL_ROTATIONS_PER_MIN, wheelRatationsPerMinute, time);
     }
   }
   if (this->readBuffer[0] & static_cast<int>(CscMeasurementBit::CSC_CRANK_REV_BIT)) {
@@ -572,8 +572,8 @@ void BluetoothBike::readBufferToCscMeasurement()
         crankSpeedCadenceReading.eventTime - lastCrankSpeedCadenceReading.eventTime : 
         0x10000 + crankSpeedCadenceReading.eventTime - lastCrankSpeedCadenceReading.eventTime;
       int32_t crankRotationsDelta = crankSpeedCadenceReading.rotationCount - lastCrankSpeedCadenceReading.rotationCount;
-      float crankRatationsPerSecond = 60000.0 * crankRotationsDelta / eventTimeDelta;
-      bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::CRANK_ROTATIONS_PER_MIN, crankRatationsPerSecond, time);
+      float crankRatationsPerMinute = 60000.0 * crankRotationsDelta / eventTimeDelta;
+      bikeStatusUpdate = this->bikeState.setStateAttribute(BikeStateAttributeIndex::CRANK_ROTATIONS_PER_MIN, crankRatationsPerMinute, time);
     }
   }
   // If we identify a bike status attribute has been changed then update the time stamp in bikeStatuslastUpdateTime

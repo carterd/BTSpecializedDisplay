@@ -1,5 +1,7 @@
 #include "BaseLogger.h"
 
+#include <lvgl.h>
+
 template <typename T> BaseLogger<T>::BaseLogger(uint32_t startTimeTicks, uint32_t periodLengthTimeTicks, int maxPeriodReadings)
 {
 	this->periodStartTimeTicks = startTimeTicks;
@@ -43,17 +45,19 @@ void BaseLogger<T>::processPeriodRead()
 		PeriodReading periodReading;
 		periodReading.min = this->meterReadings[0].value;
 		periodReading.max = periodReading.min;
-		float average = 0;
+		int32_t average = 0;
 		uint32_t previousFetchTimeTicks = this->periodStartTimeTicks;
 		for (int i = 0; i < meterReadingsSize; i++) {
 			T value = this->meterReadings[i].value;
+			LV_LOG_USER("VALUE = %d", (int) value);
 			uint32_t fetchTimeTicks = this->meterReadings[i].lastFetchTimeTicks;
 			if (value > periodReading.max) periodReading.max = value;
 			else if (value < periodReading.min) periodReading.min = value;
-			average += value * (fetchTimeTicks - previousFetchTimeTicks);
+			average += ((uint32_t) value) * (fetchTimeTicks - previousFetchTimeTicks);
 			previousFetchTimeTicks = fetchTimeTicks;
 		}
-		periodReading.average = average / ( previousFetchTimeTicks - this->periodStartTimeTicks);
+		periodReading.average = ((float) average) / ( previousFetchTimeTicks - this->periodStartTimeTicks);
+		LV_LOG_USER("AVERAGE = %d", (int) average);
 		periodReading.periodStartTimeTicks = this->periodStartTimeTicks;
 		this->addPeriodReading(periodReading);
 	}

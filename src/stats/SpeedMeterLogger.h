@@ -30,7 +30,7 @@ public:
     /// <param name="lastFetchTimeTicks"></param>
     void addReading(float wheelRotationsPerMin, uint32_t lastFetchTimeTicks) {
         // Multiply the speed from a float to uint .. to save memory but keep enough accuracy
-        BaseLogger<uint16_t>::addReading(this->convert(wheelRotationsPerMin), lastFetchTimeTicks);
+        BaseLogger<uint16_t>::addReading(this->convertWheelRotationsPerMinToMultipliedKmph(wheelRotationsPerMin), lastFetchTimeTicks);
     }
 
     /// <summary>
@@ -38,15 +38,21 @@ public:
     /// </summary>
     /// <param name="reading"></param>
     /// <returns></returns>
-    uint16_t convert(float wheelRotationsPerMin) {
+    uint16_t convertWheelRotationsPerMinToMultipliedKmph(float wheelRotationsPerMin) {
         float kmph = wheelRotationsPerMin * this->wheelCircumferenceMm * 60.0f / (1000000.0f / FLOAT_TO_UINT16_MULTIPLIER);
-        return kmph; 
+        return kmph;
     }
 
     /// <summary>
     /// Given a value in Kmph convert to uint16_t value using in this logger
     /// </summary>
-    uint16_t convertKmph(float kmph) { return FLOAT_TO_UINT16_MULTIPLIER * kmph; }
+    uint16_t convertKmphToMultipliedKmph(float kmph) { return FLOAT_TO_UINT16_MULTIPLIER * kmph; }
+
+    /// <summary>
+    /// Given a value in Logger stored multiplier Kmph convert to uint16_t value using in this logger
+    /// </summary>
+    float convertMultipliedKmphToKmph(uint16_t multipliedKmph) { return multipliedKmph / FLOAT_TO_UINT16_MULTIPLIER; }
+
 };
 
 #endif

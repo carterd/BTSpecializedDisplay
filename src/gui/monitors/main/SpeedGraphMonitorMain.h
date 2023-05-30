@@ -1,6 +1,8 @@
 #ifndef _SPEED_GRAPH_MONITOR_MAIN_H
 #define _SPEED_GRAPH_MONITOR_MAIN_H
 
+#include "../MonitorGraph.h"
+
 #include "BaseMonitorMain.h"
 #include "../../../stats/SpeedMeterLogger.h"
 #include "../../../dev/ConfigStore.h"
@@ -93,7 +95,7 @@ private:
     /// <summary>
     /// The current speed to display
     /// </summary>
-    uint16_t currentSpeed;
+    uint16_t currentSpeedKmph;
     /// <summary>
     /// Selector for display mode either min/max or average
     /// </summary>
@@ -116,16 +118,27 @@ private:
     /// </summary>
     uint16_t graphTicksLarge;
 private:
-
+    /// <summary>
+    /// Updated the axis labels
+    /// </summary>
     void updateAxisLabels();
-
+    /// <summary>
+    /// Updated the graph
+    /// </summary>
     void updateGraph();
-
+    /// <summary>
+    /// 
+    /// </summary>
     void updateCurrent();
-
+    /// <summary>
+    /// Mulitplier is used to size the graph
+    /// </summary>
     void updateMultipler(uint16_t maxReading);
 
     void wheelRotationsPerMinToSpeed(uint16_t);
+
+private:
+    MonitorGraph monitorGraph;
 
 public:
     SpeedGraphMonitorMain(ConfigStore* configStore, SpeedMeterLogger* speedMeterLogger, bool minMaxMode = true, float graphSpeedMinLimit = 12.5F, float graphMaxSpeedLimit = 100.0F);

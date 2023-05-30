@@ -1,6 +1,10 @@
 #include "SpeedGraphMonitorMain.h"
 #include "../../../themes/lv_theme.h"
 
+#define MILLI_PER_MIN 60000
+#define MAX_GRAPH_LINES 60
+#define POINTS_PER_LINE 2
+
 static lv_style_t style_line(lv_coord_t width, bool white = true) {
     lv_style_t style_line;
     lv_style_init(&style_line);
@@ -21,17 +25,18 @@ static lv_style_t style_line_dash(lv_coord_t width) {
     return style_line;
 }
 
-SpeedGraphMonitorMain::SpeedGraphMonitorMain(ConfigStore* configStore, SpeedMeterLogger* speedMeterLogger, bool minMaxMode, float graphSpeedMinLimit, float graphSpeedMaxLimit) {
+SpeedGraphMonitorMain::SpeedGraphMonitorMain(ConfigStore* configStore, SpeedMeterLogger* speedMeterLogger, bool minMaxMode, float graphSpeedMinLimit, float graphSpeedMaxLimit) :
+    monitorGraph(MAX_GRAPH_LINES, POINTS_PER_LINE) {
     this->configStore = configStore;
     this->speedMeterLogger = speedMeterLogger;
     this->minMaxMode = minMaxMode;
-    this->graphSpeedMinLimit = this->speedMeterLogger->convertKmph(graphSpeedMinLimit);
-    this->graphSpeedMaxLimit = this->speedMeterLogger->convertKmph(graphSpeedMaxLimit);
+    this->graphSpeedMinLimit = this->speedMeterLogger->convertKmphToMultipliedKmph(graphSpeedMinLimit);
+    this->graphSpeedMaxLimit = this->speedMeterLogger->convertKmphToMultipliedKmph(graphSpeedMaxLimit);
     this->graphDisplayMultiplier = 0.0;
     this->speedMeterLoggerPeriodStartTimeTicks = 0;
-    this->currentSpeed = 0;
+    this->currentSpeedKmph = 0;
 
-    this->graphTicksLarge = this->speedMeterLogger->convertKmph(10);
+    this->graphTicksLarge = this->speedMeterLogger->convertKmphToMultipliedKmph(10);
     this->graphTicksSmall = this->graphTicksLarge / 2;
 
     this->graph_axis_line_style = style_line(1);
@@ -52,11 +57,15 @@ lv_obj_t* SpeedGraphMonitorMain::createLvObj(lv_obj_t* parent) {
     lv_obj_set_size(this->graphLinesParent, GRAPH_WIDTH, GRAPH_HEIGHT);
     lv_obj_set_align(this->graphLinesParent, LV_ALIGN_LEFT_MID);
 
-    for (int i = 0; i < GRAPH_WIDTH; i++) {
-        lv_obj_t* graphMinMaxLine = lv_line_create(this->graphLinesParent);
-        lv_obj_add_style(graphMinMaxLine, &this->graph_line_style, LV_PART_MAIN);
-        lv_line_set_points(graphMinMaxLine, this->graph_bar_line_points[i], 2);
-    }
+    // Try graphing
+    this->monitorGraph.createLvObj(this->graphLinesParent);
+    this->monitorGraph.setLimits(-MILLI_PER_MIN*MAX_GRAPH_LINES, 0.0, 0.0, 25);
+
+    //for (int i = 0; i < GRAPH_WIDTH; i++) {
+    //    lv_obj_t* graphMinMaxLine = lv_line_create(this->graphLinesParent);
+    //    lv_obj_add_style(graphMinMaxLine, &this->graph_line_style, LV_PART_MAIN);
+    //    lv_line_set_points(graphMinMaxLine, this->graph_bar_line_points[i], 2);
+    //}
 
     lv_obj_t* currentLineParent = lv_line_create(this->this_obj);
     lv_obj_set_size(currentLineParent, lv_obj_get_width(parent), GRAPH_HEIGHT);
@@ -78,6 +87,11 @@ void SpeedGraphMonitorMain::statusUpdate()
 {
     // Update the speedMeterLogger
     this->speedMeterLogger->addReading(this->bluetoothBike->getBikeState().getStateAttribute(BikeStateAttributeIndex::WHEEL_ROTATIONS_PER_MIN).bikeStateAttributeValue.valueFloat, this->bluetoothBike->getBikeState().getStateAttribute(BikeStateAttributeIndex::RIDER_POWER).lastFetchTimeTicks);
+
+    //LV_LOG_USER("Rotations = %d", (int) this->bluetoothBike->getBikeState().getStateAttribute(BikeStateAttributeIndex::WHEEL_ROTATIONS_PER_MIN).bikeStateAttributeValue.valueFloat);
+    //LV_LOG_USER("Logging the current speed = %d", this->speedMeterLogger->convertWheelRotationsPerMinToMultipliedKmph(this->bluetoothBike->getBikeState().getStateAttribute(BikeStateAttributeIndex::WHEEL_ROTATIONS_PER_MIN).bikeStateAttributeValue.valueFloat));
+    //LV_LOG_USER("Actual speed = %d", (int) ( 1000* this->speedMeterLogger->convertMultipliedKmphToKmph( this->speedMeterLogger->convertWheelRotationsPerMinToMultipliedKmph(this->bluetoothBike->getBikeState().getStateAttribute(BikeStateAttributeIndex::WHEEL_ROTATIONS_PER_MIN).bikeStateAttributeValue.valueFloat) ) ));
+
     // Update the screen
     MonitorLvObject::statusUpdate();
 }
@@ -91,7 +105,7 @@ void SpeedGraphMonitorMain::initBluetoothStats()
     this->speedMeterLogger->setWheelCircumference((bikeConfig.wheelCircumference.managed) ? bikeConfig.wheelCircumference.value : this->bluetoothBike->getBikeState().getStateAttribute(BikeStateAttributeIndex::WHEEL_CIRCUMFERENCE).bikeStateAttributeValue.valueUint16);
     this->bluetoothBike->readBikeStateAttribute(BikeStateAttributeIndex::WHEEL_ROTATIONS, MonitorAttributeType::EVERY_TEN_SECONDS);
 
-    this->graphTicksLarge = displayConfig.unitsMetric ? this->speedMeterLogger->convertKmph(10.0) : this->speedMeterLogger->convertKmph(16.0934);
+    this->graphTicksLarge = displayConfig.unitsMetric ? this->speedMeterLogger->convertKmphToMultipliedKmph(10.0) : this->speedMeterLogger->convertKmphToMultipliedKmph(16.0934);
     this->graphTicksSmall = this->graphTicksLarge / 2;
 }
 
@@ -115,9 +129,9 @@ void SpeedGraphMonitorMain::updateLvObj() {
 
     if (this->currentWheelRotationsPerMin != this->bluetoothBike->getBikeState().getStateAttribute(BikeStateAttributeIndex::WHEEL_ROTATIONS_PER_MIN).bikeStateAttributeValue.valueFloat) {
         this->currentWheelRotationsPerMin = this->bluetoothBike->getBikeState().getStateAttribute(BikeStateAttributeIndex::WHEEL_ROTATIONS_PER_MIN).bikeStateAttributeValue.valueFloat;
-        this->currentSpeed = this->speedMeterLogger->convert(this->currentWheelRotationsPerMin);
-        if (this->currentSpeed > this->graphDisplayMaxSpeed) {
-            this->updateMultipler(this->currentSpeed);
+        this->currentSpeedKmph = this->speedMeterLogger->convertWheelRotationsPerMinToMultipliedKmph(this->currentWheelRotationsPerMin);
+        if (this->currentSpeedKmph > this->graphDisplayMaxSpeed) {
+            this->updateMultipler(this->currentSpeedKmph);
         }
         // Current changed identify current needs update
         updateCurrent = true;
@@ -129,8 +143,8 @@ void SpeedGraphMonitorMain::updateLvObj() {
     }
 
     if (updateGraph) this->updateGraph();
-    if (updateCurrent) this->updateCurrent();
-    if (updateAxisLabels) this->updateAxisLabels();
+    //if (updateCurrent) this->updateCurrent();
+    //if (updateAxisLabels) this->updateAxisLabels();
 }
 
 void SpeedGraphMonitorMain::updateAxisLabels() {
@@ -179,6 +193,42 @@ void SpeedGraphMonitorMain::updateGraph() {
     std::deque<SpeedMeterLogger::PeriodReading>* periodReadings = this->speedMeterLogger->getPeriodReadings();
     uint32_t periodGraphStartTimeTicks = this->speedMeterLogger->getPeriodStartTimeTicks();
     uint32_t periodGraphLengthTimeTicks = this->speedMeterLogger->getPeriodLengthTimeTicks();
+
+    auto it = periodReadings->crbegin();
+    if (it != periodReadings->crend()) {
+        // Current time is close enough to the timings of logs
+        uint32_t currentTime = millis();
+        uint32_t startTimeTicks = (*it).periodStartTimeTicks;
+        float startAvgCoord = (*it).average;
+        uint16_t lineIndex = 0;
+        do {
+            uint32_t timeTicks;
+            float avgCoord;
+            it++;
+            if (it != periodReadings->crend() && (*it).periodStartTimeTicks > startTimeTicks - this->speedMeterLogger->getPeriodLengthTimeTicks() * 1.5) {
+                timeTicks = (*it).periodStartTimeTicks;
+                avgCoord = (*it).average;
+            } else {
+                timeTicks = startTimeTicks;
+                avgCoord = startAvgCoord;
+            }
+            LV_LOG_USER("Avg = %d", (int) avgCoord);
+            LV_LOG_USER("From Point x=%d, y=%d", timeTicks - currentTime, (int) this->speedMeterLogger->convertMultipliedKmphToKmph( avgCoord) );
+            LV_LOG_USER("From Point x=%d, y=%d", startTimeTicks - currentTime, (int) this->speedMeterLogger->convertMultipliedKmphToKmph( startAvgCoord ) );
+
+            this->monitorGraph.setGraphPoint(lineIndex, 0, timeTicks - currentTime, avgCoord);
+            this->monitorGraph.setGraphPoint(lineIndex, 1, startTimeTicks - currentTime, startAvgCoord);
+            this->monitorGraph.setLineVisible(lineIndex);
+            lineIndex++;
+            startAvgCoord = avgCoord;
+            startTimeTicks = timeTicks;
+        } while (it != periodReadings->crend() && lineIndex < MAX_GRAPH_LINES);
+        this->monitorGraph.updateLvObj();
+    }
+    /*
+    std::deque<SpeedMeterLogger::PeriodReading>* periodReadings = this->speedMeterLogger->getPeriodReadings();
+    uint32_t periodGraphStartTimeTicks = this->speedMeterLogger->getPeriodStartTimeTicks();
+    uint32_t periodGraphLengthTimeTicks = this->speedMeterLogger->getPeriodLengthTimeTicks();
     auto it = periodReadings->crbegin();
     lv_coord_t prevAvCoord = (it != periodReadings->crend()) ? (*it).average * this->graphDisplayMultiplier : 0;
     lv_coord_t max = 0;
@@ -214,25 +264,26 @@ void SpeedGraphMonitorMain::updateGraph() {
         this->graph_bar_line_points[i][1] = { (lv_coord_t)(i), (lv_coord_t)(GRAPH_BOTTOM + 1 - min) };
         lv_line_set_points(graph_line_obj, this->graph_bar_line_points[i], 2);
     }
+    */
 }
 
 void SpeedGraphMonitorMain::updateCurrent() {
-    lv_coord_t current = this->currentSpeed * this->graphDisplayMultiplier;
-    if (current >= GRAPH_HEIGHT) current = GRAPH_BOTTOM;
+//    lv_coord_t current = this->currentSpeed * this->graphDisplayMultiplier;
+//    if (current >= GRAPH_HEIGHT) current = GRAPH_BOTTOM;
 
-    this->graph_current_line_points[0] = { 0, (lv_coord_t)(GRAPH_BOTTOM - current) };
-    this->graph_current_line_points[1] = { 63, (lv_coord_t)(GRAPH_BOTTOM - current) };
-    lv_line_set_points(this->currentBackgroundLine, this->graph_current_line_points, 2);
-    lv_line_set_points(this->currentLine, this->graph_current_line_points, 2);
+//   this->graph_current_line_points[0] = { 0, (lv_coord_t)(GRAPH_BOTTOM - current) };
+//    this->graph_current_line_points[1] = { 63, (lv_coord_t)(GRAPH_BOTTOM - current) };
+//    lv_line_set_points(this->currentBackgroundLine, this->graph_current_line_points, 2);
+//    lv_line_set_points(this->currentLine, this->graph_current_line_points, 2);
 }
 
 void SpeedGraphMonitorMain::updateMultipler(uint16_t maxReading) {
     // Find a max for the display as a multiple of small ticks
-    uint16_t newGraphDisplayMax = (((maxReading / this->graphTicksSmall) + 1) * this->graphTicksSmall) + (this->graphTicksSmall / 2);
+//    uint16_t newGraphDisplayMax = (((maxReading / this->graphTicksSmall) + 1) * this->graphTicksSmall) + (this->graphTicksSmall / 2);
     // Limit the graphDisplay Max
-    if (newGraphDisplayMax > this->graphSpeedMaxLimit) newGraphDisplayMax = this->graphSpeedMaxLimit;
-    if (newGraphDisplayMax < this->graphSpeedMinLimit) newGraphDisplayMax = this->graphSpeedMinLimit;
+//    if (newGraphDisplayMax > this->graphSpeedMaxLimit) newGraphDisplayMax = this->graphSpeedMaxLimit;
+//    if (newGraphDisplayMax < this->graphSpeedMinLimit) newGraphDisplayMax = this->graphSpeedMinLimit;
     // update the 
-    this->graphDisplayMultiplier = (newGraphDisplayMax > 0 ? ((float)GRAPH_HEIGHT) / newGraphDisplayMax : 0.0);
-    this->graphDisplayMaxSpeed = GRAPH_HEIGHT / this->graphDisplayMultiplier;
+//    this->graphDisplayMultiplier = (newGraphDisplayMax > 0 ? ((float)GRAPH_HEIGHT) / newGraphDisplayMax : 0.0);
+//    this->graphDisplayMaxSpeed = GRAPH_HEIGHT / this->graphDisplayMultiplier;
 }
