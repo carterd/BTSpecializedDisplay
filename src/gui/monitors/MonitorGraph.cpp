@@ -1,7 +1,7 @@
 #include "MonitorGraph.h"
 
 #include <lvgl.h>
-#include "../../themes/lv_theme.h"
+#include "../../themes/display_theme.h"
 
 
 MonitorGraph::MonitorGraph(uint16_t numberOfLines, uint16_t pointsInLine) {

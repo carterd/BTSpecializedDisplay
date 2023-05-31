@@ -3,7 +3,7 @@
 #include "MonitorSelector.h"
 #include "BluetoothConnection.h"
 #include "../img/PressButton.h"
-#include "../themes/lv_theme.h"
+#include "../themes/display_theme.h"
 
 void MonitorSelector::tile_btn_cb(lv_event_t* event) {
     MonitorSelector* monitorSelector = (MonitorSelector*)event->user_data;

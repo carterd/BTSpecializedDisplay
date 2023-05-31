@@ -1,5 +1,5 @@
 #include "MainView.h"
-#include "../themes/lv_theme.h"
+#include "../themes/display_theme.h"
 
 MainView::MainView(lv_indev_t* indev, ButtonLabelBar* buttonLabelBar, BaseLvObject* baseLvObject) : ButtonLabelledLvObject(indev, NULL)
 {

@@ -1,5 +1,5 @@
 #include "MemoryMonitorSmall.h"
-#include "../../../themes/lv_theme.h"
+#include "../../../themes/display_theme.h"
 
 #ifdef ARDUINO_ARCH_MBED
 #include <mbed.h>

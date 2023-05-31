@@ -9,7 +9,7 @@ extern "C" {
  *      INCLUDES
  *********************/
 #include <lvgl.h>
-#include "lv_theme.h"
+#include "display_theme.h"
 
 /**
  * Initialize the theme

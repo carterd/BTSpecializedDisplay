@@ -8,7 +8,7 @@
 #include "../dev/BluetoothBike.h"
 #include "../dev/BluetoothBikeDefinitions.h"
 #include "../dev/BluetoothBikeState.h"
-#include "../themes/lv_theme.h"
+#include "../themes/display_theme.h"
 
 /// <summary>
 /// This is the base object for monitor objects

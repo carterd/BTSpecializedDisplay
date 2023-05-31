@@ -1,5 +1,5 @@
 #include "SpeedGraphMonitorMain.h"
-#include "../../../themes/lv_theme.h"
+#include "../../../themes/display_theme.h"
 
 #define MILLI_PER_MIN 60000
 #define MAX_GRAPH_LINES 60

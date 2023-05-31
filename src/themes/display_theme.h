@@ -1,5 +1,9 @@
-#ifndef _LV_THEME_STYLES_H
-#define _LV_THEME_STYLES_H
+#ifndef _DISPLAY_THEME_H
+#define _DISPLAY_THEME_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <lvgl.h>
 
@@ -119,7 +123,7 @@ typedef struct {
 /**
  * @brief This is the structure of styles used by the display
  */
-extern display_theme_styles_t* display_theme_styles;
+extern display_theme_styles_t * display_theme_styles;
 /**
  * @brief This is the displays theme which is using the styles
  */
@@ -128,5 +132,9 @@ extern lv_theme_t display_theme;
  * @brief Registers if the theme has been initialised
  */
 extern bool display_theme_inited;
+
+#ifdef __cplusplus
+} /*extern "C"*/
+#endif
 
 #endif

@@ -1,5 +1,5 @@
 #include "TimeticksMonitorSmall.h"
-#include "../../../themes/lv_theme.h"
+#include "../../../themes/display_theme.h"
 
 TimeticksMonitorSmall::TimeticksMonitorSmall(const char* attributeTitle) {
 	this->attributeTitle = attributeTitle;

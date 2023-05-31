@@ -1,5 +1,5 @@
 #include "BatteryCapacityImageMonitorSmall.h"
-#include "../../../themes/lv_theme.h"
+#include "../../../themes/display_theme.h"
 
 const lv_point_t BatteryCapacityImageMonitorSmall::battery_line_points_sh1107[] = {
 	{1, 8},                             // Bottom
