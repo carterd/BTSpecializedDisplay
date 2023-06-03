@@ -1,5 +1,5 @@
 #include "MotorAssistLevelDotsMonitorSmall.h"
-#include "../../../themes/lv_theme.h"
+#include "../../../themes/display_theme.h"
 
 const assist_coords_t MotorAssistLevelDotMonitorSmall::assist_coords_sh1107 = {10, 22, 8};
 const assist_coords_t MotorAssistLevelDotMonitorSmall::assist_coords_tdisplay = {20, 50, 10};

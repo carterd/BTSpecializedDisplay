@@ -1,5 +1,5 @@
 #include "BatteryCapacityMonitorMain.h"
-#include "../../../themes/lv_theme.h"
+#include "../../../themes/display_theme.h"
 
 
 BatteryCapacityMonitorMain::BatteryCapacityMonitorMain() {

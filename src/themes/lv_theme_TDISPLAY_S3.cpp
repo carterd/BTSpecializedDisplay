@@ -25,6 +25,7 @@
 #define COLOR_BAT_MODERATE  lv_color_make(213, 213, 213)
 #define COLOR_BAT_BAD       lv_color_make(255, 128, 128)
 #define COLOR_BAT_OUTLINE   lv_color_white()
+#define COLOR_SPEED_GRAPH   lv_color_make(0, 255, 0)
 #define COLOR_DOT     lv_color_make(0, 255, 0)
 
   // Card Presets
@@ -629,6 +630,9 @@ static void style_init(bool dark_bg, const lv_font_t* font)
     style_init_reset(sp);
     lv_style_set_height(sp, 250);
     lv_style_set_width(sp, 160);
+    lv_style_set_line_width(sp, 6);
+    lv_style_set_line_color(sp, COLOR_SPEED_GRAPH);
+    lv_style_set_line_rounded(sp, true);
 
     // Main Battery display
     sp = &display_theme_styles->main_battery_outline;

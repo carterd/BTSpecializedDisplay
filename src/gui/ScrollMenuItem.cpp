@@ -1,5 +1,5 @@
 #include "ScrollMenuItem.h"
-#include "../themes/lv_theme.h"
+#include "../themes/display_theme.h"
 
 
 ScrollMenuItem::ScrollMenuItem(lv_img_dsc_t* image, bool animatedSelect) : BaseLvObject()

@@ -1,7 +1,7 @@
 #include <algorithm>
 
 #include "ScrollMenu.h"
-#include "../themes/lv_theme.h"
+#include "../themes/display_theme.h"
 
 void ScrollMenu::value_changed_cb(lv_event_t* event) {
     ScrollMenu* scrollMenu = (ScrollMenu*) event->user_data;

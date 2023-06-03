@@ -1,6 +1,6 @@
 #include "BluetoothConnection.h"
 #include "MonitorSelector.h"
-#include "../themes/lv_theme.h"
+#include "../themes/display_theme.h"
 
 void BluetoothConnection::tile_changed_cb(lv_event_t* event) {
     ((BluetoothConnection*)(event->user_data))->tileChangedCB(event);

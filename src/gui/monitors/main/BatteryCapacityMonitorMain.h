@@ -3,7 +3,7 @@
 
 #include "BaseMonitorMain.h"
 
-#include "..\..\..\themes\lv_theme.h"
+#include "..\..\..\themes\display_theme.h"
 
 class BatteryCapacityMonitorMain : public BaseMonitorMain
 {

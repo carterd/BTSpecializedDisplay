@@ -1,6 +1,6 @@
 #include "BluetoothScanList.h"
 #include "ButtonLabelBar.h"
-#include "../themes/lv_theme.h"
+#include "../themes/display_theme.h"
 
 void BluetoothScanList::exit_btn_cb(lv_event_t* event) {
 	((BluetoothScanList*) (event->user_data))->exitButtonCB(event);

@@ -1,5 +1,5 @@
 #include "RiderPowerGraphMonitorMain.h"
-#include "../../../themes/lv_theme.h"
+#include "../../../themes/display_theme.h"
 
 static lv_style_t style_line(lv_coord_t width, bool white = true) {
 	lv_style_t style_line;

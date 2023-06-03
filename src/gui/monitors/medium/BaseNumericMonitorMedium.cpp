@@ -1,5 +1,5 @@
 #include "BaseNumericMonitorMedium.h"
-#include "../../../themes/lv_theme.h"
+#include "../../../themes/display_theme.h"
 
 BaseNumericMonitorMedium::BaseNumericMonitorMedium(BikeStateAttributeIndex bikeStateAttributeIndex, MonitorAttributeType monitorAttributeType, const char* attributeTitle, const char* attributeUnits, const char* printFormat) {
 	this->bikeStateAttributeIndex = bikeStateAttributeIndex;
