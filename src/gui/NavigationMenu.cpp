@@ -44,10 +44,10 @@ NavigationMenu::~NavigationMenu()
 lv_obj_t* NavigationMenu::createLvObj(lv_obj_t* parent)
 {
 	// get the style we'll need for the bar
-	display_theme_styles_t* binary_styles = (display_theme_styles_t*)lv_disp_get_theme(lv_obj_get_disp(parent))->user_data;
+	display_theme_styles_t* display_theme_styles = (display_theme_styles_t*)lv_disp_get_theme(lv_obj_get_disp(parent))->user_data;
 	lv_style_t* menu_label_bar_style = &(display_theme_styles->menu_label_bar);
-	lv_style_t* no_scrollbar_style = &(binary_styles->no_scrollbar);
-	lv_style_t* inv_style = &(binary_styles->inv);
+	lv_style_t* no_scrollbar_style = &(display_theme_styles->no_scrollbar);
+	lv_style_t* inv_style = &(display_theme_styles->inv);
 
 	this->group = lv_group_create();
 	lv_group_set_wrap(this->group, false);
