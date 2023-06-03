@@ -6,8 +6,8 @@
 #include <lvgl.h>
 
 typedef struct {
-    float x;
-    float y;
+    int32_t x;
+    int32_t y;
 } GraphPoint;
 
 class MonitorGraph : public BaseLvObject {
@@ -39,40 +39,41 @@ protected:
     /// The height of the lv_object area
     /// </summary>
     uint16_t height;
-
+    /// <summary>
+    /// The number of points in each of the lines
+    /// </summary>
     uint16_t pointsInLine;
-
+    /// <summary>
+    /// The number of lines in the graph
+    /// </summary>
     uint16_t numberOfLines;
-
+    /// <summary>
+    /// The number of lines in the graph basically pointsInLine*numberOfLines
+    /// </summary>
     uint16_t numberOfPoints;
-
     /// <summary>
-    /// The graph Y Maximum value
+    /// The graph Maximum values
     /// </summary>
-    float graphYMax;
+    GraphPoint graphMax;
     /// <summary>
-    /// The graph Y Minimum value
+    /// The graph Minimum values
     /// </summary>
-    float graphYMin;
+    GraphPoint graphMin;
     /// <summary>
-    /// The graph X Maximum value
+    /// Pointer to all the stored points of the graph
     /// </summary>
-    float graphXMax;
-    /// <summary>
-    /// The graph X Minimum value
-    /// </summary>
-    float graphXMin;
-
     GraphPoint* graphPoints;
 
 public:
     /// <summary>
     /// </summary>
     MonitorGraph(uint16_t numberOfLines, uint16_t pointsInLine);
+
     /// <summary>
     /// This will attempt to destroy all the Lv Objects associated with the instance and sub components associcated with it
     /// </summary>
     virtual ~MonitorGraph();
+
     /// <summary>
     /// This Creates the instance of the Lv Objects associated with the instance and sub components associated with it
     /// </summary>
@@ -85,17 +86,35 @@ public:
     /// </summary>
     virtual void focusLvObj(BaseLvObject* defocusLvObj = NULL);
 
+    /// <summary>
+    /// Update the points on the display with the values set in the graph points array
+    /// </summary>
     void updateLvObj();
 
-    void setLimits(float xMin, float xMax, float yMin, float yMax) { this->graphXMin = xMin; this->graphXMax = yMax; this->graphYMin = yMin; this->graphYMax = yMax; }
+    /// <summary>
+    /// Set a new set of graph limits
+    /// </summary>
+    /// <param name="min"></param>
+    /// <param name="max"></param>
+    void setLimits(GraphPoint min, GraphPoint max) { this->graphMax = max; this->graphMin = min; }
+    /// <summary>
+    /// Set a new set of graph limits
+    /// </summary>
+    void setLimits(int32_t xMin, int32_t xMax, int32_t yMin, int32_t yMax) { this->graphMin.x = xMin; this->graphMax.x = xMax; this->graphMin.y = yMin; this->graphMax.y = yMax; }
+    /// <summary>
+    /// Set a new set of graph limits
+    /// </summary>
+    void setLimitsMin(GraphPoint min) { this->graphMin = min; }
 
-    void setXmin(float xMin) { this->graphXMin = xMin; }
+    void setLimitsMax(GraphPoint max) { this->graphMax = max; }
 
-    void setYmin(float yMin) { this->graphYMin = yMin; }
+    void setXmin(int32_t xMin) { this->graphMin.x = xMin; }
+
+    void setYmin(int32_t yMin) { this->graphMin.y = yMin; }
     
-    void setXmax(float xMax) { this->graphXMax = xMax; }
+    void setXmax(int32_t xMax) { this->graphMax.x = xMax; }
 
-    void setYmax(float yMax) { this->graphYMax = yMax; }
+    void setYmax(int32_t yMax) { this->graphMax.y = yMax; }
 
     void setGraphPoint(uint16_t pointIndex, GraphPoint* graphPoint) { if (pointIndex >= 0 && pointIndex < this->numberOfPoints) { this->graphPoints[pointIndex] = *graphPoint; } }
 
@@ -112,7 +131,10 @@ public:
     void setLineVisible(uint16_t lineIndex);
 
     void setLineHidden(uint16_t lineIndex);
-
+    /// <summary>
+    /// Sets the line style of the graph
+    /// </summary>
+    /// <param name="graph_line_style"></param>
     void setGraphLineStyle(lv_style_t* graph_line_style) { this->graph_line_style = graph_line_style; }
 };
 

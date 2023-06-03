@@ -8,7 +8,7 @@
 #include "../../../dev/ConfigStore.h"
 
 #define GRAPH_MAX_NO_AXIS_TICKS 12
-#define GRAPH_WIDTH 60
+#define GRAPH_WIDTH 128
 #define GRAPH_HEIGHT 100
 #define GRAPH_BOTTOM GRAPH_HEIGHT - 1
 
@@ -36,10 +36,6 @@ private:
     /// This is the store for the point that make up the graph axis
     /// </summary>
     lv_point_t graph_axis_line_points[GRAPH_MAX_NO_AXIS_TICKS][2];
-    /// <summary>
-    /// This is for bar graphs of max and min
-    /// </summary>
-    lv_point_t graph_bar_line_points[GRAPH_WIDTH][2];
     /// <summary>
     /// The points for the current power line on the graph
     /// </summary>

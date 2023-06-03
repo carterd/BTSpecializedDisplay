@@ -13,7 +13,6 @@ template <typename T>
 void BaseLogger<T>::addReading(T reading, uint32_t lastFetchTimeTicks)
 {
 	if (lastFetchTimeTicks <= this->lastFetchTimeTicks) return;
-	
     // If we have entered a new period process the old period
 	if (lastFetchTimeTicks > this->periodStartTimeTicks + this->periodLengthTimeTicks) {
 		this->processPeriodRead();
@@ -45,19 +44,17 @@ void BaseLogger<T>::processPeriodRead()
 		PeriodReading periodReading;
 		periodReading.min = this->meterReadings[0].value;
 		periodReading.max = periodReading.min;
-		int32_t average = 0;
+		float average = 0.0f;
 		uint32_t previousFetchTimeTicks = this->periodStartTimeTicks;
 		for (int i = 0; i < meterReadingsSize; i++) {
 			T value = this->meterReadings[i].value;
-			LV_LOG_USER("VALUE = %d", (int) value);
 			uint32_t fetchTimeTicks = this->meterReadings[i].lastFetchTimeTicks;
 			if (value > periodReading.max) periodReading.max = value;
 			else if (value < periodReading.min) periodReading.min = value;
 			average += ((uint32_t) value) * (fetchTimeTicks - previousFetchTimeTicks);
 			previousFetchTimeTicks = fetchTimeTicks;
 		}
-		periodReading.average = ((float) average) / ( previousFetchTimeTicks - this->periodStartTimeTicks);
-		LV_LOG_USER("AVERAGE = %d", (int) average);
+		periodReading.average = average / ( previousFetchTimeTicks - this->periodStartTimeTicks);
 		periodReading.periodStartTimeTicks = this->periodStartTimeTicks;
 		this->addPeriodReading(periodReading);
 	}

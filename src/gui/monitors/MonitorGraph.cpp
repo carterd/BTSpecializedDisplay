@@ -29,9 +29,6 @@ lv_obj_t* MonitorGraph::createLvObj(lv_obj_t* parent) {
     this->height = lv_obj_get_height(parent); 
     if (this->height == 0) { this->height = 1; }
 
-    display_theme_styles_t* display_theme_styles = (display_theme_styles_t*)lv_disp_get_theme(lv_obj_get_disp(parent))->user_data;
-    lv_style_t* main_graph_panel_style = &(display_theme_styles->main_graph_panel);
-
     //  Create a lineand apply the new style
     this->this_obj = lv_line_create(parent);
     lv_obj_set_size(this->this_obj, this->width, this->height);
@@ -61,17 +58,17 @@ void MonitorGraph::setLineHidden(uint16_t lineIndex) {
 }
 
 void MonitorGraph::updateLvObj() {
-    float xMultiplier = this->graphXMax - this->graphXMin / this->width;
-    float yMultiplier = this->graphYMin - this->graphYMax / this->height;
-    float xOffset = -this->graphXMin;
-    float yOffset = this->graphYMax;
+    float xMultiplier = ((float)(this->graphMax.x - this->graphMin.x)) / this->width;
+    float yMultiplier = ((float)(this->graphMin.y - this->graphMax.y)) / this->height;
+    float xOffset = this->graphMin.x;
+    float yOffset = this->graphMax.y;
     for (int i = 0; i < this->numberOfLines; i++) {
         // Keep calculating graph positions
         lv_point_t* lv_line_points = &this->graph_line_points[i * this->pointsInLine];
         GraphPoint* linePoint = &this->graphPoints[i * this->pointsInLine];
         for (int p = 0; p < this->pointsInLine ; p++) {
-            lv_line_points[p].x = xOffset + xMultiplier * linePoint[p].x;
-            lv_line_points[p].y = yOffset + yMultiplier * linePoint[p].y;            
+            lv_line_points[p].x = (linePoint[p].x - xOffset) / xMultiplier;
+            lv_line_points[p].y = (linePoint[p].y - yOffset) / yMultiplier;
         }
         lv_obj_t* graph_line_obj = lv_obj_get_child(this->this_obj, i);
         lv_line_set_points(graph_line_obj, lv_line_points, this->pointsInLine);
