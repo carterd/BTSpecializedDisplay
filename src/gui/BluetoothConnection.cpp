@@ -24,6 +24,7 @@ void BluetoothConnection::connecting_timer_cb(lv_timer_t * timer) {
 
 BluetoothConnection::BluetoothConnection(BluetoothController* bluetoothController, ConfigStore* configStore, lv_img_dsc_t* image, lv_indev_t* indev, ButtonLabelBar* buttonLabelBar)  : ButtonLabelledLvObject(indev, buttonLabelBar)
 {
+    this->monitor_tile_obj = NULL;
 	this->bluetoothController = bluetoothController;
 	this->configStore = configStore;
 	this->image = image;
@@ -97,11 +98,10 @@ lv_obj_t* BluetoothConnection::createLvObj(lv_obj_t* parent)
     lv_obj_add_style(this->label_obj, searching_button_style, LV_PART_MAIN);
     lv_obj_center(this->label_obj);
     
-    // create the optional monitor tile
-    if (this->monitorSelector) {        
-        lv_obj_t* tile_obj = lv_tileview_add_tile(this->tileview_obj, 0, 1, LV_DIR_ALL);
-        lv_obj_add_style(tile_obj, no_scrollbar_style, LV_PART_SCROLLBAR);
-        this->monitorSelector->createLvObj(tile_obj);
+    // create the monitor tile
+    if (this->monitorSelector) {
+        this->monitor_tile_obj = lv_tileview_add_tile(this->tileview_obj, 0, 1, LV_DIR_ALL);
+        lv_obj_add_style(this->monitor_tile_obj, no_scrollbar_style, LV_PART_SCROLLBAR);
     }
     
     // Return the connection lv_obj just in case
@@ -123,8 +123,12 @@ void BluetoothConnection::focusLvObj(BaseLvObject* defocusLvObj)
         this->defocusLvObj = defocusLvObj;
         this->exiting = false;
         this->initialConnectionState = true;
-
         this->connectingIncludesHeartRateMonitorState = false;
+
+        // Ensure the monitor selector is started
+        lv_obj_clean(this->monitor_tile_obj);
+        this->monitorSelector->createLvObj(this->monitor_tile_obj);
+
         // Ensure the connection view is shown if jumping to the connection
         lv_obj_set_tile_id(this->tileview_obj, 0, 0, LV_ANIM_OFF);
         // Capture movement from here on in
@@ -294,6 +298,7 @@ void BluetoothConnection::exitButtonCB(lv_event_t* event)
     if (this->defocusLvObj) {
         this->defocusLvObj->focusLvObj();
         this->stopBTConnection();
+        lv_obj_clean(this->monitor_tile_obj);
     }
 }
 

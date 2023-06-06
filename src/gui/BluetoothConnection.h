@@ -35,6 +35,11 @@ private:
     lv_obj_t* tileview_obj;
 
     /// <summary>
+    /// This is the parent of the monitor object(s) and is a tile of tileview_obj
+    /// </summary>
+    lv_obj_t* monitor_tile_obj;
+
+    /// <summary>
     /// The connection button
     /// </summary>
     lv_obj_t* button_obj;
