@@ -76,6 +76,8 @@ lv_obj_t* MonitorSelector::createLvObj(lv_obj_t* parent)
     this->group = lv_group_create();
     lv_group_set_wrap(this->group, false);
 
+    // Note adding to the group will loose selected item with a callback when added to group
+    int selectedItem = this->selectedItem;
     int tile_pos = 0;
     for (std::vector<MonitorLvObject*>::iterator it = std::begin(this->monitorLvObjects); it != std::end(this->monitorLvObjects); ++it)
     {
@@ -97,6 +99,8 @@ lv_obj_t* MonitorSelector::createLvObj(lv_obj_t* parent)
 
         tile_pos++;
     }
+    // Now explicitly select the item already selected
+    this->selectedItem = selectedItem;
 
     return this->this_obj;
 }
@@ -104,6 +108,9 @@ lv_obj_t* MonitorSelector::createLvObj(lv_obj_t* parent)
 
 void MonitorSelector::destroyLvObj()
 {
+    for (std::vector<MonitorLvObject*>::iterator it = std::begin(this->monitorLvObjects); it != std::end(this->monitorLvObjects); ++it) {
+        (*it)->destroyLvObj();
+    }
     if (this->group) lv_group_del(this->group);
     this->group = NULL;
     BaseLvObject::destroyLvObj();
@@ -166,9 +173,11 @@ void MonitorSelector::statusUpdate() {
 void MonitorSelector::deselectMonitor() {
     // Get the current tile that user has navigated to
     lv_obj_t* selected_obj = lv_obj_get_child(this->options_tileview_obj, this->selectedItem);
-    // Identify the monitor object specifically
-    MonitorLvObject* monitorLvObject = (MonitorLvObject*)lv_obj_get_user_data(selected_obj);
-    this->deselectMonitor(monitorLvObject);
+    if (selected_obj) {
+        // Identify the monitor object specifically
+        MonitorLvObject* monitorLvObject = (MonitorLvObject*)lv_obj_get_user_data(selected_obj);
+        this->deselectMonitor(monitorLvObject);
+    }
 }
 
 void MonitorSelector::deselectMonitor(MonitorLvObject* monitorLvObject) {

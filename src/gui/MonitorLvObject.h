@@ -48,6 +48,11 @@ public:
     virtual void defocusLvObj() { this->infocus = false; }
 
     /// <summary>
+    /// This will attempt to destroy all the Lv Objects associated with the instance and sub components associcated with it
+    /// </summary>
+    virtual void destroyLvObj() { this->infocus = false; BaseLvObject::destroyLvObj(); }
+
+    /// <summary>
     /// Setter for the bluetoothController
     /// </summary>
     /// <param name="bluetoothBikeController"></param>

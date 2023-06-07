@@ -233,12 +233,11 @@ void NavigationMenu::menuItemButtonCB(lv_event_t* event) {
 
 	ScrollMenuItem* scrollMenuItem = (ScrollMenuItem * ) lv_obj_get_user_data(event->target);
 
-	lv_obj_clean(this->popup_tile_obj);
-
 	// Create the popup item if there is one on the scrollMenuItem
 	BaseLvObject* popupItem = scrollMenuItem->getPopupItem();
 	if (popupItem) {
 		this->selectedLvObj = popupItem;
+		popupItem->destroyLvObj();
 		popupItem->createLvObj(this->popup_tile_obj);
 		popupItem->focusLvObj(this);		
 		lv_obj_set_tile_id(this->option_tileview_obj, 1, 0, LV_ANIM_ON);

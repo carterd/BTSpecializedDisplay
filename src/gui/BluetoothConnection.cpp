@@ -126,7 +126,7 @@ void BluetoothConnection::focusLvObj(BaseLvObject* defocusLvObj)
         this->connectingIncludesHeartRateMonitorState = false;
 
         // Ensure the monitor selector is started
-        lv_obj_clean(this->monitor_tile_obj);
+        this->monitorSelector->destroyLvObj();
         this->monitorSelector->createLvObj(this->monitor_tile_obj);
 
         // Ensure the connection view is shown if jumping to the connection
@@ -298,7 +298,7 @@ void BluetoothConnection::exitButtonCB(lv_event_t* event)
     if (this->defocusLvObj) {
         this->defocusLvObj->focusLvObj();
         this->stopBTConnection();
-        lv_obj_clean(this->monitor_tile_obj);
+        this->monitorSelector->destroyLvObj();
     }
 }
 
