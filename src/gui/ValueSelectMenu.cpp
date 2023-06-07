@@ -30,6 +30,7 @@ ValueSelectMenu::ValueSelectMenu(const char* titleText, const char* exitButtonTe
 ValueSelectMenu::~ValueSelectMenu()
 {
 	ValueSelectMenu::destroyLvObj();
+	this->deleteAllMenuItems();
 }
 
 void ValueSelectMenu::destroyLvObj()

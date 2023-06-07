@@ -12,6 +12,7 @@
 #include "BikeEcoAssistMenu.h"
 #include "BikeTrailAssistMenu.h"
 #include "BikeTurboAssistMenu.h"
+#include "BikeAssistPresetsMenu.h"
 
 
 class ManagedBikeConfigMenuItem : public ScrollMenuItem {
@@ -82,6 +83,7 @@ private:
 	BikeEcoAssistMenu bikeEcoAssitMenu;
 	BikeTrailAssistMenu bikeTrailAssitMenu;
 	BikeTurboAssistMenu bikeTurboAssitMenu;
+	BikeAssistPresetsMenu bikeAssistPresetMenu;
 public:
 	ScrollMenuItem menuItem;
 public:
@@ -91,13 +93,15 @@ public:
 		managedBikeConfigMenuItem("Managed", configStore, BikeConfigAttributeIndex::SupportAssistLevelsManaged),
 		bikeEcoAssitMenu(configStore, indev, buttonLabelBar),
 		bikeTrailAssitMenu(configStore, indev, buttonLabelBar),
-		bikeTurboAssitMenu(configStore, indev, buttonLabelBar)
+		bikeTurboAssitMenu(configStore, indev, buttonLabelBar),
+		bikeAssistPresetMenu(configStore, indev, buttonLabelBar)
 	{
         // Bike Menus
 		this->assistNavigationMenu.addMenuItem(&this->managedBikeConfigMenuItem);
 		this->assistNavigationMenu.addMenuItem(&this->bikeEcoAssitMenu.configBikeMenuItem);
 		this->assistNavigationMenu.addMenuItem(&this->bikeTrailAssitMenu.configBikeMenuItem);
 		this->assistNavigationMenu.addMenuItem(&this->bikeTurboAssitMenu.configBikeMenuItem);
+		this->assistNavigationMenu.addMenuItem(&this->bikeAssistPresetMenu.configBikeMenuItem);
 
 		// configure the menu item
         this->menuItem.setPopupItem(&assistNavigationMenu);

@@ -8,7 +8,6 @@
 class IntegerSelectMenu : public ValueSelectMenu 
 {
 private:
-    std::vector<ValueSelectMenuItem*> menuItems;
     int selectedValue;
 
 public:
@@ -20,6 +19,8 @@ public:
 	IntegerSelectMenu(const char* titleText, const char* exitButtonText, lv_indev_t* indev, ButtonLabelBar* buttonLabel = NULL);
 
     virtual ~IntegerSelectMenu();
+
+    virtual void deleteAllMenuItems();
 
 	/// <summary>
 	/// This means the object and any sub objects should set any groups to be in focus at this point

@@ -5,12 +5,18 @@ IntegerSelectMenu::IntegerSelectMenu(const char* titleText, const char* exitButt
 {
 }
 
-IntegerSelectMenu::~IntegerSelectMenu() {   
+IntegerSelectMenu::~IntegerSelectMenu() {
+}
+
+void IntegerSelectMenu::deleteAllMenuItems() {    
+    for (std::vector<ValueSelectMenuItem*>::iterator it = std::begin(*this->getValueMenuItems()); it != std::end(this->valueMenuItems); ++it) {
+        IntegerSelectMenuItem* item = (IntegerSelectMenuItem*) (*it);
+        delete(item);
+    }
 }
 
 void IntegerSelectMenu::addMenuItem(const char* text, int value) {
     IntegerSelectMenuItem* item = new IntegerSelectMenuItem(text, value, this);
-    this->menuItems.push_back(item);
     ValueSelectMenu::addMenuItem(item);
 }
 

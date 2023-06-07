@@ -51,6 +51,8 @@ protected:
 	/// </summary>
 	virtual void updateButtonLabelBar();
 
+	std::vector<ValueSelectMenuItem*>* getValueMenuItems() { return &this->valueMenuItems; }
+
 public:
 	/// <summary>
 	/// Constructor of the Bluetooth scan list hence shows a list of dectected bluetooth devices/
@@ -60,6 +62,11 @@ public:
 	ValueSelectMenu(const char* titleText, const char* exitButtonText, lv_indev_t* indev, ButtonLabelBar* buttonLabelBar = NULL);
 
 	virtual ~ValueSelectMenu();
+
+	/// <summary>
+	/// This virtual is used to allow super classes to use it's stored menu items and allow overloaded methods to clean them up
+	/// </summary>
+	virtual void deleteAllMenuItems() {};
 
 	/// <summary>
 	/// This Creates the instance of the Lv Objects associated with the instance and sub components associated with it
