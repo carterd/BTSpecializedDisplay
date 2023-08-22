@@ -4,6 +4,7 @@
 #include "BaseNumericMonitorMedium.h"
 #include "../../../dev/ConfigStore.h"
 
+#define KMPH_TO_MPH_MULTIPLIER 0.621371
 
 class SpeedMonitorMedium : public BaseNumericMonitorMedium
 {
@@ -43,7 +44,7 @@ public:
     virtual void updateLvObj() {
         char valueString[32];
         float kmph = this->bluetoothBike->getBikeState().getStateAttribute(BikeStateAttributeIndex::WHEEL_ROTATIONS_PER_MIN).bikeStateAttributeValue.valueFloat * this->wheelCircumferenceMm * 60.0f / 1000000.0f;
-        float mph = kmph * 0.621371;
+        float mph = kmph * KMPH_TO_MPH_MULTIPLIER;
 
         sprintf(valueString, "%.1f", (this->displayMetric ? kmph : mph));
         this->previousBikeStateAttribute.valueFloat = this->displayMetric ? kmph : mph;

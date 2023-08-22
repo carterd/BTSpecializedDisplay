@@ -49,6 +49,10 @@ public:
     float convertWheelRotationsPerMinToKmph(float wheelRotationsPerMin) {
         return wheelRotationsPerMin * this->wheelCircumferenceMm * 60.0f / 1000000.0f;
     }
+
+    float convertKmphToMultipliedWheelRotationsPerMin(float kmph) {
+        return  ( kmph * FLOAT_TO_UINT16_MULTIPLIER )  /  (this->wheelCircumferenceMm * 60.0f / (1000000.0f));
+    }
 };
 
 #endif

@@ -3,6 +3,7 @@
 
 #include "BaseNumericMonitorSmall.h"
 
+#define KMPH_TO_MPH_MULTIPLIER 0.621371
 
 class MotorOdometerMonitorSmall : public BaseNumericMonitorSmall
 {
@@ -38,7 +39,7 @@ public:
     virtual void updateLvObj() {        
         char valueString[32];
         float km = this->bluetoothBike->getBikeState().getStateAttribute(BikeStateAttributeIndex::MOTOR_ODOMETER).bikeStateAttributeValue.valueUint32 / 1000.0f;
-        float miles = km * 0.621371;
+        float miles = km * KMPH_TO_MPH_MULTIPLIER;
 
         sprintf(valueString, "%.0f%s", (this->displayMetric ? km : miles), this->attributeUnits);
         this->previousBikeStateAttribute.valueFloat = this->displayMetric ? km : miles;

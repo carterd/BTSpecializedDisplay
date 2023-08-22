@@ -56,6 +56,8 @@ void BaseNumericMonitorSmall::statusUpdate()
 void BaseNumericMonitorSmall::updateLvObj()
 {
 	char valueString[32];
+	// If there is no bluetoothBike then the update can be ignored
+	if (!this->bluetoothBike) return;
 	BikeStateAttribute& bikeStateAttribute = this->bluetoothBike->getBikeState().getStateAttribute(this->bikeStateAttributeIndex);
 	
 	// If not defined initalise the print formatting for this attribute

@@ -2,6 +2,7 @@
 #define _SPEED_GRAPH_MONITOR_MAIN_H
 
 #include "../MonitorGraph.h"
+#include "../MonitorGraphAxis.h"
 
 #include "BaseMonitorMain.h"
 #include "../../../stats/SpeedMeterLogger.h"
@@ -12,25 +13,21 @@
 #define GRAPH_HEIGHT 100
 #define GRAPH_BOTTOM GRAPH_HEIGHT - 1
 
+#define KMPH_TO_MPH_MULTIPLIER 0.621371
+
 class SpeedGraphMonitorMain : public BaseMonitorMain
 {
 private:
     /// <summary>
     /// The parent to all the axis lines to allow them to be easily managed
     /// </summary>
-    lv_obj_t* leftAxisLabelsParent;
+    lv_obj_t* graphAxisParent;
     /// <summary>
     /// This is the parent of the lines that make the parent
     /// </summary>
     lv_obj_t* graphLinesParent;
-    /// <summary>
-    /// Current line that shows your power
-    /// </summary>
-    lv_obj_t* currentLine;
-    /// <summary>
-    /// Current background line
-    /// </summary>
-    lv_obj_t* currentBackgroundLine;
+
+    lv_obj_t* graphCurrentLineParent;
 
     /// <summary>
     /// This is the store for the point that make up the graph axis
@@ -68,22 +65,28 @@ private:
     uint32_t speedMeterLoggerPeriodStartTimeTicks;
 
     /// <summary>
-    /// This is the wattage multiplier for the display
-    /// </summary>
-    float graphDisplayMultiplier;
-
-    /// <summary>
     /// This is the max power that can be shown on the graph
     /// </summary>
     uint16_t graphDisplayMaxSpeed;
     /// <summary>
     /// These are the display limits for the graph
     /// </summary>
-    uint16_t graphSpeedMinLimit;
+    float graphMinLimit;
     /// <summary>
     /// These are the display limits for the graph
     /// </summary>
-    uint16_t graphSpeedMaxLimit;
+    float graphMaxLimit;
+    
+    /// <summary>
+    /// This is the current reading multiplied by the wheel rotations per min multiplier
+    /// </summary>
+    float currentMaxMultipliedWheelRotationsPerMin;
+
+    /// <summary>
+    /// This is the current graphed maximum displayed in multipled wheel rotations
+    /// </summary>
+    float currentMaxAverageMultipliedWheelRotations;
+
     /// <summary>
     /// The current wheel rotation per min reading
     /// </summary>
@@ -91,7 +94,7 @@ private:
     /// <summary>
     /// The current speed to display
     /// </summary>
-    uint16_t currentSpeedKmph;
+    uint16_t currentMultipliedWheelRotationsPerMin;
     /// <summary>
     /// Selector for display mode either min/max or average
     /// </summary>
@@ -105,39 +108,37 @@ private:
     /// </summary>
     uint16_t wheelCircumferenceMm;
 
-    /// <summary>
-    /// The graph ticks will depend upon mph or kmph
-    /// </summary>
-    uint16_t graphTicksSmall;
-    /// <summary>
-    /// The graph ticks will depend upon mph or kmph
-    /// </summary>
-    uint16_t graphTicksLarge;
+    bool redraw;
+
 private:
-    /// <summary>
-    /// Updated the axis labels
-    /// </summary>
-    void updateAxisLabels();
     /// <summary>
     /// Updated the graph
     /// </summary>
     void updateGraph();
+
     /// <summary>
-    /// 
+    /// Ensure the current graph is updated
     /// </summary>
     void updateCurrent();
-    /// <summary>
-    /// Mulitplier is used to size the graph
-    /// </summary>
-    void updateMultipler(uint16_t maxReading);
 
-    void wheelRotationsPerMinToSpeed(uint16_t);
+    /// <summary>
+    /// Update the value of the max show on the graph
+    /// </summary>
+    void updateGraphMax();
+
+    void adjustCurrentMaxMultipliedWheelRotationsPerMin(float compareValue);
+
+    void adjustGraphYTicks();
 
 private:
+    MonitorGraph currentGraph;
+
     MonitorGraph monitorGraph;
 
+    MonitorGraphAxis monitorGraphAxis;
+
 public:
-    SpeedGraphMonitorMain(ConfigStore* configStore, SpeedMeterLogger* speedMeterLogger, bool minMaxMode = true, float graphSpeedMinLimit = 12.5F, float graphMaxSpeedLimit = 100.0F);
+    SpeedGraphMonitorMain(ConfigStore* configStore, SpeedMeterLogger* speedMeterLogger, bool minMaxMode = true, float graphMinLimit = 24.0F, float graphMaxLimit = 100.0F);
 
     /// <summary>
     /// Returns the LV object instance to represent this class instance

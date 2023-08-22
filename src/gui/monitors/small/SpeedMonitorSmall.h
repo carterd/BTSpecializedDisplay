@@ -4,6 +4,7 @@
 #include "BaseNumericMonitorSmall.h"
 #include "../../../dev/ConfigStore.h"
 
+#define KMPH_TO_MPH_MULTIPLIER 0.621371
 
 class SpeedMonitorSmall : public BaseNumericMonitorSmall
 {
@@ -42,8 +43,11 @@ public:
     /// <param name="event">The lv event that identifies pressing the device entry</param>
     virtual void updateLvObj() {
         char valueString[32];
+        // If no bike then ignore the update
+        if (!this->bluetoothBike) return;
+
         float kmph = this->bluetoothBike->getBikeState().getStateAttribute(BikeStateAttributeIndex::WHEEL_ROTATIONS_PER_MIN).bikeStateAttributeValue.valueFloat * this->wheelCircumferenceMm * 60.0f / 1000000.0f;
-        float mph = kmph * 0.621371;
+        float mph = kmph * KMPH_TO_MPH_MULTIPLIER;
 
         sprintf(valueString, "%.1f%s", (this->displayMetric ? kmph : mph), this->attributeUnits);
         this->previousBikeStateAttribute.valueFloat = this->displayMetric ? kmph : mph;

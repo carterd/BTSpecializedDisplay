@@ -112,19 +112,19 @@ void lvgl_setup(ConfigStore *configStore, BluetoothController *bluetoothControll
     static DualMediumSmallMonitorLayout dualMediumSmallmonitorLayout_Screen3(&motorAssistLevelDotSmall_Screen3, &cadenceMonitorMedium, &speedMonitorMedium_Screen3, &batteryCapacityImageMonitorSmall_Screen3);
     monitorSelector.addMonitorLvObject(&dualMediumSmallmonitorLayout_Screen3);
 
-    // Monitor Screen 2 (Power Average/Min Max)
+    // Monitor Screen 4 (Power Average/Min Max)
     static RiderPowerMonitorSmall riderPowerSmall_Screen4;
     static RiderPowerGraphMonitorMain riderPowerGraphMain_Screen4(&powerMeterLogger, RIDER_POWER_GRAPH_MAXMIN);
     static MainSmallMonitorLayout mainSmallMonitorLayout_Screen4(&riderPowerGraphMain_Screen4, &riderPowerSmall_Screen4);
     monitorSelector.addMonitorLvObject(&mainSmallMonitorLayout_Screen4);
 
-    // Monitor Screen 3 (Speed Average/Min Max)
+    // Monitor Screen 5 (Speed Average/Min Max)
     static SpeedMonitorSmall speedMonitorSmall_Screen5(configStore);
     static SpeedGraphMonitorMain speedGraphMonitorMain_Screen5(configStore, &speedMeterLogger, SPEED_GRAPH_MAXMIN);
     static MainSmallMonitorLayout mainSmallMonitorLayout_Screen5(&speedGraphMonitorMain_Screen5, &speedMonitorSmall_Screen5);
     monitorSelector.addMonitorLvObject(&mainSmallMonitorLayout_Screen5);
 
-    // Monitor Screen 4 (All the odds and ends
+    // Monitor Screen 6 (All the odds and ends
     static TimeticksMonitorSmall timeticksMonitorSmall_Screen6(NULL);
     static CadenceMonitorSmall cadenceMonitorSmall_Screen6;
     static SpeedMonitorSmall speedMonitorSmall_Screen6(configStore);

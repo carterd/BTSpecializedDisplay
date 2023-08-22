@@ -99,8 +99,10 @@ typedef struct {
         lv_style_t small_battery_charge_bad;
 
         // Graph Styles
-        lv_style_t main_graph_left_axis;
+        lv_style_t main_graph_left_axis;        
         lv_style_t main_graph_panel;
+        lv_style_t current_graph_panel;
+        lv_style_t main_graph_axis;
 
         // Images
         lv_img_dsc_t* connect_button_img;
@@ -114,6 +116,10 @@ typedef struct {
         const assist_coords_t* small_assist_coords;
         const lv_point_t* small_battery_line_points;
         const charge_coords_hor_t* small_battery_coords;
+
+        // Sizes
+        lv_point_t main_graph_axis_large_ticks;
+        lv_point_t main_graph_axis_small_ticks;
 
 #if LV_USE_TEXTAREA
         lv_style_t ta_cursor;

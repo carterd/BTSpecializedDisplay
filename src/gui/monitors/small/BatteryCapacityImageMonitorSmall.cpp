@@ -88,8 +88,8 @@ void BatteryCapacityImageMonitorSmall::initBluetoothStats()
 void BatteryCapacityImageMonitorSmall::updateLvObj() {
 	for (int i = 0 ; i < 3 ; i++) {
 		this->charge_line_points[i][1].x = this->calculateXPos( this->displayedPercent, this->max_values[i] );
-		lv_line_set_points(this->level[i], this->charge_line_points[i], 2);
 	}
+	lv_obj_invalidate(this->this_obj);
 }
 
 lv_coord_t BatteryCapacityImageMonitorSmall::calculateXPos(int percentage, int percentageMax) {
