@@ -169,7 +169,7 @@ Arduino_ButtonEncoder_LvGL_Input* encoderInit() {
 
 // Bluetooth
 //
-#define BLE_CONNECTION_REQUIRES_SCAN_STOP false
+#define BLE_CONNECTION_REQUIRES_SCAN_STOP true
 
 // Display
 //

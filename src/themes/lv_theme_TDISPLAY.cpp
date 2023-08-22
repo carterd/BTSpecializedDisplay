@@ -17,17 +17,20 @@
   *      DEFINES
   *********************/
 
-#define COLOR_FG      dark_bg ?  lv_color_white() : lv_color_black() 
-#define COLOR_BG      dark_bg ?  lv_color_black() : lv_color_white() 
-#define COLOR_RED     lv_color_make(255, 0, 0)
-#define COLOR_GREEN   lv_color_make(0, 255, 0)
-#define COLOR_BAT_GOOD      lv_color_make(128, 255, 128)
-#define COLOR_BAT_MODERATE  lv_color_make(213, 213, 213)
-#define COLOR_BAT_BAD       lv_color_make(255, 128, 128)
-#define COLOR_BAT_OUTLINE   lv_color_white()
-#define COLOR_DOT     lv_color_make(0, 255, 0)
+#define COLOR_FG                    dark_bg ?  lv_color_white() : lv_color_black() 
+#define COLOR_BG                    dark_bg ?  lv_color_black() : lv_color_white() 
+#define COLOR_RED                   lv_color_make(255, 0, 0)
+#define COLOR_GREEN                 lv_color_make(0, 255, 0)
+#define COLOR_BAT_GOOD              lv_color_make(128, 255, 128)
+#define COLOR_BAT_MODERATE          lv_color_make(213, 213, 213)
+#define COLOR_BAT_BAD               lv_color_make(255, 128, 128)
+#define COLOR_BAT_OUTLINE           lv_color_white()
+#define COLOR_SPEED_GRAPH           lv_color_make(128, 255, 128)
+#define COLOR_SPEED_GRAPH_CURRENT   lv_color_make(255, 128, 128)
+#define COLOR_SPEED_AXIS            lv_color_white()
+#define COLOR_DOT                   lv_color_make(0, 255, 0)
 
-  // Card Presets
+// Card Presets
 #define CARD_OUTLINE_WIDTH      0
 #define CARD_OUTLINE_PAD        0
 #define CARD_BORDER_WIDTH       0
@@ -109,6 +112,9 @@
 #define LABEL_ANIM_SPEED    10
 #define DEFAULT_ANIM_SPEED  1
 
+// Graph Presets
+#define GRAPH_TICKS_LARGE 5
+#define GRAPH_TICKS_SMALL 2
 
 
 /**********************
@@ -139,6 +145,10 @@ static void style_init(bool dark_bg, const lv_font_t* font)
     display_theme_styles->small_assist_coords = &MotorAssistLevelDotMonitorSmall::assist_coords_tdisplay;
     display_theme_styles->small_battery_line_points = BatteryCapacityImageMonitorSmall::battery_line_points_tdisplay;
     display_theme_styles->small_battery_coords = &BatteryCapacityImageMonitorSmall::charge_coords_tdisplay;
+
+    // Sizes
+    display_theme_styles->main_graph_axis_large_ticks = { GRAPH_TICKS_LARGE, GRAPH_TICKS_LARGE };
+    display_theme_styles->main_graph_axis_small_ticks = { GRAPH_TICKS_SMALL, GRAPH_TICKS_SMALL };
 
     // Screen
     style_init_reset(&display_theme_styles->scr);
@@ -627,8 +637,29 @@ static void style_init(bool dark_bg, const lv_font_t* font)
 
     sp = &display_theme_styles->main_graph_panel;
     style_init_reset(sp);
-    lv_style_set_height(sp, 100);
-    lv_style_set_width(sp, 60);
+    lv_style_set_height(sp, 200);
+    lv_style_set_width(sp, 130);
+    lv_style_set_line_width(sp, 3);
+    lv_style_set_line_color(sp, COLOR_SPEED_GRAPH);
+    lv_style_set_line_rounded(sp, true);
+
+    sp = &display_theme_styles->current_graph_panel;
+    style_init_reset(sp);
+    lv_style_set_height(sp, 200);
+    lv_style_set_width(sp, 130);
+    lv_style_set_line_width(sp, 1);
+    lv_style_set_line_dash_gap(sp, 3);
+    lv_style_set_line_dash_width(sp, 3);
+    lv_style_set_line_color(sp, COLOR_SPEED_GRAPH_CURRENT);
+    lv_style_set_line_rounded(sp, true);
+
+    sp = &display_theme_styles->main_graph_axis;
+    style_init_reset(sp);
+    lv_style_set_height(sp, 210);
+    lv_style_set_width(sp, 135);
+    lv_style_set_line_width(sp, 1);
+    lv_style_set_line_color(sp, COLOR_SPEED_AXIS);
+    lv_style_set_line_rounded(sp, true);
 
     // Main Battery display
     sp = &display_theme_styles->main_battery_outline;
