@@ -7,7 +7,9 @@
 #include <mbed_mem_trace.h>
 #endif
 
-
+#ifdef ARDUINO_ARCH_ESP32
+#include <Esp.h>
+#endif
 
 
 MemoryMonitorSmall::MemoryMonitorSmall(const char* attributeTitle, const char* attributeUnits)
@@ -44,6 +46,9 @@ void MemoryMonitorSmall::updateLvObj()
 	mbed_stats_heap_t heap_stats;
 	mbed_stats_heap_get(&heap_stats);
 	valueUint32 = heap_stats.reserved_size - heap_stats.current_size;
+#endif
+#ifdef ARDUINO_ARCH_ESP32
+  valueUint32 = ESP.getFreeHeap();
 #endif
 
 	char valueString[32];
