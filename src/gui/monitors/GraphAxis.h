@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include <lvgl.h>
 #include "..\BaseLvObject.h"
-#include "MonitorGraph.h"
+#include "GraphPlot.h"
 
 enum class AxisType { XaxisBottomYaxisLeft, XaxisBottomYaxisMid, XaxisBottomYaxisRight, XaxisMidYaxisLeft, XaxisMidYaxisMid, XaxisMidYaxisRight, XaxisTopYaxisLeft, XaxisTopYaxisMid, XaxisTopYaxisRight };
 
@@ -18,7 +18,7 @@ typedef struct {
     int32_t yInc;
 } GraphAxisIncrement;
 
-class MonitorGraphAxis : public BaseLvObject {
+class GraphAxis : public BaseLvObject {
 private:
     /// <summary>
     /// The parent container objcet
@@ -32,7 +32,7 @@ private:
     /// <summary>
     /// This is the graph that is to be axised by this class
     /// </summary>
-    MonitorGraph* monitorGraph;
+    GraphPlot* monitorGraph;
 
     /// <summary>
     /// This is the store for the points for the y axis
@@ -108,7 +108,7 @@ public:
     /// <summary>
     /// Constructor including number of points on each axis
     /// </summary>
-    MonitorGraphAxis(MonitorGraph* monitorGraph, uint16_t tickPointsOnXAxis, uint16_t tickPointsOnYAxis, AxisType axisType);
+    GraphAxis(GraphPlot* monitorGraph, uint16_t tickPointsOnXAxis, uint16_t tickPointsOnYAxis, AxisType axisType);
 
     /// <summary>
     /// This Creates the instance of the Lv Objects associated with the instance and sub components associated with it
@@ -131,7 +131,7 @@ public:
     /// /// Sets the line style of the graph
     /// </summary>
     /// <param name="graph_line_style"></param>
-    void setGraphAxisLineStyle(lv_style_t* line_style, lv_point_t* largeTicksSize, lv_point_t* smallTicksSize) { this->graph_axis_line_style = line_style; this->largeTicksSize = *largeTicksSize; this->smallTicksSize = *smallTicksSize; }
+    void setAxisLineStyle(lv_style_t* line_style, lv_point_t* largeTicksSize, lv_point_t* smallTicksSize) { this->graph_axis_line_style = line_style; this->largeTicksSize = *largeTicksSize; this->smallTicksSize = *smallTicksSize; }
 
     void setAxisPos(GraphAxisPoint* axisPos) { this->axisPos = *axisPos; }
 

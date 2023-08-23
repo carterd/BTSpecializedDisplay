@@ -1,10 +1,10 @@
-#include "MonitorGraph.h"
+#include "GraphPlot.h"
 
 #include <lvgl.h>
 #include "../../themes/display_theme.h"
 
 
-MonitorGraph::MonitorGraph(uint16_t numberOfLines, uint16_t pointsInLine) {
+GraphPlot::GraphPlot(uint16_t numberOfLines, uint16_t pointsInLine) {
     this->numberOfLines = numberOfLines;
     this->pointsInLine = pointsInLine;
     this->numberOfPoints = numberOfLines * pointsInLine;
@@ -15,7 +15,7 @@ MonitorGraph::MonitorGraph(uint16_t numberOfLines, uint16_t pointsInLine) {
     this->graphPoints = new GraphPoint[this->numberOfPoints];
 }
 
-MonitorGraph::~MonitorGraph() {
+GraphPlot::~GraphPlot() {
     if (this->graph_line_points) {
         delete(this->graph_line_points);
     }
@@ -24,7 +24,7 @@ MonitorGraph::~MonitorGraph() {
     }
 }
 
-lv_obj_t* MonitorGraph::createLvObj(lv_obj_t* parent) {
+lv_obj_t* GraphPlot::createLvObj(lv_obj_t* parent) {
     this->parent_obj = parent;
     this->width = lv_obj_get_width(parent);
     if (this->width == 0) { this->width = 1; }
@@ -49,19 +49,19 @@ lv_obj_t* MonitorGraph::createLvObj(lv_obj_t* parent) {
 	return parent;
 }
 
-void MonitorGraph::setLineVisible(uint16_t lineIndex) { 
+void GraphPlot::setLineVisible(uint16_t lineIndex) {
     if (lineIndex >= 0 && lineIndex < this->numberOfLines) {  
         lv_obj_clear_flag(lv_obj_get_child(this->this_obj, lineIndex), LV_OBJ_FLAG_HIDDEN);
     }
 }
 
-void MonitorGraph::setLineHidden(uint16_t lineIndex) { 
+void GraphPlot::setLineHidden(uint16_t lineIndex) {
     if (lineIndex >= 0 && lineIndex < this->numberOfLines) {  
         lv_obj_add_flag(lv_obj_get_child(this->this_obj, lineIndex), LV_OBJ_FLAG_HIDDEN);
     }
 }
 
-void MonitorGraph::updateLvObj() {
+void GraphPlot::updateLvObj() {
     // No updates if the graph isn't in a display form due to no data to set limits
     if (!this->xMultiplier || !this->yMultiplier) return;
     float xOffset = this->graphMin.x;
@@ -79,6 +79,6 @@ void MonitorGraph::updateLvObj() {
     lv_obj_invalidate(this->this_obj);
 }
 
-void MonitorGraph::focusLvObj(BaseLvObject* defocusLvObj) {
+void GraphPlot::focusLvObj(BaseLvObject* defocusLvObj) {
     // No real focus on a graph object
 }

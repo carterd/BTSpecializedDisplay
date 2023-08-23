@@ -1,8 +1,8 @@
 #ifndef _SPEED_GRAPH_MONITOR_MAIN_H
 #define _SPEED_GRAPH_MONITOR_MAIN_H
 
-#include "../MonitorGraph.h"
-#include "../MonitorGraphAxis.h"
+#include "../GraphPlot.h"
+#include "../GraphAxis.h"
 
 #include "BaseMonitorMain.h"
 #include "../../../stats/SpeedMeterLogger.h"
@@ -22,37 +22,16 @@ private:
     /// The parent to all the axis lines to allow them to be easily managed
     /// </summary>
     lv_obj_t* graphAxisParent;
-    /// <summary>
-    /// This is the parent of the lines that make the parent
-    /// </summary>
-    lv_obj_t* graphLinesParent;
 
+    /// <summary>
+    /// This is the parent of the line plot that make the parent
+    /// </summary>
+    lv_obj_t* graphPlotParent;
+
+    /// <summary>
+    /// This is the parent of the current line bar
+    /// </summary>
     lv_obj_t* graphCurrentLineParent;
-
-    /// <summary>
-    /// This is the store for the point that make up the graph axis
-    /// </summary>
-    lv_point_t graph_axis_line_points[GRAPH_MAX_NO_AXIS_TICKS][2];
-    /// <summary>
-    /// The points for the current power line on the graph
-    /// </summary>
-    lv_point_t graph_current_line_points[2];
-    /// <summary>
-    /// The axis line style to be used by axis lines
-    /// </summary>
-    lv_style_t graph_axis_line_style;
-    /// <summary>
-    /// The actual graph lines
-    /// </summary>
-    lv_style_t graph_line_style;
-    /// <summary>
-    /// The dashed line style for current power
-    /// </summary>
-    lv_style_t graph_dash_line_style;
-    /// <summary>
-    /// This is a black line style to allow dotted line to be seen on white background
-    /// </summary>
-    lv_style_t graph_dash_line_background_style;
 
     /// <summary>
     /// This is the logger object which stores the stats to be displayed
@@ -65,18 +44,15 @@ private:
     uint32_t speedMeterLoggerPeriodStartTimeTicks;
 
     /// <summary>
-    /// This is the max power that can be shown on the graph
-    /// </summary>
-    uint16_t graphDisplayMaxSpeed;
-    /// <summary>
-    /// These are the display limits for the graph
+    /// These are the display limits for the graph it should not be able to scale any smaller than this in Y axis
     /// </summary>
     float graphMinLimit;
+
     /// <summary>
-    /// These are the display limits for the graph
+    /// These are the display limits for the graph it should not be able to scale any larger than this in Y axis
     /// </summary>
     float graphMaxLimit;
-    
+
     /// <summary>
     /// This is the current reading multiplied by the wheel rotations per min multiplier
     /// </summary>
@@ -85,30 +61,38 @@ private:
     /// <summary>
     /// This is the current graphed maximum displayed in multipled wheel rotations
     /// </summary>
-    float currentMaxAverageMultipliedWheelRotations;
+    float maxAverageMultipliedWheelRotations;
 
-    /// <summary>
-    /// The current wheel rotation per min reading
-    /// </summary>
-    float currentWheelRotationsPerMin;
-    /// <summary>
-    /// The current speed to display
-    /// </summary>
-    uint16_t currentMultipliedWheelRotationsPerMin;
     /// <summary>
     /// Selector for display mode either min/max or average
     /// </summary>
     bool minMaxMode;
+
     /// <summary>
     /// The config store which contains the bluetooth devices to connect to
     /// </summary>
     ConfigStore* configStore;
+
     /// <summary>
     /// The wheel size for calculation from rotations to speed
     /// </summary>
     uint16_t wheelCircumferenceMm;
 
+    /// <summary>
+    /// This is required to detect that the screen is required to be redrawn from scratch
+    /// </summary>
     bool redraw;
+
+protected:
+    /// <summary>
+    /// The current wheel rotation per min reading
+    /// </summary>
+    float currentWheelRotationsPerMin;
+
+    /// <summary>
+    /// The current speed to display
+    /// </summary>
+    uint16_t currentMultipliedWheelRotationsPerMin;
 
 private:
     /// <summary>
@@ -126,18 +110,36 @@ private:
     /// </summary>
     void updateGraphMax();
 
+    /// <summary>
+    /// Helper function that sets the Y size of the graph so current and average fits
+    /// </summary>
     void adjustCurrentMaxMultipliedWheelRotationsPerMin(float compareValue);
 
+    /// <summary>
+    /// Helper function that calculates what the size of axis ticks should be
+    /// </summary>
     void adjustGraphYTicks();
 
 private:
-    MonitorGraph currentGraph;
+    /// <summary>
+    /// This is the graph of the current level of speed
+    /// </summary>
+    GraphPlot currentGraph;
 
-    MonitorGraph monitorGraph;
+    /// <summary>
+    /// This is the graph of the values over time
+    /// </summary>
+    GraphPlot plotGraph;
 
-    MonitorGraphAxis monitorGraphAxis;
+    /// <summary>
+    /// This is the graph axis for both current and plot
+    /// </summary>
+    GraphAxis graphAxis;
 
 public:
+    /// <summary>
+    /// Constructor for the SpeedGraphMonitorMain
+    /// </summary>
     SpeedGraphMonitorMain(ConfigStore* configStore, SpeedMeterLogger* speedMeterLogger, bool minMaxMode = true, float graphMinLimit = 24.0F, float graphMaxLimit = 100.0F);
 
     /// <summary>
@@ -162,8 +164,14 @@ public:
     /// </summary>
     virtual void initBluetoothStats();
 
+    /// <summary>
+    /// Accessor function to set the graph mode to min max
+    /// </summary>
     void setMinMaxMode() { this->minMaxMode = true; }
 
+    /// <summary>
+    /// Accessor function to set the graph mode to average
+    /// </summary>
     void setAverageMode() { this->minMaxMode = false; }
 };
 

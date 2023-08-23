@@ -10,7 +10,7 @@ typedef struct {
     int32_t y;
 } GraphPoint;
 
-class MonitorGraph : public BaseLvObject {
+class GraphPlot : public BaseLvObject {
 private:
     /// <summary>
     /// The parent container objcet
@@ -84,12 +84,12 @@ protected:
 public:
     /// <summary>
     /// </summary>
-    MonitorGraph(uint16_t numberOfLines, uint16_t pointsInLine);
+    GraphPlot(uint16_t numberOfLines, uint16_t pointsInLine);
 
     /// <summary>
     /// This will attempt to destroy all the Lv Objects associated with the instance and sub components associcated with it
     /// </summary>
-    virtual ~MonitorGraph();
+    virtual ~GraphPlot();
 
     /// <summary>
     /// This Creates the instance of the Lv Objects associated with the instance and sub components associated with it

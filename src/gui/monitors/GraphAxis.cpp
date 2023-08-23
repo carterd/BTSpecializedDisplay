@@ -1,6 +1,6 @@
-#include "MonitorGraphAxis.h"
+#include "GraphAxis.h"
 
-MonitorGraphAxis::MonitorGraphAxis(MonitorGraph* monitorGraph, uint16_t tickPointsOnXAxis, uint16_t tickPointsOnYAxis, AxisType axisType) {
+GraphAxis::GraphAxis(GraphPlot* monitorGraph, uint16_t tickPointsOnXAxis, uint16_t tickPointsOnYAxis, AxisType axisType) {
     this->monitorGraph = monitorGraph;
     this->tickPointsOnXAxis = tickPointsOnXAxis;
     this->tickPointsOnYAxis = tickPointsOnYAxis;
@@ -10,7 +10,7 @@ MonitorGraphAxis::MonitorGraphAxis(MonitorGraph* monitorGraph, uint16_t tickPoin
     this->graph_y_axis_tick_points = new lv_point_t[this->tickPointsOnYAxis*2];
 }
 
-lv_obj_t* MonitorGraphAxis::createLvObj(lv_obj_t* parent) {
+lv_obj_t* GraphAxis::createLvObj(lv_obj_t* parent) {
     this->parent_obj = parent;
     this->width = lv_obj_get_width(parent);
     if (this->width == 0) { this->width = 1; }
@@ -58,11 +58,11 @@ lv_obj_t* MonitorGraphAxis::createLvObj(lv_obj_t* parent) {
     return parent;
 }
 
-void MonitorGraphAxis::focusLvObj(BaseLvObject* defocusLvObj) {
+void GraphAxis::focusLvObj(BaseLvObject* defocusLvObj) {
     // No real focus on a graph object
 }
 
-void MonitorGraphAxis::updateXTicksLvObj() {
+void GraphAxis::updateXTicksLvObj() {
     if (this->minorTickIncrement.xInc) {
         int16_t yAxis = this->monitorGraph->getYpixelOffset(this->axisPos.y);
         int32_t xTic = (this->monitorGraph->getXMin() / this->minorTickIncrement.xInc) * this->minorTickIncrement.xInc;
@@ -105,7 +105,7 @@ void MonitorGraphAxis::updateXTicksLvObj() {
     }
 }
 
-void MonitorGraphAxis::updateYTicksLvObj() {
+void GraphAxis::updateYTicksLvObj() {
     if (this->minorTickIncrement.yInc) {
         int16_t xAxis = this->monitorGraph->getXpixelOffset(this->axisPos.x);
         int32_t yTic = ((this->monitorGraph->getYMin() + this->minorTickIncrement.yInc - 1) / this->minorTickIncrement.yInc) * this->minorTickIncrement.yInc;
@@ -146,7 +146,7 @@ void MonitorGraphAxis::updateYTicksLvObj() {
     }
 }
 
-void MonitorGraphAxis::updateLvObj() {
+void GraphAxis::updateLvObj() {
     //this->axisPos.x = 0;
     //this->axisPos.y = this->monitorGraph->Get
 
