@@ -2,6 +2,8 @@
 #include "SpeedGraphMonitorMain.h"
 #include "../../../themes/display_theme.h"
 
+#define SECONDS_PER_HOUR 3600
+#define MILLI_PER_SECOND 1000
 #define MILLI_PER_MIN 60000
 #define MAX_CURRENT_GRAPH_LINES 1
 #define MAX_GRAPH_LINES 60
@@ -12,7 +14,7 @@
 SpeedGraphMonitorMain::SpeedGraphMonitorMain(ConfigStore* configStore, SpeedMeterLogger* speedMeterLogger, bool minMaxMode, float graphMinLimit, float graphMaxLimit) :
     plotGraph(MAX_GRAPH_LINES, POINTS_PER_LINE),
     currentGraph(MAX_CURRENT_GRAPH_LINES, POINTS_PER_LINE),
-    graphAxis(&this->plotGraph, MAX_AXIS_TICKS_X, MAX_AXIS_TICKS_Y, AxisType::XaxisBottomYaxisRight) {
+    graphAxis(&this->plotGraph, {0, 0}, MAX_AXIS_TICKS_X, MAX_AXIS_TICKS_Y, AxisType::XaxisBottomYaxisRight) {
     this->configStore = configStore;
     this->speedMeterLogger = speedMeterLogger;
     this->minMaxMode = minMaxMode;
@@ -20,9 +22,6 @@ SpeedGraphMonitorMain::SpeedGraphMonitorMain(ConfigStore* configStore, SpeedMete
     this->graphMaxLimit = graphMaxLimit;
     this->speedMeterLoggerPeriodStartTimeTicks = 0;
     this->currentMultipliedWheelRotationsPerMin = 0;
-
-    this->graphAxis.setXMinorTickIncrement(10 * 60 * 1000);
-    this->graphAxis.setYMinorTickIncrement(1000);
 }
 
 lv_obj_t* SpeedGraphMonitorMain::createLvObj(lv_obj_t* parent) {
@@ -45,7 +44,7 @@ lv_obj_t* SpeedGraphMonitorMain::createLvObj(lv_obj_t* parent) {
     // Configure Plot graph
     this->plotGraph.setGraphLineStyle(main_graph_style);
     this->plotGraph.createLvObj(this->graphPlotParent);
-    this->plotGraph.setLimits(-MILLI_PER_MIN*MAX_GRAPH_LINES, 0, 0, 100);
+    this->plotGraph.setLimits(-SECONDS_PER_HOUR, 0, 0, 100);
 
     // Create a current graph
     this->graphCurrentLineParent = lv_obj_create(this->this_obj);
@@ -55,7 +54,7 @@ lv_obj_t* SpeedGraphMonitorMain::createLvObj(lv_obj_t* parent) {
     // Configure Current graph Line
     this->currentGraph.setGraphLineStyle(current_graph_style);
     this->currentGraph.createLvObj(this->graphCurrentLineParent);
-    this->currentGraph.setLimits(0, 1000, 0, 100);
+    this->currentGraph.setLimits(0, 1, 0, 100);
     this->currentGraph.setLineVisible(0);
 
     // Create the axis
@@ -65,11 +64,13 @@ lv_obj_t* SpeedGraphMonitorMain::createLvObj(lv_obj_t* parent) {
     lv_obj_set_align(this->graphAxisParent, LV_ALIGN_TOP_LEFT);
     lv_obj_update_layout(this->graphAxisParent);
     // Configure GraphAxis
-    this->graphAxis.setAxisLineStyle(main_graph_axis_style, main_graph_axis_large_ticks, main_graph_axis_small_ticks);
+    this->graphAxis.setAxisLineStyle(main_graph_axis_style, *main_graph_axis_large_ticks, *main_graph_axis_small_ticks);
     this->graphAxis.createLvObj(this->graphAxisParent);
     this->graphAxis.setAxisXPos(this->plotGraph.getXMax());
     this->graphAxis.setAxisYPos(0);
- 
+    this->graphAxis.setXMinorTickSize(10.0 * 60.0);
+    this->graphAxis.setYMinorTickSize(0.0);
+
     // We can't fill all the graphs details until we've obtained a wheel size for calculation of speed
     this->redraw = true;
 
@@ -136,8 +137,8 @@ void SpeedGraphMonitorMain::updateLvObj() {
 }
 
 void SpeedGraphMonitorMain::updateCurrent() {
-    this->currentGraph.setGraphPoint(0, 0, (uint32_t) 0, this->currentMultipliedWheelRotationsPerMin);
-    this->currentGraph.setGraphPoint(0, 1, (uint32_t) 1000, this->currentMultipliedWheelRotationsPerMin);
+    this->currentGraph.setGraphPoint(0, 0, (int16_t)0, this->currentMultipliedWheelRotationsPerMin);
+    this->currentGraph.setGraphPoint(0, 1, (int16_t)1, this->currentMultipliedWheelRotationsPerMin);
     this->currentGraph.updateLvObj();
 }
 
@@ -164,13 +165,13 @@ void SpeedGraphMonitorMain::adjustGraphYTicks() {
     DisplayConfig displayConfig = this->configStore->getDisplayConfig();
     if (displayConfig.unitsMetric) {
         int32_t kmphTicks = (int32_t)this->speedMeterLogger->convertKmphToMultipliedWheelRotationsPerMin(5.0f);
-        this->graphAxis.setYMinorTickIncrement(kmphTicks);
-        this->graphAxis.setYMajorTickIncrement(kmphTicks * 2);
+        this->graphAxis.setYMinorTickSize(kmphTicks);
+        this->graphAxis.setYMinorTicksPerMajorTick(2);
     }
     else {
         int32_t mphTicks = (int32_t)this->speedMeterLogger->convertKmphToMultipliedWheelRotationsPerMin(5.0f / KMPH_TO_MPH_MULTIPLIER);
-        this->graphAxis.setYMinorTickIncrement(mphTicks);
-        this->graphAxis.setYMajorTickIncrement(mphTicks * 2);
+        this->graphAxis.setYMinorTickSize(mphTicks);
+        this->graphAxis.setYMinorTicksPerMajorTick(2);
     }
 }
 
@@ -192,9 +193,11 @@ void SpeedGraphMonitorMain::updateGraphMax() {
 void SpeedGraphMonitorMain::updateGraph() {
     std::deque<SpeedMeterLogger::PeriodReading>* periodReadings = this->speedMeterLogger->getPeriodReadings();
     uint32_t periodGraphLengthTimeTicks = this->speedMeterLogger->getPeriodLengthTimeTicks();
-    uint32_t periodGraphStartTimeTicks = this->speedMeterLogger->getPeriodStartTimeTicks() - periodGraphLengthTimeTicks;
-    this->plotGraph.setXmin(periodGraphStartTimeTicks - periodGraphLengthTimeTicks * MAX_GRAPH_LINES);
-    this->plotGraph.setXmax(periodGraphStartTimeTicks);
+    uint32_t periodGraphEndTimeTicks = this->speedMeterLogger->getPeriodStartTimeTicks(); // The maximum X coord
+    uint32_t periodGraphStartTimeTicks = periodGraphEndTimeTicks - (60L * MILLI_PER_MIN); // The minimum x coord
+    int16_t mintuesOffset = ((periodGraphEndTimeTicks / MILLI_PER_SECOND) % (60 * 10));
+    this->plotGraph.setXmin(mintuesOffset);
+    this->plotGraph.setXmax(SECONDS_PER_HOUR + mintuesOffset);
     this->maxAverageMultipliedWheelRotations = 0.0;
 
     auto it = periodReadings->crbegin();
@@ -216,8 +219,8 @@ void SpeedGraphMonitorMain::updateGraph() {
                 avgCoord = startAvgCoord;
             }
 
-            this->plotGraph.setGraphPoint(lineIndex, 0, timeTicks, (uint32_t) avgCoord);
-            this->plotGraph.setGraphPoint(lineIndex, 1, startTimeTicks, (uint32_t) startAvgCoord);
+            this->plotGraph.setGraphPoint(lineIndex, 0, (int16_t) ((timeTicks - periodGraphStartTimeTicks) / MILLI_PER_SECOND + mintuesOffset), (uint16_t) avgCoord);
+            this->plotGraph.setGraphPoint(lineIndex, 1, (int16_t) ((startTimeTicks - periodGraphStartTimeTicks) / MILLI_PER_SECOND + mintuesOffset), (uint16_t) startAvgCoord);
             this->plotGraph.setLineVisible(lineIndex);
 
             if (this->maxAverageMultipliedWheelRotations < avgCoord) { this->maxAverageMultipliedWheelRotations = avgCoord; }

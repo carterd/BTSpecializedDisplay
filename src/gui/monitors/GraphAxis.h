@@ -1,5 +1,5 @@
-#ifndef _MONITOR_GRAPH_AXIS_H
-#define _MONITOR_GRAPH_AXIS_H
+#ifndef _GRAPH_AXIS_H
+#define _GRAPH_AXIS_H
 
 #include <Arduino.h>
 #include <lvgl.h>
@@ -9,21 +9,17 @@
 enum class AxisType { XaxisBottomYaxisLeft, XaxisBottomYaxisMid, XaxisBottomYaxisRight, XaxisMidYaxisLeft, XaxisMidYaxisMid, XaxisMidYaxisRight, XaxisTopYaxisLeft, XaxisTopYaxisMid, XaxisTopYaxisRight };
 
 typedef struct {
-    int32_t x;
-    int32_t y;
+    int16_t x;
+    int16_t y;
 } GraphAxisPoint;
 
 typedef struct {
-    int32_t xInc;
-    int32_t yInc;
-} GraphAxisIncrement;
+    float minorTickSize;
+    int16_t minorTicksPerMajorTick;
+} GraphTickSize;
 
 class GraphAxis : public BaseLvObject {
 private:
-    /// <summary>
-    /// The parent container objcet
-    /// </summary>
-    lv_obj_t* parent_obj;
 
     lv_obj_t* x_ticks_parent_obj;
 
@@ -32,7 +28,7 @@ private:
     /// <summary>
     /// This is the graph that is to be axised by this class
     /// </summary>
-    GraphPlot* monitorGraph;
+    GraphPlot* graphPlot;
 
     /// <summary>
     /// This is the store for the points for the y axis
@@ -65,9 +61,9 @@ protected:
     /// </summary>
     GraphAxisPoint axisPos;
 
-    GraphAxisIncrement minorTickIncrement;
+    GraphTickSize xGraphTickSize;
 
-    GraphAxisIncrement majorTickIncrement;
+    GraphTickSize yGraphTickSize;
 
     /// <summary>
     /// The width of the lv_object area
@@ -104,11 +100,16 @@ protected:
     /// </summary>
     lv_point_t smallTicksSize;
 
+    /// <summary>
+    /// This is the x y offset the plot is from the axis
+    /// </summary>
+    lv_point_t graphPlotOffset;
+
 public:
     /// <summary>
     /// Constructor including number of points on each axis
     /// </summary>
-    GraphAxis(GraphPlot* monitorGraph, uint16_t tickPointsOnXAxis, uint16_t tickPointsOnYAxis, AxisType axisType);
+    GraphAxis(GraphPlot* graphPlot, lv_point_t graphPlotOffset, uint16_t tickPointsOnXAxis, uint16_t tickPointsOnYAxis, AxisType axisType);
 
     /// <summary>
     /// This Creates the instance of the Lv Objects associated with the instance and sub components associated with it
@@ -131,26 +132,27 @@ public:
     /// /// Sets the line style of the graph
     /// </summary>
     /// <param name="graph_line_style"></param>
-    void setAxisLineStyle(lv_style_t* line_style, lv_point_t* largeTicksSize, lv_point_t* smallTicksSize) { this->graph_axis_line_style = line_style; this->largeTicksSize = *largeTicksSize; this->smallTicksSize = *smallTicksSize; }
+    void setAxisLineStyle(lv_style_t* line_style, lv_point_t largeTicksSize, lv_point_t smallTicksSize) { this->graph_axis_line_style = line_style; this->largeTicksSize = largeTicksSize; this->smallTicksSize = smallTicksSize; }
 
     void setAxisPos(GraphAxisPoint* axisPos) { this->axisPos = *axisPos; }
 
-    void setAxisYPos(int32_t yPos) { this->axisPos.y = yPos; }
+    void setAxisYPos(int16_t yPos) { this->axisPos.y = yPos; }
 
-    void setAxisXPos(int32_t xPos) { this->axisPos.x = xPos; }
+    void setAxisXPos(int16_t xPos) { this->axisPos.x = xPos; }
 
-    void setMinorTickIncrement(GraphAxisIncrement* axisIncrement) { this->minorTickIncrement = *axisIncrement; }
+    void setYGraphTickSize(GraphTickSize* axisIncrement) { this->yGraphTickSize = *axisIncrement; }
 
-    void setMajorTickIncrement(GraphAxisIncrement* axisIncrement) { this->majorTickIncrement = *axisIncrement; }
+    void setXGraphTickSize(GraphTickSize* axisIncrement) { this->xGraphTickSize = *axisIncrement; }
 
-    void setXMinorTickIncrement(int32_t xInc) { this->minorTickIncrement.xInc = xInc; }
+    void setXMinorTickSize(float minorTickSize) { this->xGraphTickSize.minorTickSize = minorTickSize; }
 
-    void setYMinorTickIncrement(int32_t yInc) { this->minorTickIncrement.yInc = yInc; }
+    void setYMinorTickSize(float minorTickSize) { this->yGraphTickSize.minorTickSize = minorTickSize; }
 
-    void setXMajorTickIncrement(int32_t xInc) { this->majorTickIncrement.xInc = xInc; }
+    void setXMinorTicksPerMajorTick(uint16_t minorTicksPerMajorTick) { this->xGraphTickSize.minorTicksPerMajorTick = minorTicksPerMajorTick; }
 
-    void setYMajorTickIncrement(int32_t yInc) { this->majorTickIncrement.yInc = yInc; }
+    void setYMinorTicksPerMajorTick(uint16_t minorTicksPerMajorTick) { this->yGraphTickSize.minorTicksPerMajorTick = minorTicksPerMajorTick; }
 
+    lv_point_t getGraphPlotOffset() { return this->graphPlotOffset;  }
 };
 
 #endif

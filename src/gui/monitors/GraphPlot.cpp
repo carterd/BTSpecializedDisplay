@@ -25,7 +25,6 @@ GraphPlot::~GraphPlot() {
 }
 
 lv_obj_t* GraphPlot::createLvObj(lv_obj_t* parent) {
-    this->parent_obj = parent;
     this->width = lv_obj_get_width(parent);
     if (this->width == 0) { this->width = 1; }
     this->height = lv_obj_get_height(parent); 

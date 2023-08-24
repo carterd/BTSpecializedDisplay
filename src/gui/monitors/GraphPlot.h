@@ -6,16 +6,12 @@
 #include <lvgl.h>
 
 typedef struct {
-    int32_t x;
-    int32_t y;
+    int16_t x;
+    int16_t y;
 } GraphPoint;
 
 class GraphPlot : public BaseLvObject {
 private:
-    /// <summary>
-    /// The parent container objcet
-    /// </summary>
-    lv_obj_t* parent_obj;
     /// <summary>
     /// This is the parent of the lines that make the parent
     /// </summary>
@@ -108,6 +104,10 @@ public:
     /// </summary>
     void updateLvObj();
 
+    uint16_t getNumberOfLines() { return this->numberOfLines; }
+
+    uint16_t getNumberOfPoints() { return this->numberOfLines; }
+
     /// <summary>
     /// Set a new set of graph limits
     /// </summary>
@@ -117,7 +117,7 @@ public:
     /// <summary>
     /// Set a new set of graph limits
     /// </summary>
-    void setLimits(int32_t xMin, int32_t xMax, int32_t yMin, int32_t yMax) { this->graphMin.x = xMin; this->graphMax.x = xMax; this->updateXMultiplier(); this->graphMin.y = yMin; this->graphMax.y = yMax; this->updateYMultiplier();
+    void setLimits(int16_t xMin, int16_t xMax, int16_t yMin, int16_t yMax) { this->graphMin.x = xMin; this->graphMax.x = xMax; this->updateXMultiplier(); this->graphMin.y = yMin; this->graphMax.y = yMax; this->updateYMultiplier();
     }
     /// <summary>
     /// Set a new set of graph limits minimums
@@ -127,22 +127,31 @@ public:
     /// Set a new set of graph limits maximums
     /// </summary>
     void setLimitsMax(GraphPoint *max) { this->graphMax = *max; this->updateXMultiplier(); this->updateYMultiplier(); }
+
+    /// <summary>
+    /// Set a new set of x minimum maximum limits
+    /// </summary>
+    void setXLimits(int16_t min, int16_t max) { this->graphMin.x = min; this->graphMax.x = max; this->updateXMultiplier(); }
+    /// <summary>
+    /// Set a new set of y minimum maximum limits
+    /// </summary>
+    void setYLimits(int16_t min, int16_t max) { this->graphMin.y = min; this->graphMax.y = max; this->updateYMultiplier(); }
     /// <summary>
     /// Set a new set of x minimum limit
     /// </summary>
-    void setXmin(int32_t xMin) { this->graphMin.x = xMin; this->updateXMultiplier(); }
+    void setXmin(int16_t xMin) { this->graphMin.x = xMin; this->updateXMultiplier(); }
     /// <summary>
     /// Set a new set of y minimum limit
     /// </summary>
-    void setYmin(int32_t yMin) { this->graphMin.y = yMin; this->updateYMultiplier(); }
+    void setYmin(int16_t yMin) { this->graphMin.y = yMin; this->updateYMultiplier(); }
     /// <summary>
     /// Set a new set of x maximum limit
     /// </summary>    
-    void setXmax(int32_t xMax) { this->graphMax.x = xMax; this->updateXMultiplier(); }
+    void setXmax(int16_t xMax) { this->graphMax.x = xMax; this->updateXMultiplier(); }
     /// <summary>
     /// Set a new set of y maximum limit
     /// </summary>
-    void setYmax(int32_t yMax) { this->graphMax.y = yMax; this->updateYMultiplier(); }
+    void setYmax(int16_t yMax) { this->graphMax.y = yMax; this->updateYMultiplier(); }
     /// <summary>
     /// Get the given graph point with a new x,y value, required to calculate which line point blongs to.
     /// </summary>
@@ -162,8 +171,8 @@ public:
     /// <param name="pointIndex">index of the point in the array of all points</param>
     /// <param name="x">new x position of point</param>
     /// <param name="y">new y position of point</param>
-    void setGraphPoint(uint16_t pointIndex, uint32_t x, uint32_t y) { if (pointIndex >= 0 && pointIndex < this->numberOfPoints) { this->graphPoints[pointIndex].x = x; this->graphPoints[pointIndex].y = y; } }
-    void setGraphPoint(uint16_t lineIndex, uint16_t pointIndex, uint32_t x, uint32_t y) { setGraphPoint(lineIndex * this->pointsInLine + pointIndex, x, y); }
+    void setGraphPoint(uint16_t pointIndex, int16_t x, int16_t y) { if (pointIndex >= 0 && pointIndex < this->numberOfPoints) { this->graphPoints[pointIndex].x = x; this->graphPoints[pointIndex].y = y; } }
+    void setGraphPoint(uint16_t lineIndex, uint16_t pointIndex, int16_t x, int16_t y) { setGraphPoint(lineIndex * this->pointsInLine + pointIndex, x, y); }
     /// <summary>
     /// This sets the graph point of a given line with new x, y value,
     /// </summary>
@@ -187,21 +196,21 @@ public:
     /// <param name="graph_line_style"></param>
     void setGraphLineStyle(lv_style_t* graph_line_style) { this->graph_line_style = graph_line_style; }
 
-    int16_t getXpixelOffset(int32_t xPos) { return (xPos - this->graphMin.x) / xMultiplier; }
+    int16_t getXpixelOffset(int16_t xPos) { return (xPos - this->graphMin.x) / xMultiplier; }
 
-    int16_t getYpixelOffset(int32_t yPos) { return (yPos - this->graphMax.y) / yMultiplier; }
+    int16_t getYpixelOffset(int16_t yPos) { return (yPos - this->graphMax.y) / yMultiplier; }
 
     uint16_t getWidth() { return this->width; }
 
     uint16_t getHeight() { return this->height; }
 
-    int32_t getXMin() { return this->graphMin.x; }
+    int16_t getXMin() { return this->graphMin.x; }
 
-    int32_t getYMin() { return this->graphMin.y; }
+    int16_t getYMin() { return this->graphMin.y; }
 
-    int32_t getXMax() { return this->graphMax.x; }
+    int16_t getXMax() { return this->graphMax.x; }
 
-    int32_t getYMax() { return this->graphMax.y; }
+    int16_t getYMax() { return this->graphMax.y; }
 };
 
 #endif
