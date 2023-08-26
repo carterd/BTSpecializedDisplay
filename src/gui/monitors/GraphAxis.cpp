@@ -113,7 +113,7 @@ void GraphAxis::updateXTicksLvObj() {
 void GraphAxis::updateYTicksLvObj() {
     if (this->yGraphTickSize.minorTickSize) {
         int16_t xAxis = this->graphPlot->getXpixelOffset(this->axisPos.x) + this->graphPlotOffset.x;
-        int16_t yTicCount = std::floor(this->graphPlot->getXMin() / this->yGraphTickSize.minorTickSize);
+        int16_t yTicCount = std::floor(this->graphPlot->getYMin() / this->yGraphTickSize.minorTickSize);
         float yTic = yTicCount * this->yGraphTickSize.minorTickSize;
         if (yTic < this->graphPlot->getYMin()) {
             yTic += this->yGraphTickSize.minorTickSize;

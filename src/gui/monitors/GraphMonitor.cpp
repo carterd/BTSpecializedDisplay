@@ -2,20 +2,13 @@
 #include <deque>
 #include "GraphMonitor.h"
 
-#define MILLI_PER_MIN 60000
 #define MAX_CURRENT_GRAPH_LINES 1
-#define MAX_GRAPH_LINES 60
 #define POINTS_PER_LINE 2
-#define MAX_AXIS_TICKS_X 7
-#define MAX_AXIS_TICKS_Y 15
-#define CURRENT_GRAPH_XMIN 0
-#define CURRENT_GRAPH_XMAX 1000
 
-GraphMonitor::GraphMonitor(lv_point_t graphPlotOffset, uint16_t plotNumberOfPoints, uint16_t xAxisPointStep, uint16_t xAxisTickStep, uint16_t maxXAxisTicks, uint16_t maxYAxisTicks, bool minMaxMode, float graphYAxisMinLimit, float graphYAxisMaxLimit) :
+GraphMonitor::GraphMonitor(lv_point_t graphPlotOffset, uint16_t plotNumberOfPoints, AxisType axisType, uint16_t xAxisPointStep, uint16_t xAxisTickStep, uint16_t maxXAxisTicks, uint16_t maxYAxisTicks, int16_t graphYAxisMinLimit, int16_t graphYAxisMaxLimit) :
     plotGraph(plotNumberOfPoints, POINTS_PER_LINE),
     currentGraph(MAX_CURRENT_GRAPH_LINES, POINTS_PER_LINE),
-    graphAxis(&this->plotGraph, graphPlotOffset, maxXAxisTicks, maxYAxisTicks, AxisType::XaxisBottomYaxisRight) {
-    this->minMaxMode = minMaxMode;
+    graphAxis(&this->plotGraph, graphPlotOffset, maxXAxisTicks, maxYAxisTicks, axisType) {
     this->plotNumberOfPoints = plotNumberOfPoints;
     this->xAxisTickStep = xAxisTickStep;
     this->xAxisPointStep = xAxisPointStep;
@@ -42,7 +35,7 @@ lv_obj_t* GraphMonitor::createLvObj(lv_obj_t* parent) {
     // Configure Plot graph
     this->plotGraph.setGraphLineStyle(this->graph_plot_style);
     this->plotGraph.createLvObj(this->graphPlotParent);
-    this->plotGraph.setLimits(- ((int32_t) this->xAxisPointStep) * this->plotNumberOfPoints, 0, 0, this->graphYAxisMinLimit);
+    this->plotGraph.setLimits(0, 1, 0, this->graphYAxisMinLimit);
 
     // Create a current graph
     this->graphCurrentLineParent = lv_obj_create(this->this_obj);
@@ -52,8 +45,9 @@ lv_obj_t* GraphMonitor::createLvObj(lv_obj_t* parent) {
     // Configure Current graph Line
     this->currentGraph.setGraphLineStyle(this->graph_current_style);
     this->currentGraph.createLvObj(this->graphCurrentLineParent);
-    this->plotGraph.setLimits(-((int32_t)this->xAxisPointStep) * this->plotNumberOfPoints, 0, 0, this->graphYAxisMinLimit);
     // Start with current line not visable
+    this->currentGraph.setLimits(0, 1, 0, this->graphYAxisMinLimit);
+    this->currentGraph.setXLimits(0, 1);
     //this->currentGraph.setLineVisible(0);
 
     // Create the axis
@@ -90,7 +84,7 @@ void GraphMonitor::updateCurrent(int16_t currentValue) {
     this->currentValue = currentValue;
     this->currentGraph.setGraphPoint(0, 0, this->currentGraph.getXMin(), currentValue);
     this->currentGraph.setGraphPoint(0, 1, this->currentGraph.getXMax(), currentValue);
-    this->currentGraph.updateLvObj();
+    this->updateCurrentGraph = true;
 }
 
 void GraphMonitor::setCurrentVisiblitiy(bool visible) {
@@ -111,33 +105,28 @@ void GraphMonitor::setXTickSizes(float minorTickSize, uint16_t minorTicksPerMajo
     this->updateAxis = true;
 }
 
-void GraphMonitor::setXLimits(int16_t min, uint16_t max) {
+void GraphMonitor::setXLimits(int16_t min, int16_t max) {
     this->plotGraph.setXLimits(min, max);
     // Note current is not affected by the plot x limits only the y limits
     this->updateAxis = this->updatePlotGraph = true;
 }
 
-void GraphMonitor::setYLimits(int16_t min, uint16_t max) {
-    this->plotGraph.setYLimits(min, max);
-    this->currentGraph.setYLimits(min, max);
-    this->updateAxis = this->updatePlotGraph = this->updateCurrentGraph = true;
-}
-
-void GraphMonitor::setAxisXPos(int16_t x) {
-    this->graphAxis.setAxisXPos(x);
-    this->updateAxis = true;
-}
-
-void GraphMonitor::setAxisYPos(int16_t x) {
-    this->graphAxis.setAxisYPos(x);
-    this->updateAxis = true;
+void GraphMonitor::setYLimits(int16_t min, int16_t max) {
+    if (max > this->graphYAxisMaxLimit) { max = this->graphYAxisMaxLimit; }
+    if (max < this->graphYAxisMinLimit) { max = this->graphYAxisMinLimit; }
+    if (this->plotGraph.getYMax() != max || this->plotGraph.getYMin() != min) {
+        this->plotGraph.setYLimits(min, max);
+        this->currentGraph.setYLimits(min, max);
+        this->updateAxis = this->updatePlotGraph = this->updateCurrentGraph = true;
+    }
 }
 
 void GraphMonitor::updatePlot(GraphMonitorPointsIterator* it) {
+    it->init();
     for (uint16_t lineIndex = 0; lineIndex < this->plotGraph.getNumberOfLines(); lineIndex++) {
         if (it->getNext()) {
-            this->plotGraph.setGraphPoint(lineIndex, 0, it->getLineStart());
-            this->plotGraph.setGraphPoint(lineIndex, 1, it->getLineEnd());
+            this->plotGraph.setGraphPoint(lineIndex, 0, &(it->lineStart));
+            this->plotGraph.setGraphPoint(lineIndex, 1, &(it->lineEnd));
             this->plotGraph.setLineVisible(lineIndex);
         }
         else {

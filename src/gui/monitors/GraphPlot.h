@@ -204,6 +204,10 @@ public:
 
     uint16_t getHeight() { return this->height; }
 
+    GraphPoint* getLimitsMin() { return &this->graphMin; }
+
+    GraphPoint* getLimitsMax() { return &this->graphMin; }
+
     int16_t getXMin() { return this->graphMin.x; }
 
     int16_t getYMin() { return this->graphMin.y; }

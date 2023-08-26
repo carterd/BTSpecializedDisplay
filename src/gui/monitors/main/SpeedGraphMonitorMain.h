@@ -1,8 +1,10 @@
 #ifndef _SPEED_GRAPH_MONITOR_MAIN_H
 #define _SPEED_GRAPH_MONITOR_MAIN_H
 
+#include "../GraphMonitorIterator.h"
 #include "../GraphPlot.h"
 #include "../GraphAxis.h"
+#include "../GraphMonitor.h"
 
 #include "BaseMonitorMain.h"
 #include "../../../stats/SpeedMeterLogger.h"
@@ -19,19 +21,9 @@ class SpeedGraphMonitorMain : public BaseMonitorMain
 {
 private:
     /// <summary>
-    /// The parent to all the axis lines to allow them to be easily managed
+    /// This is the graph iterator used in drawing speed plot
     /// </summary>
-    lv_obj_t* graphAxisParent;
-
-    /// <summary>
-    /// This is the parent of the line plot that make the parent
-    /// </summary>
-    lv_obj_t* graphPlotParent;
-
-    /// <summary>
-    /// This is the parent of the current line bar
-    /// </summary>
-    lv_obj_t* graphCurrentLineParent;
+    SpeedGraphMonitorIterator speedGraphMonitorIterator;
 
     /// <summary>
     /// This is the logger object which stores the stats to be displayed
@@ -39,29 +31,14 @@ private:
     SpeedMeterLogger* speedMeterLogger;
 
     /// <summary>
-    /// This is used to detect when the logger has moved it's currently reading period
+    /// This is used to detect when the logger has moved it's currently reading period and redraw is in order
     /// </summary>
-    uint32_t speedMeterLoggerPeriodStartTimeTicks;
-
-    /// <summary>
-    /// These are the display limits for the graph it should not be able to scale any smaller than this in Y axis
-    /// </summary>
-    float graphMinLimit;
-
-    /// <summary>
-    /// These are the display limits for the graph it should not be able to scale any larger than this in Y axis
-    /// </summary>
-    float graphMaxLimit;
-
-    /// <summary>
-    /// This is the current reading multiplied by the wheel rotations per min multiplier
-    /// </summary>
-    float currentMaxMultipliedWheelRotationsPerMin;
+    uint32_t LoggerPeriodStartTimeTicks;
 
     /// <summary>
     /// This is the current graphed maximum displayed in multipled wheel rotations
     /// </summary>
-    float maxAverageMultipliedWheelRotations;
+    float maxGraphPlotYaxis;
 
     /// <summary>
     /// Selector for display mode either min/max or average
@@ -72,16 +49,6 @@ private:
     /// The config store which contains the bluetooth devices to connect to
     /// </summary>
     ConfigStore* configStore;
-
-    /// <summary>
-    /// The wheel size for calculation from rotations to speed
-    /// </summary>
-    uint16_t wheelCircumferenceMm;
-
-    /// <summary>
-    /// This is required to detect that the screen is required to be redrawn from scratch
-    /// </summary>
-    bool redraw;
 
 protected:
     /// <summary>
@@ -122,25 +89,15 @@ private:
 
 private:
     /// <summary>
-    /// This is the graph of the current level of speed
+    /// This is the objec for display of graph
     /// </summary>
-    GraphPlot currentGraph;
-
-    /// <summary>
-    /// This is the graph of the values over time
-    /// </summary>
-    GraphPlot plotGraph;
-
-    /// <summary>
-    /// This is the graph axis for both current and plot
-    /// </summary>
-    GraphAxis graphAxis;
+    GraphMonitor graphMonitor;
 
 public:
     /// <summary>
     /// Constructor for the SpeedGraphMonitorMain
     /// </summary>
-    SpeedGraphMonitorMain(ConfigStore* configStore, SpeedMeterLogger* speedMeterLogger, bool minMaxMode = true, float graphMinLimit = 24.0F, float graphMaxLimit = 100.0F);
+    SpeedGraphMonitorMain(ConfigStore* configStore, SpeedMeterLogger* speedMeterLogger, bool minMaxMode = true, int16_t graphMinLimit = 3000, int16_t graphMaxLimit = 20000);
 
     /// <summary>
     /// Returns the LV object instance to represent this class instance
