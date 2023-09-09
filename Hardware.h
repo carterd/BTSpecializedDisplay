@@ -312,7 +312,7 @@ bool FileSystem::closeFile() {
     ((fs::File*)(this->file))->close();
     delete((fs::File*) this->file); 
     this->file = NULL;
-    return false;
+    return true;
 }
 
 #endif
@@ -482,7 +482,7 @@ bool FileSystem::closeFile() {
     ((fs::File*)(this->file))->close();
     delete((fs::File*) this->file); 
     this->file = NULL;
-    return false;
+    return true;
 }
 
 #endif

@@ -31,6 +31,8 @@ struct AssistLevels {
     friend bool operator==(const AssistLevels& lhs, const AssistLevels& rhs) {
         return (lhs.eco == rhs.eco && lhs.trail == rhs.trail && lhs.turbo == rhs.turbo);
     }
+    AssistLevels(uint8_t eco, uint8_t trail, uint8_t turbo) { this->eco = eco; this->trail = trail; this->turbo = turbo; }
+    AssistLevels() {}
 };
 
 struct NumberString {
@@ -111,6 +113,7 @@ public:
         AssistLevels valueAssistLevels;
         NumberString valueNumberString;
         SpeedCadenceReading cscReading;
+        BikeStateAttributeValue() {};
     };
 public:
     BikeStateAttributeType bikeStateAttributeType;

@@ -2,6 +2,8 @@
 #define  _DISPLAY_CONFIG_H
 
 #include <Arduino.h>
+#include <vector>
+#include "AssistPresets.h"
 
 enum class DisplayConfigAttributeIndex { Contrast = 1, MonitorType = 2, ConnectBatteryOnly = 3, ConnectOnBoot = 4, UnitsMetricImperial = 5 };
 
@@ -12,17 +14,19 @@ public:
     bool connectBatteryOnly;        // This is more of a debug feature as you normally wont want to connect to battery only
     bool connectOnBoot;             // This is more likely to want to default to true
     bool unitsMetric;
+    std::vector<BikeAssistPreset> bikeAssistPresets;       // The bike assist presets themselves
 
-    DisplayConfig(int8_t contrast, int16_t monitorType, bool connectBatteryOnly, bool connectOnBoot, bool unitsMetric) {
+    DisplayConfig(int8_t contrast, int16_t monitorType, bool connectBatteryOnly, bool connectOnBoot, bool unitsMetric, std::vector<BikeAssistPreset> bikeAssistPresets) {
         this->contrast = contrast;
         this->monitorType = monitorType;
         this->connectBatteryOnly = connectBatteryOnly;
         this->connectOnBoot = connectOnBoot;
         this->unitsMetric = unitsMetric;
+        this->bikeAssistPresets = bikeAssistPresets;
     };
     DisplayConfig() {};
     friend bool operator==(const DisplayConfig& lhs, const DisplayConfig& rhs) {
-        return (lhs.contrast == rhs.contrast && lhs.monitorType == rhs.monitorType && lhs.connectBatteryOnly == rhs.connectBatteryOnly && lhs.connectOnBoot == rhs.connectOnBoot && lhs.unitsMetric == rhs.unitsMetric);
+        return (lhs.contrast == rhs.contrast && lhs.monitorType == rhs.monitorType && lhs.connectBatteryOnly == rhs.connectBatteryOnly && lhs.connectOnBoot == rhs.connectOnBoot && lhs.unitsMetric == rhs.unitsMetric && lhs.bikeAssistPresets == rhs.bikeAssistPresets);
     }
     void setIntValue(DisplayConfigAttributeIndex displayConfigAttributeIndex, int newValue) {
         switch (displayConfigAttributeIndex) {

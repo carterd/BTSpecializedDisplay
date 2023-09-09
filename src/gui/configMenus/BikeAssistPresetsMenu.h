@@ -22,7 +22,7 @@ public:
         this->configStore = configStore;
     }
 	virtual void valueChangeCB(int newValue);
-	virtual int valueInitCB() { return -1; };
+	virtual int valueInitCB();
 	virtual void valueFinishCB() {
 		// Dont do anything on normal exit
 	};
@@ -31,6 +31,7 @@ public:
 class BikeAssistPresetsMenu {
 private:
 	AssistPresetSelectMenu assistPresetIntegerSelectMenu;
+	ConfigStore& configStore;
 public:
 	ScrollMenuItem configBikeMenuItem;
 public:

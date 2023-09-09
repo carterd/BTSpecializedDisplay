@@ -39,6 +39,10 @@ void ConfigStore::defaults() {
     this->displayConfig.connectOnBoot = false;
     this->displayConfig.unitsMetric = true;
 
+    this->displayConfig.bikeAssistPresets.clear();
+    this->displayConfig.bikeAssistPresets.push_back(BikeAssistPreset(PRESET_NAME_DEFAULT, AssistLevels(20, 50, 100), AssistLevels(50, 100, 100)));
+    this->displayConfig.bikeAssistPresets.push_back(BikeAssistPreset(PRESET_NAME_ECO,     AssistLevels(10, 20, 50),  AssistLevels(10, 50, 50)));
+    this->displayConfig.bikeAssistPresets.push_back(BikeAssistPreset(PRESET_NAME_THRASH,  AssistLevels(50, 80, 100),  AssistLevels(50, 100, 100)));
 }
 
 void ConfigStore::updateBTAddressesConfig(BTAddressesConfig& btAddressesConfig)
@@ -76,6 +80,7 @@ BikeConfig& ConfigStore::getBikeConfig() {
 
 void ConfigStore::updateDisplayConfig(DisplayConfig& displayConfig) {
     if (this->displayConfig == displayConfig) {
+        LV_LOG_USER("No change in display config");
         return;
     }
     this->displayConfig = displayConfig;
@@ -97,6 +102,7 @@ bool ConfigStore::readDisplayConfig() {
         result &= this->readBool(&(this->displayConfig.connectBatteryOnly));
         result &= this->readBool(&(this->displayConfig.connectOnBoot));
         result &= this->readBool(&(this->displayConfig.unitsMetric));
+        result &= this->readBikeAssistPresets(&(this->displayConfig.bikeAssistPresets));
         this->fileSystem->closeFile();
         return result;
     }
@@ -105,13 +111,15 @@ bool ConfigStore::readDisplayConfig() {
 
 bool ConfigStore::writeDisplayConfig() {
     if (this->fileSystem->openFile(this->displayConfigFilename, "w")) {
-        this->writeUInt8(&(this->displayConfig.contrast));
-        this->writeUInt16(&(this->displayConfig.monitorType));
-        this->writeBool(&(this->displayConfig.connectBatteryOnly));
-        this->writeBool(&(this->displayConfig.connectOnBoot));
-        this->writeBool(&(this->displayConfig.unitsMetric));
-        this->fileSystem->closeFile();
-        return true;
+        bool result = true;
+        result &= this->writeUInt8(&(this->displayConfig.contrast));
+        result &= this->writeUInt16(&(this->displayConfig.monitorType));
+        result &= this->writeBool(&(this->displayConfig.connectBatteryOnly));
+        result &= this->writeBool(&(this->displayConfig.connectOnBoot));
+        result &= this->writeBool(&(this->displayConfig.unitsMetric));
+        result &= this->writeBikeAssistPresets(&(this->displayConfig.bikeAssistPresets));
+        result &= this->fileSystem->closeFile();
+        return result;
     }
     return false;
 }
@@ -187,6 +195,46 @@ bool ConfigStore::writeBikeConfig() {
         return true;
     }
     return false;
+}
+
+
+bool ConfigStore::readBikeAssistPresets(std::vector<BikeAssistPreset>* bikeAssistPresets) {
+    bool result = true;
+    bikeAssistPresets->clear();
+    
+    // Get the size first
+    uint16_t numBikeAssistPresets;
+    result = this->readUInt16(&numBikeAssistPresets);
+    // Now read in the presets
+    for (int i = 0; (i < numBikeAssistPresets) && result; i++) {
+        BikeAssistPreset bikeAssistPreset;
+        result &= this->readString(&(bikeAssistPreset.Name));
+        result &= this->readUInt8(&(bikeAssistPreset.supportAssistLevels.eco));
+        result &= this->readUInt8(&(bikeAssistPreset.supportAssistLevels.trail));
+        result &= this->readUInt8(&(bikeAssistPreset.supportAssistLevels.turbo));
+        result &= this->readUInt8(&(bikeAssistPreset.peakPowerAssistLevels.eco));
+        result &= this->readUInt8(&(bikeAssistPreset.peakPowerAssistLevels.trail));
+        result &= this->readUInt8(&(bikeAssistPreset.peakPowerAssistLevels.turbo));
+        bikeAssistPresets->push_back(bikeAssistPreset);
+    }
+    return result;
+}
+
+bool ConfigStore::writeBikeAssistPresets(std::vector<BikeAssistPreset>* bikeAssistPresets) {
+    bool result = true;
+    // Store the size first
+    uint16_t numBikeAssistPresets = bikeAssistPresets->size();
+    result = this->writeUInt16(&numBikeAssistPresets);
+    for (auto it = bikeAssistPresets->begin(); (it != bikeAssistPresets->end()) && result; it++) {
+        result &= this->writeString(&(it->Name));
+        result &= this->writeUInt8(&(it->supportAssistLevels.eco));
+        result &= this->writeUInt8(&(it->supportAssistLevels.trail));
+        result &= this->writeUInt8(&(it->supportAssistLevels.turbo));
+        result &= this->writeUInt8(&(it->peakPowerAssistLevels.eco));
+        result &= this->writeUInt8(&(it->peakPowerAssistLevels.trail));
+        result &= this->writeUInt8(&(it->peakPowerAssistLevels.turbo));
+    }
+    return result;
 }
 
 bool ConfigStore::readBTAddressMap() {

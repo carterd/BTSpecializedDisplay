@@ -27,6 +27,7 @@ class std::hash<String> {
 #include "../config/BikeConfig.h"
 #include "../config/BTAddressConfig.h"
 #include "../config/SavesNames.h"
+#include "../config/AssistPresets.h"
 
 class FileSystem 
 {
@@ -63,6 +64,9 @@ private:
     DisplayConfig displayConfig;
     BikeConfig bikeConfig;
     SavesNames savesNames;
+
+    bool writeBikeAssistPresets(std::vector<BikeAssistPreset>* bikeAssistPresets);
+    bool readBikeAssistPresets(std::vector<BikeAssistPreset>* bikeAssistPresets);;
 
     bool readUInt16(uint16_t* value);
     bool readUInt8(uint8_t* value);
