@@ -8,16 +8,21 @@
 class IntegerSelectMenu : public ValueSelectMenu 
 {
 private:
+    /// <summary>
+    /// The select menu has an already selected value or -1 if nothing is selected
+    /// </summary>
     int selectedValue;
 
 public:
 	/// <summary>
-	/// Constructor of the Bluetooth scan list hence shows a list of dectected bluetooth devices/
+	/// Constructor of the Value Select List hence shows a list of dectected bluetooth devices/
 	/// </summary>
 	/// <param name="exitButtonText">The text to display for exit menu option of the menu</param>
 	/// <param name="indev">The indev used for taking context of the encoder</param>
 	IntegerSelectMenu(const char* titleText, const char* exitButtonText, lv_indev_t* indev, ButtonLabelBar* buttonLabel = NULL);
-
+    /// <summary>
+    /// Destructor for the Value Select List
+    /// </summary>
     virtual ~IntegerSelectMenu();
 
     virtual void deleteAllMenuItems();

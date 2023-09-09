@@ -33,14 +33,32 @@ private:
 	/// Displays the button label if one has been assoicated with the scan list
 	/// </summary>
 	void showButtonLabels();
+
 	/// <summary>
 	/// Add a button onto the list with given display text and a possible known device icon
 	/// </summary>
-	/// <param name="displayText">Display text in the list</param>
-	/// <param name="knownDevice">True if the device is known hence shown with an icon</param>
+	/// <param name="menuItem">Display text in the list</param>
 	/// <returns>The created list item button object</returns>
 	lv_obj_t* addMenuItemButton(ValueSelectMenuItem* menuItem);
+
+	/// <summary>
+	/// Itterate over all the item button items and create the buttons on the list
+	/// </summary>
+	void addAllMenuItemButtons();
+
+	/// <summary>
+	///	Remove a button on the list with the given details of the menu item
+	/// </summary>
+	void removeMenuItemButton(ValueSelectMenuItem* menuItem);
 	
+	/// <summary>
+	/// Itterate over all the item button items and create the buttons on the list
+	/// </summary>
+	void removeAllMenuItemButtons();
+
+	/// <summary>
+	/// This is used to check the state of the menu item and update the optional tick either removing or adding the tick
+	/// </summary>
     void updateMenuItemButton(ValueSelectMenuItem* menuItem);
 
     lv_obj_t* getMenuItemButton(ValueSelectMenuItem* menuItem);
@@ -95,6 +113,11 @@ public:
     /// </summary>
     /// <param name="scrollMenuItem">The menu item to add to the list</param>
     void addMenuItem(ValueSelectMenuItem* menuItem);
+
+	/// <summary>
+	/// Remove the given menu item object from the list
+	/// </summary>
+	void removeMenuItem(ValueSelectMenuItem* menuItem);
 
 	/// <summary>
 	/// The callback on the exit button clicked
