@@ -83,8 +83,11 @@ lv_obj_t* ValueSelectMenu::createLvObj(lv_obj_t* parent)
 	}
 	lv_group_add_obj(this->group, this->exit_button_obj);
 
-	// Ensure the buttons are ready to go ... on creation
-	this->addAllMenuItemButtons();
+    for (std::vector<ValueSelectMenuItem*>::iterator it = std::begin(this->valueMenuItems); it != std::end(this->valueMenuItems); ++it)
+    {
+        // Create the lv_tile to the list of current tiles
+        lv_obj_t* button_obj = this->addMenuItemButton((*it));
+    }
 
 	return this->this_obj;
 }
@@ -117,14 +120,6 @@ void ValueSelectMenu::updateButtonLabelBar()
 	}
 }
 
-void ValueSelectMenu::addAllMenuItemButtons() {
-	for (std::vector<ValueSelectMenuItem*>::iterator it = std::begin(this->valueMenuItems); it != std::end(this->valueMenuItems); ++it)
-    {
-        // Create the lv_tile to the list of current tiles
-        this->addMenuItemButton((*it));
-    }
-}
-
 lv_obj_t* ValueSelectMenu::addMenuItemButton(ValueSelectMenuItem* menuItem) {
 	lv_obj_t* list_btn = lv_list_add_btn(this->list_obj, LV_SYMBOL_OK, menuItem->getItemText());
 	lv_obj_set_user_data(list_btn, menuItem);
@@ -143,27 +138,10 @@ lv_obj_t* ValueSelectMenu::addMenuItemButton(ValueSelectMenuItem* menuItem) {
 	return list_btn;
 }
 
-void ValueSelectMenu::removeAllMenuItemButtons() {
-	for (std::vector<ValueSelectMenuItem*>::iterator it = std::begin(this->valueMenuItems); it != std::end(this->valueMenuItems); ++it)
-    {
-        // Create the lv_tile to the list of current tiles
-        this->removeMenuItemButton((*it));
-    }
-}
-
-void ValueSelectMenu::removeMenuItemButton(ValueSelectMenuItem* menuItem) {
-	lv_obj_t* menuItemButton = getMenuItemButton(menuItem);
-    if (menuItemButton) {
-		lv_group_remove_obj(menuItemButton);
-		lv_obj_del(menuItemButton);
-    }
-}
-
 lv_obj_t* ValueSelectMenu::getMenuItemButton(ValueSelectMenuItem* menuItem) {
     for (int i = 0; i < lv_obj_get_child_cnt(this->list_obj); i++) {
         lv_obj_t* menuItemButton = lv_obj_get_child(this->list_obj, i);
-        if (lv_obj_get_user_data(menuItemButton) == menuItem) {
-			
+        if (lv_obj_get_user_data(menuItemButton) == menuItem) {			
             return menuItemButton;
         }
     }
@@ -188,14 +166,6 @@ void ValueSelectMenu::addMenuItem(ValueSelectMenuItem* menuItem)
 {
     // Append the scrollMenuItem to the list of menu items for use when item is selected
     this->valueMenuItems.push_back(menuItem);
-}
-
-void ValueSelectMenu::removeMenuItem(ValueSelectMenuItem* menuItem)
-{
-	auto it = std::find(this->valueMenuItems.begin(), this->valueMenuItems.end(), menuItem);
-	if (it != this->valueMenuItems.end()) {
-		this->valueMenuItems.erase(it);
-	}
 }
 
 void ValueSelectMenu::exitButtonCB(lv_event_t* event)

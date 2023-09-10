@@ -2,6 +2,7 @@
 #define _DISPLAY_ASSIST_PRESETS_MENU_H
 
 #include "DisplayAssistPresetsStoreMenu.h"
+#include "DisplayAssistPresetsDeleteMenu.h"
 #include "../ScrollMenuItem.h"
 #include "../NavigationMenu.h"
 

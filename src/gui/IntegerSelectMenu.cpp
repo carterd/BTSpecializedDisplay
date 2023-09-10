@@ -13,6 +13,7 @@ void IntegerSelectMenu::deleteAllMenuItems() {
         IntegerSelectMenuItem* item = (IntegerSelectMenuItem*) (*it);
         delete(item);
     }
+    this->valueMenuItems.clear();
 }
 
 void IntegerSelectMenu::addMenuItem(const char* text, int value) {

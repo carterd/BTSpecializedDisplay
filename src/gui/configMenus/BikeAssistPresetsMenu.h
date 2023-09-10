@@ -7,7 +7,7 @@
 
 #include "../../dev/ConfigStore.h"
 
-class AssistPresetSelectMenu : public IntegerSelectMenu {
+class BikeAssistPresetsSelectMenu : public IntegerSelectMenu {
 private:
     ConfigStore& configStore;
     BikeConfig bikeConfig;
@@ -17,12 +17,20 @@ private:
     /// </summary>
     bool configureAttributeManaged;
 public:
-	AssistPresetSelectMenu(const char* titleText, const char* exitButtonText, ConfigStore& configStore, lv_indev_t* indev, ButtonLabelBar* buttonLabelBar = NULL) :
+	BikeAssistPresetsSelectMenu(const char* titleText, const char* exitButtonText, ConfigStore& configStore, lv_indev_t* indev, ButtonLabelBar* buttonLabelBar = NULL) :
 		IntegerSelectMenu(titleText, exitButtonText, indev, buttonLabelBar), configStore(configStore) {
         this->configStore = configStore;
     }
+
+	/// <summary>
+	/// This Creates the instance of the Lv Objects associated with the instance and sub components associated with it
+	/// </summary>
+	/// <param name="parent">The LV object parent on which to attach the created lv object for this instance</param>
+	/// <returns>The created LV object instance</returns>
+	virtual lv_obj_t* createLvObj(lv_obj_t* parent);
+
 	virtual void valueChangeCB(int newValue);
-	virtual int valueInitCB();
+	virtual int valueInitCB() { return -1; }
 	virtual void valueFinishCB() {
 		// Dont do anything on normal exit
 	};
@@ -30,12 +38,18 @@ public:
 
 class BikeAssistPresetsMenu {
 private:
-	AssistPresetSelectMenu assistPresetIntegerSelectMenu;
+	BikeAssistPresetsSelectMenu bikeAssistPresetsSelectMenu;
 	ConfigStore& configStore;
 public:
 	ScrollMenuItem configBikeMenuItem;
 public:
-	BikeAssistPresetsMenu(ConfigStore& configStore, lv_indev_t* indev, ButtonLabelBar* buttonLabelBar = NULL);
+	BikeAssistPresetsMenu(ConfigStore& configStore, lv_indev_t* indev, ButtonLabelBar* buttonLabelBar = NULL) :
+		bikeAssistPresetsSelectMenu("Presets", "Back", configStore, indev, buttonLabelBar),
+		configBikeMenuItem("Presets"),
+		configStore(configStore)
+	{
+		this->configBikeMenuItem.setPopupItem(&this->bikeAssistPresetsSelectMenu);
+	}
 };
 
 #endif

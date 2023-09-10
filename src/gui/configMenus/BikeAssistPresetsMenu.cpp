@@ -1,27 +1,18 @@
 #include "BikeAssistPresetsMenu.h"
 #include "..\..\config\AssistPresets.h"
 
-BikeAssistPresetsMenu::BikeAssistPresetsMenu(ConfigStore& configStore, lv_indev_t* indev, ButtonLabelBar* buttonLabelBar) :
-	assistPresetIntegerSelectMenu("Presets", "Back", configStore, indev, buttonLabelBar),
-	configBikeMenuItem("Presets"),
-	configStore(configStore)
+lv_obj_t* BikeAssistPresetsSelectMenu::createLvObj(lv_obj_t* parent)
 {
-	this->configBikeMenuItem.setPopupItem(&this->assistPresetIntegerSelectMenu);
-}
-
-int AssistPresetSelectMenu::valueInitCB() {
 	this->deleteAllMenuItems();
 	int i = 0;
 	for (auto it = this->configStore.getDisplayConfig().bikeAssistPresets.begin(); it != this->configStore.getDisplayConfig().bikeAssistPresets.end(); it++) {
 		this->addMenuItem(it->Name.c_str(), i);
 		i++;
 	}
-
-	// Back button is pre selected
-	return -1;
+	return ValueSelectMenu::createLvObj(parent);
 }
 
-void AssistPresetSelectMenu::valueChangeCB(int newValue) {
+void BikeAssistPresetsSelectMenu::valueChangeCB(int newValue) {
 	if (newValue >= 0 && newValue < this->configStore.getDisplayConfig().bikeAssistPresets.size()) {
 		BikeConfig bikeConfig = this->configStore.getBikeConfig();
 		bikeConfig.setIntValue(BikeConfigAttributeIndex::SupportAssistEco, this->configStore.getDisplayConfig().bikeAssistPresets[newValue].supportAssistLevels.eco);
@@ -35,8 +26,6 @@ void AssistPresetSelectMenu::valueChangeCB(int newValue) {
 		bikeConfig.setManagedValue(BikeConfigAttributeIndex::PeakPowerAssistLevelsManaged, true);
 		
 		this->configStore.updateBikeConfig(bikeConfig);
-
-
 	}
 	this->exitButtonCB(NULL);
 }

@@ -1,5 +1,5 @@
-#ifndef _DISPLAY_ASSIST_PRESET_STORE_MENU_H
-#define _DISPLAY_ASSIST_PRESET_STORE_MENU_H
+#ifndef _DISPLAY_ASSIST_PRESET_DELETE_MENU_H
+#define _DISPLAY_ASSIST_PRESET_DELETE_MENU_H
 
 #include "../ScrollMenuItem.h"
 #include "../IntegerSelectMenu.h"
@@ -7,19 +7,13 @@
 
 #include "../../dev/ConfigStore.h"
 
-class DisplayAssistPresetsStoreSelectMenu : public IntegerSelectMenu {
-public:
-	static std::vector<String> BikeAssistPresetNames;
+class DisplayAssistPresetsDeleteSelectMenu : public IntegerSelectMenu {
 private:
     ConfigStore& configStore;
     BikeConfig bikeConfig;
     BikeConfigAttributeIndex bikeConfigAttributeIndex;
-    /// <summary>
-    /// This identifies if manged
-    /// </summary>
-    bool configureAttributeManaged;
 public:
-	DisplayAssistPresetsStoreSelectMenu(const char* titleText, const char* exitButtonText, ConfigStore& configStore, lv_indev_t* indev, ButtonLabelBar* buttonLabelBar = NULL) :
+	DisplayAssistPresetsDeleteSelectMenu(const char* titleText, const char* exitButtonText, ConfigStore& configStore, lv_indev_t* indev, ButtonLabelBar* buttonLabelBar = NULL) :
 		IntegerSelectMenu(titleText, exitButtonText, indev, buttonLabelBar), configStore(configStore) {
         this->configStore = configStore;
     }
@@ -46,19 +40,19 @@ public:
 	virtual void valueFinishCB() {};
 };
 
-class DisplayAssistPresetsStoreMenu {
+class DisplayAssistPresetsDeleteMenu {
 private:
-	DisplayAssistPresetsStoreSelectMenu displayAssistPresetsStoreSelectMenu;
+	DisplayAssistPresetsDeleteSelectMenu displayAssistPresetsDeleteSelectMenu;
 	ConfigStore& configStore;
 public:
 	ScrollMenuItem menuItem;
 public:
-	DisplayAssistPresetsStoreMenu(ConfigStore& configStore, lv_indev_t* indev, ButtonLabelBar* buttonLabelBar = NULL) :
-		displayAssistPresetsStoreSelectMenu("Store Presets", "Back", configStore, indev, buttonLabelBar),
-		menuItem("Store"),
-		configStore(configStore)
+	DisplayAssistPresetsDeleteMenu(ConfigStore& configStore, lv_indev_t* indev, ButtonLabelBar* buttonLabelBar = NULL) :
+		displayAssistPresetsDeleteSelectMenu("Delete Presets", "Back", configStore, indev, buttonLabelBar),
+		menuItem("Delete"),
+		configStore(configStore)	
 	{
-		this->menuItem.setPopupItem(&this->displayAssistPresetsStoreSelectMenu);
+		this->menuItem.setPopupItem(&this->displayAssistPresetsDeleteSelectMenu);
 	}
 };
 

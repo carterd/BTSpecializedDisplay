@@ -1,83 +1,37 @@
 #include "DisplayAssistPresetsStoreMenu.h"
 #include "..\..\config\AssistPresets.h"
 
-DisplayAssistPresetsDeleteMenu::DisplayAssistPresetsDeleteMenu(ConfigStore& configStore, lv_indev_t* indev, ButtonLabelBar* buttonLabelBar) :
-	displayAssistPresetsDeleteSelectMenu("Delete Presets", "Back", configStore, indev, buttonLabelBar),
-	menuItem("Delete"),
-	configStore(configStore)
+lv_obj_t* DisplayAssistPresetsStoreSelectMenu::createLvObj(lv_obj_t* parent)
 {
-	int i = 0;
-	for (auto it = this->configStore.getDisplayConfig().bikeAssistPresets.begin(); it != this->configStore.getDisplayConfig().bikeAssistPresets.end(); it++) {
-		this->displayAssistPresetsDeleteSelectMenu.addMenuItem(it->Name.c_str(), i);
-		i++;
-	}
-	this->menuItem.setPopupItem(&this->displayAssistPresetsDeleteSelectMenu);
-}
-
-DisplayAssistPresetsStoreMenu::DisplayAssistPresetsStoreMenu(ConfigStore& configStore, lv_indev_t* indev, ButtonLabelBar* buttonLabelBar) :
-	displayAssistPresetsStoreSelectMenu("Store Presets", "Back", configStore, indev, buttonLabelBar),
-	menuItem("Store"),
-	configStore(configStore)
-{
-	this->menuItem.setPopupItem(&this->displayAssistPresetsStoreSelectMenu);
-}
-
-int DisplayAssistPresetsStoreSelectMenu::valueInitCB() {
 	this->deleteAllMenuItems();
 	int i = 0;
-	// Show all the preset names for storage
 	for (auto it = BikeAssistPresetNames.begin(); it != BikeAssistPresetNames.end(); it++) {
 		this->addMenuItem(it->c_str(), i);
 		i++;
 	}
-	// Nothing selected
-	return -1;
+	return ValueSelectMenu::createLvObj(parent);
 }
 
 void DisplayAssistPresetsStoreSelectMenu::valueChangeCB(int newValue) {
 	BikeConfig bikeConfig = this->configStore.getBikeConfig();	
-	/*
-	if (newValue >= 0 && newValue < this->configStore.getDisplayConfig().bikeAssistPresets.size()) {
-		BikeConfig bikeConfig = this->configStore.getBikeConfig();
-		bikeConfig.setIntValue(BikeConfigAttributeIndex::SupportAssistEco, this->configStore.getDisplayConfig().bikeAssistPresets[newValue].supportAssistLevels.eco);
-		bikeConfig.setIntValue(BikeConfigAttributeIndex::SupportAssistTrail, this->configStore.getDisplayConfig().bikeAssistPresets[newValue].supportAssistLevels.trail);
-		bikeConfig.setIntValue(BikeConfigAttributeIndex::SupportAssistTurbo, this->configStore.getDisplayConfig().bikeAssistPresets[newValue].supportAssistLevels.turbo);
-		bikeConfig.setManagedValue(BikeConfigAttributeIndex::SupportAssistLevelsManaged, true);
 
-		bikeConfig.setIntValue(BikeConfigAttributeIndex::PeakPowerAssistEco, this->configStore.getDisplayConfig().bikeAssistPresets[newValue].peakPowerAssistLevels.eco);
-		bikeConfig.setIntValue(BikeConfigAttributeIndex::PeakPowerAssistTrail, this->configStore.getDisplayConfig().bikeAssistPresets[newValue].peakPowerAssistLevels.trail);
-		bikeConfig.setIntValue(BikeConfigAttributeIndex::PeakPowerAssistTurbo, this->configStore.getDisplayConfig().bikeAssistPresets[newValue].peakPowerAssistLevels.turbo);
-		bikeConfig.setManagedValue(BikeConfigAttributeIndex::PeakPowerAssistLevelsManaged, true);
-		
-		this->configStore.updateBikeConfig(bikeConfig);
-
-
-	}
-	*/
-	this->exitButtonCB(NULL);
-}
-
-int DisplayAssistPresetsDeleteSelectMenu::valueInitCB() {
-	this->deleteAllMenuItems();
-	int i = 0;	
-	for (auto it = this->configStore.getDisplayConfig().bikeAssistPresets.begin(); it != this->configStore.getDisplayConfig().bikeAssistPresets.end(); it++) {
-		this->addMenuItem(it->Name.c_str(), i);
-		i++;
-	}
-	// Nothing selected
-	return -1;
-}
-
-void DisplayAssistPresetsDeleteSelectMenu::valueChangeCB(int newValue) {
-	if (newValue >= 0 && newValue < this->configStore.getDisplayConfig().bikeAssistPresets.size()) {
-		DisplayConfig displayConfig = this->configStore.getDisplayConfig();
-		displayConfig.bikeAssistPresets.erase(displayConfig.bikeAssistPresets.begin() + newValue);
-		this->configStore.updateDisplayConfig(displayConfig);
+	if (newValue >= 0 && newValue < BikeAssistPresetNames.size()) {
+		BikeAssistPreset bikeAssistPreset(BikeAssistPresetNames[newValue], this->configStore.getBikeConfig().supportAssistLevels.value, this->configStore.getBikeConfig().peakPowerAssistLevels.value);
+        DisplayConfig displayConfig = this->configStore.getDisplayConfig();
+        for (auto it = displayConfig.bikeAssistPresets.begin(); it != displayConfig.bikeAssistPresets.end(); it++) {
+            if (it->Name == BikeAssistPresetNames[newValue]) {
+                displayConfig.bikeAssistPresets.erase(it);
+                break;
+            }
+        }
+        displayConfig.bikeAssistPresets.push_back(bikeAssistPreset);
+        this->configStore.updateDisplayConfig(displayConfig);
 	}
 	this->exitButtonCB(NULL);
 }
 
-static std::vector<String> BikeAssistPresetNames = { 
+
+std::vector<String> DisplayAssistPresetsStoreSelectMenu::BikeAssistPresetNames = { 
     PRESET_NAME_DEFAULT,
     PRESET_NAME_LOW,
     PRESET_NAME_ECO,

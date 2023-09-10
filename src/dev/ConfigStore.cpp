@@ -95,6 +95,7 @@ DisplayConfig& ConfigStore::getDisplayConfig() {
 }
 
 bool ConfigStore::readDisplayConfig() {
+    LV_LOG_USER("readDisplayConfig");
     if (this->fileSystem->openFile(this->displayConfigFilename, "r")) {
         bool result = true;
         result &= this->readUInt8(&(this->displayConfig.contrast));
@@ -102,14 +103,18 @@ bool ConfigStore::readDisplayConfig() {
         result &= this->readBool(&(this->displayConfig.connectBatteryOnly));
         result &= this->readBool(&(this->displayConfig.connectOnBoot));
         result &= this->readBool(&(this->displayConfig.unitsMetric));
-        result &= this->readBikeAssistPresets(&(this->displayConfig.bikeAssistPresets));
+        result &= this->readBikeAssistPresets(&(this->displayConfig.bikeAssistPresets));        
         this->fileSystem->closeFile();
+        LV_LOG_USER("assistPresets (number of presets = %d)", this->displayConfig.bikeAssistPresets.size());
+        LV_LOG_USER("read complete (result = %d)", result);
         return result;
     }
+    LV_LOG_USER("unable to open config");
     return false;
 }
 
 bool ConfigStore::writeDisplayConfig() {
+    LV_LOG_USER("writeDisplayConfig");
     if (this->fileSystem->openFile(this->displayConfigFilename, "w")) {
         bool result = true;
         result &= this->writeUInt8(&(this->displayConfig.contrast));
@@ -119,8 +124,10 @@ bool ConfigStore::writeDisplayConfig() {
         result &= this->writeBool(&(this->displayConfig.unitsMetric));
         result &= this->writeBikeAssistPresets(&(this->displayConfig.bikeAssistPresets));
         result &= this->fileSystem->closeFile();
+        LV_LOG_USER("write complete (result = %d)", result);
         return result;
     }
+    LV_LOG_USER("unable to open config");
     return false;
 }
 
@@ -153,6 +160,7 @@ bool ConfigStore::readSavesNames()
 }
 
 bool ConfigStore::readBikeConfig() {
+    LV_LOG_USER("starting");
     if (this->fileSystem->openFile(this->bikeConfigFilename, "r")) {
         bool result = true;
         result &= this->readBool(&(this->bikeConfig.beeper.managed));
@@ -170,30 +178,36 @@ bool ConfigStore::readBikeConfig() {
         result &= this->readUInt8(&(this->bikeConfig.peakPowerAssistLevels.value.trail));
         result &= this->readUInt8(&(this->bikeConfig.peakPowerAssistLevels.value.turbo));
         this->fileSystem->closeFile();
+        LV_LOG_USER("read complete (result = %d)", result);
         return result;
     }
+    LV_LOG_USER("unable to open config");
     return false;
 }
 
 bool ConfigStore::writeBikeConfig() {
+    LV_LOG_USER("writeBikeConfig");
     if (this->fileSystem->openFile(this->bikeConfigFilename, "w")) {
-        this->writeBool(&(this->bikeConfig.beeper.managed));
-        this->writeBool(&(this->bikeConfig.beeper.value));
-        this->writeBool(&(this->bikeConfig.fakeChannel.managed));
-        this->writeUInt8(&(this->bikeConfig.fakeChannel.value));
-        this->writeBool(&(this->bikeConfig.wheelCircumference.managed));
-        this->writeUInt16(&(this->bikeConfig.wheelCircumference.value));
-        this->writeBool(&(this->bikeConfig.supportAssistLevels.managed));
-        this->writeUInt8(&(this->bikeConfig.supportAssistLevels.value.eco));
-        this->writeUInt8(&(this->bikeConfig.supportAssistLevels.value.trail));
-        this->writeUInt8(&(this->bikeConfig.supportAssistLevels.value.turbo));
-        this->writeBool(&(this->bikeConfig.peakPowerAssistLevels.managed));
-        this->writeUInt8(&(this->bikeConfig.peakPowerAssistLevels.value.eco));
-        this->writeUInt8(&(this->bikeConfig.peakPowerAssistLevels.value.trail));
-        this->writeUInt8(&(this->bikeConfig.peakPowerAssistLevels.value.turbo));
+        bool result = true;
+        result &= this->writeBool(&(this->bikeConfig.beeper.managed));
+        result &= this->writeBool(&(this->bikeConfig.beeper.value));
+        result &= this->writeBool(&(this->bikeConfig.fakeChannel.managed));
+        result &= this->writeUInt8(&(this->bikeConfig.fakeChannel.value));
+        result &= this->writeBool(&(this->bikeConfig.wheelCircumference.managed));
+        result &= this->writeUInt16(&(this->bikeConfig.wheelCircumference.value));
+        result &= this->writeBool(&(this->bikeConfig.supportAssistLevels.managed));
+        result &= this->writeUInt8(&(this->bikeConfig.supportAssistLevels.value.eco));
+        result &= this->writeUInt8(&(this->bikeConfig.supportAssistLevels.value.trail));
+        result &= this->writeUInt8(&(this->bikeConfig.supportAssistLevels.value.turbo));
+        result &= this->writeBool(&(this->bikeConfig.peakPowerAssistLevels.managed));
+        result &= this->writeUInt8(&(this->bikeConfig.peakPowerAssistLevels.value.eco));
+        result &= this->writeUInt8(&(this->bikeConfig.peakPowerAssistLevels.value.trail));
+        result &= this->writeUInt8(&(this->bikeConfig.peakPowerAssistLevels.value.turbo));
         this->fileSystem->closeFile();
+        LV_LOG_USER("write complete (result = %d)", result);
         return true;
     }
+    LV_LOG_USER("unable to open config");
     return false;
 }
 
