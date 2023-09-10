@@ -81,7 +81,7 @@ wish to ride with.
 
 If the user wishes to return to the main functional areas they should hold [SELECT] for about
 a second, and release and the display should disconnect from the e-bike and the display returned
-to navigating the four main functional areas.
+to navigating the three main functional areas.
 
 ### Configuring the Display
 
