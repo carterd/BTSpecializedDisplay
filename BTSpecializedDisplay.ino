@@ -31,14 +31,16 @@ BluetoothController* bluetoothController;
 ConfigStore* configStore;
 
 bool resetButtonTest(Encoder* encoder) {
+    // Specific de-bounce for two button encoders
+    encoder->update();
     unsigned long startTime = millis();
     do {
         unsigned long radius =  (millis() - startTime) / (MIN_RESET_BUTTON_PRESS_TIME_MS / DISPLAY_WIDTH);
         encoder->update();
-        if ((encoder->keyPressed() && encoder->lastKeyPressed() == Encoder::EncoderKey::ENCODER_ENTER)) {
+        if ((encoder->keyPressed() && encoder->lastKeyPressed() == Encoder::EncoderKey::ENCODER_RIGHT)) {
             displayfillCircle(radius);      
         }
-    } while (encoder->keyPressed() && encoder->lastKeyPressed() == Encoder::EncoderKey::ENCODER_ENTER);
+    } while (encoder->keyPressed() && encoder->lastKeyPressed() == Encoder::EncoderKey::ENCODER_RIGHT);
     if (millis() - startTime > MIN_RESET_BUTTON_PRESS_TIME_MS) return true;
     return false;
 }
