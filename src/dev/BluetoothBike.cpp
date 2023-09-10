@@ -131,8 +131,10 @@ bool BluetoothBike::subscribeCscNotifications() {
  * 
  */
 void BluetoothBike::checkForChange() {
+    static bool connected = false;
     // Controller believes the bike is connected
     if (this->isConnected()) {
+        connected = true;
         // Attempt to poll the device and receive any notifications
         this->poll();
 
@@ -152,6 +154,13 @@ void BluetoothBike::checkForChange() {
     }
     else {
       this->bikeStatusLastUpdateTime = 0;
+      if (connected) {
+        // Catch any disconnections
+        if (this->listener_obj) {
+          lv_event_send(this->listener_obj, LV_EVENT_REFRESH, this);
+        }
+        connected = false;
+      }
     }
 }
 

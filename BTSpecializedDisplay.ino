@@ -109,7 +109,6 @@ void setup() {
 }
 
 void loop() {
-
   // put your main code here, to run repeatedly:
   lv_task_handler(); // Call LittleVGL task handler periodically
   unsigned long start = millis();
